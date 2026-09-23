@@ -4,7 +4,7 @@
 
 We're launching an e-commerce platform for construction materials (cement, steel, sand, aggregates, bricks, tiles) in a single district in Karnataka. The business already runs deliveries manually (no delivery integration needed) and collects payment via UPI outside any gateway. The goal of this document is to lock in a concrete architecture and build sequence for a v1 that is deliberately simple but production-quality — no speculative multi-district, multi-payment-gateway, or notification infrastructure.
 
-The working directory (`/Users/sannidihim/medusa-shop`, not yet a git repo) already contains a **Medusa DTC Starter** scaffold: a Turborepo monorepo with `apps/backend` (Medusa v2) and `apps/storefront` (Next.js 15.5/React 19). Investigation found:
+The working directory (`/Users/sannidihim/construction-hub`, git repo `construction-hub` on GitHub) already contains a **Medusa DTC Starter** scaffold: a Turborepo monorepo with `apps/backend` (Medusa v2) and `apps/storefront` (Next.js 15.5/React 19). Investigation found:
 - `apps/backend` is essentially a **blank Medusa v2 skeleton** — `medusa-config.ts` only has `projectConfig` (no modules registered at all), no Stripe/DTC-specific dependencies, and `src/modules`/`workflows`/`subscribers`/`jobs` are empty placeholders. The only real artifact is `src/migration-scripts/initial-data-seed.ts`, which seeds generic Medusa demo apparel data (Shirts/Sweatshirts, a Denmark/EUR region) — irrelevant and to be replaced.
 - `apps/storefront` has a **substantial, working DTC funnel**: `[countryCode]`-based routing, product browsing (PDP/store/categories), cart, a Stripe-based checkout, and a full account module (login, addresses, orders, profile). This is real, reusable plumbing.
 
