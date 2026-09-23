@@ -39,3 +39,23 @@ Full pass over the dev environment to catch mistakes before building further:
 - Fixed a stale onboarding path in `apps/backend/.env` (still pointed at the pre-rename `medusa-shop` folder name; local-only file, not committed to git).
 - Confirmed Jest is correctly wired (`apps/backend`) — it currently reports "no tests found," which is expected since no custom modules exist yet to test.
 - Re-ran `./scripts/check.sh` after all fixes — passes clean.
+
+## Phase 1 — Catalog & delivery-area module (done)
+
+**Delivery-area module** (§2.3/§3.3): `delivery-area` module with a `ServiceablePincode` model (pincode unique, area_label, is_active) and `isServiceable(pincode)` on its service. Registered in `medusa-config.ts`, migration generated and applied. Routes: `GET /store/delivery-area/check?pincode=...` (storefront gate, built next) and admin CRUD (`GET`/`POST /admin/delivery-area/pincodes`, `POST`/`DELETE .../:id`). Mutations run through workflows (`create`/`update`/`delete-serviceable-pincode`, each with compensation) rather than calling the service directly from route handlers — the project's own `@medusajs/eslint-plugin` flagged the direct-call pattern, so this is the idiomatic fix, not a style preference. Verified against a running backend: full CRUD cycle, serviceability reflecting `is_active`, soft-delete (not hard-delete), 400 on a missing pincode, 401 on an unauthenticated admin request.
+
+**Catalog seed**: real business data (product catalog + Davangere pincode list) supplied directly, with a few gaps filled in deliberately rather than guessed:
+- **Pincodes**: 42 unique, deduplicated from the business's list. One pincode (581119, Ranebennur/Haveri district) was dropped — outside the single-district scope this plan assumes.
+- **Sand's data shape**: the business wanted "Product: Sand → Variant: M-Sand/P-Sand/Dust → a further wheeler-size choice under that." Medusa doesn't have a third level under a variant — a variant *is* the full combination of a product's options. Modeled as two independent options instead (`Type`: M-Sand/P-Sand/Dust, `Load Size`: 6/8/10-wheeler), so each Type×Load-Size combination becomes its own variant (e.g. "M-Sand / 6-Wheeler Load") — same customer-facing choice, standard Medusa shape.
+- **Unpriced placeholders, left for Admin to fill in**: SK Steel, JSW Steel, all 9 Sand variants, all 3 Crushed Stone/Aggregate variants (bulk materials are sold by negotiated truck-load, no fixed rate existed in the source data).
+- **Named placeholders** (source data had a rate but no label): "Steel (Standard)" for an unbranded ₹66/kg row; "Size 1"/"Size 2" for the two unlabeled concrete-block prices (₹48/₹52).
+- **Tiles**: seeded as an empty category (so it shows in nav) — the source catalog had no tile products at all.
+- 15 products, 21 variants total across 6 categories.
+
+**Found and fixed two real bugs during verification** (not just type-checked — actually browsed every category and product page against a live backend):
+- Medusa's auto-slugified handle keeps literal `/` and `&` from a product/category name. `/` turns one URL path segment into two (`Aggregates/Jelly` → 404 via a broken nested path); `&` 404s the route outright (`Steel & TMT Bars`, `Bricks & Blocks`, `Clay / Mud Bricks`, `Crushed Stone / Aggregate`). Fixed with an explicit `toHandle()` slugifier applied to every category and product, not just the ones caught in this pass — so a future catalog addition with a `/` or `&` in its name doesn't silently repeat this.
+- The core Medusa loader that auto-provisions a default store/sales-channel/publishable-key on first boot (see Phase 0 note above) kept leaving stray rows behind on every reseed, requiring manual SQL cleanup each time. Made the seed script self-cleaning: it now finds and deletes ("Medusa Store"/"Default Sales Channel"/"Default Publishable API Key") before creating its own, revoking the API key first (Medusa refuses to delete an unrevoked key).
+
+Verified end-to-end against a live backend + storefront: all 6 category pages and all 15 product pages return 200; a real price (₹330, Ultratech Cement) resolves through the pricing pipeline for the seeded region; the pincode check returns `true` for a serviceable pincode and `false` for the dropped one (581119).
+
+**Not done yet:** the storefront's pincode-check UI at the checkout address step (§4.2) — the backend endpoint exists and is verified, but nothing in the storefront calls it yet. That's next.
