@@ -1,24 +1,64 @@
 "use client"
 
-import { Heading, Text, clx } from "@modules/common/components/ui"
-
-import PaymentButton from "../payment-button"
+import { useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { HttpTypes } from "@medusajs/types"
+import { initiatePaymentSession, placeOrder } from "@lib/data/cart"
+import { listCartPaymentMethods } from "@lib/data/payment"
+import ErrorMessage from "@modules/checkout/components/error-message"
+import { Button, Heading, Text, clx } from "@modules/common/components/ui"
 
 const Review = ({ cart }: { cart: HttpTypes.StoreCart }) => {
   const searchParams = useSearchParams()
 
   const isOpen = searchParams.get("step") === "review"
 
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
   const paidByGiftcard = !!(
-    (cart as unknown as Record<string, unknown>)?.gift_cards && ((cart as unknown as Record<string, unknown>)?.gift_cards as unknown[])?.length > 0 && cart?.total === 0
+    (cart as unknown as Record<string, unknown>)?.gift_cards &&
+    ((cart as unknown as Record<string, unknown>)?.gift_cards as unknown[])
+      ?.length > 0 &&
+    cart?.total === 0
   )
 
   const previousStepsCompleted =
-    cart.shipping_address &&
-    (cart.shipping_methods?.length ?? 0) > 0 &&
-    (cart.payment_collection || paidByGiftcard)
+    !!cart.shipping_address && (cart.shipping_methods?.length ?? 0) > 0
+
+  // Single-provider (system/manual UPI) payment flow: no payment method
+  // choice UI. Instead of a dedicated payment step, Review makes sure a
+  // payment session exists (using the storefront's one payment provider)
+  // right before placing the order. A later phase replaces this with the
+  // real UPI QR / status UI (see docs/ARCHITECTURE.md §4.2, §2.7).
+  const handlePlaceOrder = async () => {
+    setError(null)
+    setSubmitting(true)
+
+    try {
+      const activeSession = cart.payment_collection?.payment_sessions?.find(
+        (session) => session.status === "pending"
+      )
+
+      if (!activeSession && !paidByGiftcard) {
+        const paymentMethods = await listCartPaymentMethods(
+          cart.region?.id ?? ""
+        )
+        const providerId = paymentMethods?.[0]?.id
+
+        if (!providerId) {
+          throw new Error("No payment method is available for this order.")
+        }
+
+        await initiatePaymentSession(cart, { provider_id: providerId })
+      }
+
+      await placeOrder()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+      setSubmitting(false)
+    }
+  }
 
   return (
     <div className="bg-white">
@@ -47,7 +87,15 @@ const Review = ({ cart }: { cart: HttpTypes.StoreCart }) => {
               </Text>
             </div>
           </div>
-          <PaymentButton cart={cart} data-testid="submit-order-button" />
+          <Button
+            size="large"
+            onClick={handlePlaceOrder}
+            isLoading={submitting}
+            data-testid="submit-order-button"
+          >
+            Place order
+          </Button>
+          <ErrorMessage error={error} data-testid="review-error-message" />
         </>
       )}
     </div>

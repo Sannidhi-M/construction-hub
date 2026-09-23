@@ -1,13 +1,13 @@
-import { Heading } from "@modules/common/components/ui"
+import { Heading, Text } from "@modules/common/components/ui"
 import { cookies as nextCookies } from "next/headers"
 
 import CartTotals from "@modules/common/components/cart-totals"
+import Divider from "@modules/common/components/divider"
 import Help from "@modules/order/components/help"
 import Items from "@modules/order/components/items"
 import OnboardingCta from "@modules/order/components/onboarding-cta"
 import OrderDetails from "@modules/order/components/order-details"
 import ShippingDetails from "@modules/order/components/shipping-details"
-import PaymentDetails from "@modules/order/components/payment-details"
 import { HttpTypes } from "@medusajs/types"
 
 type OrderCompletedTemplateProps = {
@@ -43,7 +43,21 @@ export default async function OrderCompletedTemplate({
           <Items order={order} />
           <CartTotals totals={order} />
           <ShippingDetails order={order} />
-          <PaymentDetails order={order} />
+          {/*
+           * Minimal placeholder — the system/manual UPI provider has no
+           * card-style payment details to show yet. A later phase replaces
+           * this with the real UPI/status UI (see docs/ARCHITECTURE.md §4.2,
+           * §2.7).
+           */}
+          <div>
+            <Heading level="h2" className="flex flex-row text-3xl-regular my-6">
+              Payment
+            </Heading>
+            <Text data-testid="payment-status">
+              Payment status: {order.payment_status}
+            </Text>
+            <Divider className="mt-8" />
+          </div>
           <Help />
         </div>
       </div>

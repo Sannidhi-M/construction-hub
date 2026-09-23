@@ -114,7 +114,9 @@ const Shipping: React.FC<ShippingProps> = ({
   }
 
   const handleSubmit = () => {
-    router.push(pathname + "?step=payment", { scroll: false })
+    // No dedicated payment step (single system/manual UPI provider) — go
+    // straight to review. See checkout-form/index.tsx.
+    router.push(pathname + "?step=review", { scroll: false })
   }
 
   const handleSetShippingMethod = async (
