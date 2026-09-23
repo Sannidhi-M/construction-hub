@@ -14,11 +14,12 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-    "baseUrl": "./src",
     "paths": {
-      "@lib/*": ["lib/*"],
-      "@modules/*": ["modules/*"],
-      "@pages/*": ["pages/*"]
+      "@lib/*": ["./src/lib/*"],
+      "@modules/*": ["./src/modules/*"],
+      "@pages/*": ["./src/pages/*"],
+      "types/*": ["./src/types/*"],
+      "styles/*": ["./src/styles/*"]
     },
     "plugins": [
       {
