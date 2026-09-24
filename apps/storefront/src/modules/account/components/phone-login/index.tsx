@@ -1,6 +1,6 @@
 "use client"
 
-import { requestPhoneOtp, verifyPhoneOtp } from "@lib/data/customer"
+import { completePhoneSignup, requestPhoneOtp, verifyPhoneOtp } from "@lib/data/customer"
 import ErrorMessage from "@modules/checkout/components/error-message"
 import { SubmitButton } from "@modules/checkout/components/submit-button"
 import Input from "@modules/common/components/input"
@@ -9,16 +9,21 @@ import { useActionState, useEffect, useState } from "react"
 
 /**
  * Phone/OTP login — a single unified flow for both new and returning
- * customers (§3.1/§4.2). There's no separate "register with phone" step:
- * requesting an OTP works the same either way, and the backend creates the
- * account on first successful verification.
+ * customers (§3.1/§4.2). There's no separate "register with phone" screen:
+ * requesting an OTP works the same either way. A returning customer is
+ * logged in as soon as the OTP is verified; a brand-new phone number gets
+ * one more step asking for email (Medusa requires it to create a customer
+ * account, and the business wants it collected for shipping/invoicing
+ * regardless of signup method).
  */
 const PhoneLogin = () => {
-  const [step, setStep] = useState<"phone" | "otp">("phone")
+  const [step, setStep] = useState<"phone" | "otp" | "email">("phone")
   const [phone, setPhone] = useState("")
+  const [pendingToken, setPendingToken] = useState("")
 
   const [requestState, requestAction] = useActionState(requestPhoneOtp, null)
   const [verifyState, verifyAction] = useActionState(verifyPhoneOtp, null)
+  const [signupState, signupAction] = useActionState(completePhoneSignup, null)
 
   useEffect(() => {
     if (requestState?.state === "otp_sent") {
@@ -26,6 +31,44 @@ const PhoneLogin = () => {
       setStep("otp")
     }
   }, [requestState])
+
+  useEffect(() => {
+    if (verifyState?.state === "email_required") {
+      setPendingToken(verifyState.token)
+      setStep("email")
+    }
+  }, [verifyState])
+
+  if (step === "email") {
+    return (
+      <form className="w-full" action={signupAction}>
+        <input type="hidden" name="phone" value={phone} />
+        <input type="hidden" name="token" value={pendingToken} />
+        <Text className="text-center text-small-regular text-ui-fg-subtle mb-4">
+          Almost done — what&apos;s your email? We&apos;ll use it for order
+          updates and invoices.
+        </Text>
+        <div className="flex flex-col w-full gap-y-2">
+          <Input
+            label="Email"
+            name="email"
+            type="email"
+            title="Enter a valid email address."
+            autoComplete="email"
+            required
+            data-testid="signup-email-input"
+          />
+        </div>
+        <ErrorMessage
+          error={signupState?.state === "error" ? signupState.error : null}
+          data-testid="signup-email-error-message"
+        />
+        <SubmitButton data-testid="complete-signup-button" className="w-full mt-6">
+          Continue
+        </SubmitButton>
+      </form>
+    )
+  }
 
   if (step === "otp") {
     return (

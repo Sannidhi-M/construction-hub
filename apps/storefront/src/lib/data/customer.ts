@@ -23,6 +23,7 @@ export type CustomerAuthState =
   | { state: "error"; error: string }
   | { state: "verification_required"; email: string }
   | { state: "otp_sent"; phone: string }
+  | { state: "email_required"; phone: string; token: string }
   | { state: "success" }
   | null
 
@@ -285,42 +286,79 @@ export async function verifyPhoneOtp(
     return { state: "error", error: String(error) }
   }
 
-  // Same customer-record reconciliation as email/password login
-  // (completeLogin, below) — a fresh auth identity's token isn't bound to a
-  // customer record yet. Unlike emailpass, phone-auth has no secret to
-  // re-submit synchronously for a second token, so getting a customer-bound
-  // token after creating the record uses `refresh()` — the same mechanism
-  // the SDK's own OAuth callback flow uses for this exact "actorless token
-  // -> bound token" problem, not another OTP round-trip.
+  // A returning customer's token is already bound to their customer record
+  // — finish logging in. A brand-new phone identity isn't: Medusa's own
+  // customer-account-creation workflow requires an email unconditionally
+  // (confirmed the hard way — the store API's input schema marks it
+  // optional, but a deeper workflow-level business rule enforces it
+  // regardless), and the business wants email collected for every
+  // customer anyway (shipping/invoicing), so a brand-new phone signup is
+  // routed to one more step (completePhoneSignup) rather than silently
+  // synthesizing a placeholder email.
   const customerExists = await sdk.store.customer
     .retrieve({}, { authorization: `Bearer ${token}` })
     .then(() => true)
     .catch(() => false)
 
   if (!customerExists) {
-    try {
-      await sdk.store.customer.create(
-        { phone },
-        {},
-        { authorization: `Bearer ${token}` }
-      )
-
-      const refreshed = await sdk.auth.refresh({
-        authorization: `Bearer ${token}`,
-      })
-      if (!("token" in refreshed) || typeof refreshed.token !== "string") {
-        return {
-          state: "error",
-          error: "Authentication requires additional steps that aren't supported.",
-        }
-      }
-      token = refreshed.token
-    } catch (error) {
-      return { state: "error", error: String(error) }
-    }
+    return { state: "email_required", phone, token }
   }
 
   await setAuthToken(token)
+
+  const customerCacheTag = await getCacheTag("customers")
+  revalidateTag(customerCacheTag)
+
+  try {
+    await transferCart()
+  } catch (error) {
+    return { state: "error", error: String(error) }
+  }
+
+  return { state: "success" }
+}
+
+// Second step for a brand-new phone signup only (see verifyPhoneOtp above)
+// — collects the email Medusa's customer-account-creation workflow
+// requires. `token` is the actorless token from the just-verified OTP,
+// carried forward via a hidden form field; it's single-use for creating
+// this specific pending account and short-lived, the same pattern the
+// SDK's own OAuth callback flow uses for an unprovisioned token.
+export async function completePhoneSignup(
+  _currentState: unknown,
+  formData: FormData
+): Promise<CustomerAuthState> {
+  const phone = formData.get("phone") as string
+  const email = formData.get("email") as string
+  const token = formData.get("token") as string
+
+  let boundToken: string
+  try {
+    await sdk.store.customer.create(
+      { phone, email },
+      {},
+      { authorization: `Bearer ${token}` }
+    )
+
+    // Same "actorless token -> bound token" mechanism as completeLogin's
+    // email/password path would use a second login for — phone-auth has
+    // no secret to re-submit synchronously, so this uses refresh() instead,
+    // matching the SDK's own OAuth-callback flow for this exact problem.
+    const refreshed = await sdk.auth.refresh({
+      authorization: `Bearer ${token}`,
+    })
+    if (!("token" in refreshed) || typeof refreshed.token !== "string") {
+      return {
+        state: "error",
+        error: "Authentication requires additional steps that aren't supported.",
+      }
+    }
+    boundToken = refreshed.token
+  } catch (error) {
+    return { state: "error", error: String(error) }
+  }
+
+  await setAuthToken(boundToken)
 
   const customerCacheTag = await getCacheTag("customers")
   revalidateTag(customerCacheTag)
