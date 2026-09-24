@@ -8,6 +8,13 @@ import { listCartPaymentMethods } from "@lib/data/payment"
 import ErrorMessage from "@modules/checkout/components/error-message"
 import { Button, Heading, Text, clx } from "@modules/common/components/ui"
 
+// Fast, non-blocking UX feedback for the minimum-order-value decision
+// (§2.5) — the authoritative check is the completeCartWorkflow validate
+// hook on the backend (src/workflows/hooks/validate-minimum-order-value.ts),
+// which rejects checkout regardless of what this shows. Unset/0 disables
+// the check entirely (no minimum), same default as the backend.
+const MIN_ORDER_VALUE_INR = Number(process.env.NEXT_PUBLIC_MIN_ORDER_VALUE_INR ?? 0)
+
 const Review = ({ cart }: { cart: HttpTypes.StoreCart }) => {
   const searchParams = useSearchParams()
 
@@ -22,6 +29,10 @@ const Review = ({ cart }: { cart: HttpTypes.StoreCart }) => {
       ?.length > 0 &&
     cart?.total === 0
   )
+
+  const cartTotal = Number(cart.total ?? 0)
+  const belowMinimumOrderValue =
+    MIN_ORDER_VALUE_INR > 0 && cartTotal < MIN_ORDER_VALUE_INR
 
   const previousStepsCompleted =
     !!cart.shipping_address && (cart.shipping_methods?.length ?? 0) > 0
@@ -77,24 +88,37 @@ const Review = ({ cart }: { cart: HttpTypes.StoreCart }) => {
       </div>
       {isOpen && previousStepsCompleted && (
         <>
-          <div className="flex items-start gap-x-1 w-full mb-6">
-            <div className="w-full">
-              <Text className="txt-medium-plus text-ui-fg-base mb-1">
-                By clicking the Place Order button, you confirm that you have
-                read, understand and accept our Terms of Use, Terms of Sale and
-                Returns Policy and acknowledge that you have read Medusa
-                Store&apos;s Privacy Policy.
-              </Text>
-            </div>
-          </div>
-          <Button
-            size="large"
-            onClick={handlePlaceOrder}
-            isLoading={submitting}
-            data-testid="submit-order-button"
-          >
-            Place order
-          </Button>
+          {belowMinimumOrderValue ? (
+            <Text
+              className="txt-medium text-rose-500 mb-6"
+              data-testid="minimum-order-value-message"
+            >
+              A minimum order of ₹{MIN_ORDER_VALUE_INR} is required to check
+              out. Add ₹{MIN_ORDER_VALUE_INR - cartTotal} more to your cart to
+              continue.
+            </Text>
+          ) : (
+            <>
+              <div className="flex items-start gap-x-1 w-full mb-6">
+                <div className="w-full">
+                  <Text className="txt-medium-plus text-ui-fg-base mb-1">
+                    By clicking the Place Order button, you confirm that you
+                    have read, understand and accept our Terms of Use, Terms
+                    of Sale and Returns Policy and acknowledge that you have
+                    read Medusa Store&apos;s Privacy Policy.
+                  </Text>
+                </div>
+              </div>
+              <Button
+                size="large"
+                onClick={handlePlaceOrder}
+                isLoading={submitting}
+                data-testid="submit-order-button"
+              >
+                Place order
+              </Button>
+            </>
+          )}
           <ErrorMessage error={error} data-testid="review-error-message" />
         </>
       )}
