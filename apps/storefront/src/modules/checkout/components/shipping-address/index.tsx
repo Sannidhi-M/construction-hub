@@ -1,7 +1,8 @@
 import { HttpTypes } from "@medusajs/types"
-import { Container } from "@modules/common/components/ui"
+import { Container, Text } from "@modules/common/components/ui"
 import Checkbox from "@modules/common/components/checkbox"
 import Input from "@modules/common/components/input"
+import { checkPincodeServiceable } from "@lib/data/delivery-area"
 import { mapKeys } from "lodash"
 import React, { useEffect, useMemo, useState } from "react"
 import AddressSelect from "../address-select"
@@ -30,6 +31,37 @@ const ShippingAddress = ({
     "shipping_address.phone": cart?.shipping_address?.phone || "",
     email: cart?.email || "",
   })
+
+  // Fast, non-blocking feedback for delivery-area coverage. This is purely
+  // a UX hint — the authoritative check (and the one that actually blocks
+  // checkout) runs server-side in setAddresses when the form is submitted.
+  const [pincodeNotice, setPincodeNotice] = useState<string | null>(null)
+  const [checkingPincode, setCheckingPincode] = useState(false)
+
+  const handlePincodeBlur = async () => {
+    const pincode = formData["shipping_address.postal_code"]?.trim()
+    if (!pincode) {
+      setPincodeNotice(null)
+      return
+    }
+
+    setCheckingPincode(true)
+    try {
+      const serviceable = await checkPincodeServiceable(pincode)
+      setPincodeNotice(
+        serviceable
+          ? null
+          : `We don't currently deliver to pincode ${pincode}.`
+      )
+    } catch {
+      // Network/server error checking the pincode — don't block typing or
+      // show a false "not deliverable" notice; the submit-time server
+      // check still catches an actually undeliverable pincode.
+      setPincodeNotice(null)
+    } finally {
+      setCheckingPincode(false)
+    }
+  }
 
   const countriesInRegion = useMemo(
     () => cart?.region?.countries?.map((c) => c.iso_2),
@@ -148,15 +180,34 @@ const ShippingAddress = ({
           autoComplete="organization"
           data-testid="shipping-company-input"
         />
-        <Input
-          label="Postal code"
-          name="shipping_address.postal_code"
-          autoComplete="postal-code"
-          value={formData["shipping_address.postal_code"]}
-          onChange={handleChange}
-          required
-          data-testid="shipping-postal-code-input"
-        />
+        <div>
+          <Input
+            label="Postal code"
+            name="shipping_address.postal_code"
+            autoComplete="postal-code"
+            value={formData["shipping_address.postal_code"]}
+            onChange={handleChange}
+            onBlur={handlePincodeBlur}
+            required
+            data-testid="shipping-postal-code-input"
+          />
+          {checkingPincode && (
+            <Text
+              className="text-ui-fg-subtle txt-small mt-1"
+              data-testid="pincode-checking-message"
+            >
+              Checking delivery availability...
+            </Text>
+          )}
+          {!checkingPincode && pincodeNotice && (
+            <Text
+              className="text-rose-500 txt-small mt-1"
+              data-testid="pincode-not-serviceable-message"
+            >
+              {pincodeNotice}
+            </Text>
+          )}
+        </div>
         <Input
           label="City"
           name="shipping_address.city"

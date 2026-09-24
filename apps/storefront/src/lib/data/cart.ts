@@ -15,6 +15,7 @@ import {
 } from "./cookies"
 import { getRegion } from "./regions"
 import { getLocale } from "./locale-actions"
+import { checkPincodeServiceable } from "./delivery-area"
 
 /**
  * Retrieves a cart by its ID. If no ID is provided, it will use the cart ID from the cookies.
@@ -297,6 +298,16 @@ export async function setAddresses(currentState: unknown, formData: FormData) {
     const cartId = getCartId()
     if (!cartId) {
       throw new Error("No existing cart found when setting addresses")
+    }
+
+    const pincode = String(formData.get("shipping_address.postal_code") ?? "").trim()
+    if (pincode) {
+      const serviceable = await checkPincodeServiceable(pincode)
+      if (!serviceable) {
+        throw new Error(
+          `Sorry, we don't currently deliver to pincode ${pincode}.`
+        )
+      }
     }
 
     const data = {
