@@ -17,5 +17,54 @@ module.exports = defineConfig({
     {
       resolve: './src/modules/delivery-area',
     },
+    // Declaring the Auth/Notification modules ourselves REPLACES (not
+    // merges with) Medusa's own default `providers` array for that module
+    // (see apps/backend/node_modules/@medusajs/utils's defineConfig source)
+    // — so each provider list below explicitly re-includes the built-in
+    // provider the framework would otherwise have registered by default
+    // (auth-emailpass, notification-local), alongside the new one.
+    {
+      resolve: '@medusajs/medusa/auth',
+      options: {
+        providers: [
+          {
+            resolve: '@medusajs/medusa/auth-emailpass',
+            id: 'emailpass',
+          },
+          {
+            resolve: './src/modules/phone-otp-auth',
+            id: 'phone-auth',
+            options: {
+              jwtSecret: process.env.JWT_SECRET,
+            },
+          },
+        ],
+      },
+    },
+    {
+      resolve: '@medusajs/medusa/notification',
+      options: {
+        providers: [
+          {
+            resolve: '@medusajs/medusa/notification-local',
+            id: 'local',
+            options: {
+              name: 'Local Notification Provider',
+              channels: ['feed'],
+            },
+          },
+          {
+            resolve: './src/modules/msg91-notification',
+            id: 'msg91',
+            options: {
+              channels: ['sms'],
+              authKey: process.env.MSG91_AUTH_KEY,
+              flowId: process.env.MSG91_FLOW_ID,
+              senderId: process.env.MSG91_SENDER_ID,
+            },
+          },
+        ],
+      },
+    },
   ],
 })
