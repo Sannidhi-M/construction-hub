@@ -22,6 +22,7 @@ import {
 export type CustomerAuthState =
   | { state: "error"; error: string }
   | { state: "verification_required"; email: string }
+  | { state: "otp_sent"; phone: string }
   | { state: "success" }
   | null
 
@@ -216,6 +217,107 @@ async function completeLogin(
     }
 
     await removePendingCustomer()
+  }
+
+  await setAuthToken(token)
+
+  const customerCacheTag = await getCacheTag("customers")
+  revalidateTag(customerCacheTag)
+
+  try {
+    await transferCart()
+  } catch (error) {
+    return { state: "error", error: String(error) }
+  }
+
+  return { state: "success" }
+}
+
+// Phone/OTP login (§3.1/§4.2 of the architecture doc). A single unified flow
+// for both new and returning customers — there's no separate "register with
+// phone" screen; the backend creates the auth identity on the first
+// successful OTP verification (see phone-otp-auth's validateCallback).
+
+export async function requestPhoneOtp(
+  _currentState: unknown,
+  formData: FormData
+): Promise<CustomerAuthState> {
+  const phone = formData.get("phone") as string
+
+  try {
+    const result = await sdk.auth.login("customer", "phone-auth", { phone })
+
+    // phone-auth's authenticate() always returns `{ location: "otp" }` — it
+    // never returns a token directly; requesting an OTP is always step one
+    // of two. A `location` here just means "advance to the OTP-entry step",
+    // not a third-party redirect (unlike an OAuth provider using this same
+    // response shape).
+    if (typeof result === "object" && "location" in result) {
+      return { state: "otp_sent", phone }
+    }
+
+    return { state: "error", error: "Unexpected response requesting the OTP." }
+  } catch (error) {
+    return { state: "error", error: String(error) }
+  }
+}
+
+export async function verifyPhoneOtp(
+  _currentState: unknown,
+  formData: FormData
+): Promise<CustomerAuthState> {
+  const phone = formData.get("phone") as string
+  const otp = formData.get("otp") as string
+
+  // sdk.auth.callback() is built for GET-with-query-params OAuth callbacks
+  // (code/state in the URL) — unsuitable for a POST-body OTP submission,
+  // and putting an OTP in a query string would land it in server logs and
+  // browser history. Medusa's own framework-generated route for
+  // validateCallback accepts POST with a body, so this calls it directly.
+  let token: string
+  try {
+    const response = await sdk.client.fetch<{ token: string }>(
+      "/auth/customer/phone-auth/callback",
+      { method: "POST", body: { phone, otp } }
+    )
+    token = response.token
+  } catch (error) {
+    return { state: "error", error: String(error) }
+  }
+
+  // Same customer-record reconciliation as email/password login
+  // (completeLogin, below) — a fresh auth identity's token isn't bound to a
+  // customer record yet. Unlike emailpass, phone-auth has no secret to
+  // re-submit synchronously for a second token, so getting a customer-bound
+  // token after creating the record uses `refresh()` — the same mechanism
+  // the SDK's own OAuth callback flow uses for this exact "actorless token
+  // -> bound token" problem, not another OTP round-trip.
+  const customerExists = await sdk.store.customer
+    .retrieve({}, { authorization: `Bearer ${token}` })
+    .then(() => true)
+    .catch(() => false)
+
+  if (!customerExists) {
+    try {
+      await sdk.store.customer.create(
+        { phone },
+        {},
+        { authorization: `Bearer ${token}` }
+      )
+
+      const refreshed = await sdk.auth.refresh({
+        authorization: `Bearer ${token}`,
+      })
+      if (!("token" in refreshed) || typeof refreshed.token !== "string") {
+        return {
+          state: "error",
+          error: "Authentication requires additional steps that aren't supported.",
+        }
+      }
+      token = refreshed.token
+    } catch (error) {
+      return { state: "error", error: String(error) }
+    }
   }
 
   await setAuthToken(token)
