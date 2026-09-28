@@ -8,7 +8,9 @@ import Items from "@modules/order/components/items"
 import OnboardingCta from "@modules/order/components/onboarding-cta"
 import OrderDetails from "@modules/order/components/order-details"
 import ShippingDetails from "@modules/order/components/shipping-details"
+import UpiPayment from "@modules/checkout/components/upi-payment"
 import { HttpTypes } from "@medusajs/types"
+import { getCustomerOrderStatus } from "@lib/util/order-status"
 
 type OrderCompletedTemplateProps = {
   order: HttpTypes.StoreOrder
@@ -20,6 +22,7 @@ export default async function OrderCompletedTemplate({
   const cookies = await nextCookies()
 
   const isOnboarding = cookies.get("_medusa_onboarding")?.value === "true"
+  const customerStatus = getCustomerOrderStatus(order)
 
   return (
     <div className="py-6 min-h-[calc(100vh-64px)]">
@@ -43,19 +46,16 @@ export default async function OrderCompletedTemplate({
           <Items order={order} />
           <CartTotals totals={order} />
           <ShippingDetails order={order} />
-          {/*
-           * Minimal placeholder — the system/manual UPI provider has no
-           * card-style payment details to show yet. A later phase replaces
-           * this with the real UPI/status UI (see docs/ARCHITECTURE.md §4.2,
-           * §2.7).
-           */}
           <div>
             <Heading level="h2" className="flex flex-row text-3xl-regular my-6">
               Payment
             </Heading>
-            <Text data-testid="payment-status">
-              Payment status: {order.payment_status}
+            <Text data-testid="order-customer-status" className="mb-4">
+              Status: <span className="font-semibold">{customerStatus}</span>
             </Text>
+            {customerStatus === "Payment Pending" && (
+              <UpiPayment order={order} />
+            )}
             <Divider className="mt-8" />
           </div>
           <Help />

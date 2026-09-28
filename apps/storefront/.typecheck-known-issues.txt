@@ -105,6 +105,8 @@ src/modules/checkout/components/addresses/index.tsx: error TS2786: 'Spinner' can
 src/modules/checkout/components/addresses/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
 src/modules/checkout/components/country-select/index.tsx: error TS2786: 'NativeSelect' cannot be used as a JSX component.
 src/modules/checkout/components/review/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
+src/modules/checkout/components/upi-payment/index.tsx: error TS2786: 'Heading' cannot be used as a JSX component.
+src/modules/checkout/components/upi-payment/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
 src/modules/checkout/components/review/index.tsx: error TS2786: 'Heading' cannot be used as a JSX component.
 src/modules/checkout/components/review/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
 src/modules/checkout/components/shipping/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.

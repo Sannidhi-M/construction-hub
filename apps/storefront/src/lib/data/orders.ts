@@ -2,7 +2,7 @@
 
 import { sdk } from "@lib/config"
 import medusaError from "@lib/util/medusa-error"
-import { getAuthHeaders, getCacheOptions } from "./cookies"
+import { getAuthHeaders } from "./cookies"
 import { HttpTypes } from "@medusajs/types"
 
 export const retrieveOrder = async (id: string) => {
@@ -10,10 +10,13 @@ export const retrieveOrder = async (id: string) => {
     ...(await getAuthHeaders()),
   }
 
-  const next = {
-    ...(await getCacheOptions("orders")),
-  }
-
+  // Not cached: an order's payment/fulfillment status (§2.7) changes via
+  // admin actions (UPI verification, fulfillment updates) that happen
+  // entirely outside this Next.js app — there's no webhook or action here
+  // to `revalidateTag` on when that happens, unlike the Stripe flow this
+  // replaced. A stale cached order would show "Payment Pending" forever,
+  // even after the customer refreshes post-verification (confirmed live
+  // during Phase 4 testing).
   return sdk.client
     .fetch<HttpTypes.StoreOrderResponse>(`/store/orders/${id}`, {
       method: "GET",
@@ -22,8 +25,7 @@ export const retrieveOrder = async (id: string) => {
           "*payment_collections.payments,*items,*items.metadata,*items.variant,*items.product",
       },
       headers,
-      next,
-      cache: "force-cache",
+      cache: "no-store",
     })
     .then(({ order }) => order)
     .catch((err) => medusaError(err))
@@ -38,10 +40,8 @@ export const listOrders = async (
     ...(await getAuthHeaders()),
   }
 
-  const next = {
-    ...(await getCacheOptions("orders")),
-  }
-
+  // Not cached — same reasoning as retrieveOrder above: this list's
+  // per-order status can change via admin actions this app never sees.
   return sdk.client
     .fetch<HttpTypes.StoreOrderListResponse>(`/store/orders`, {
       method: "GET",
@@ -53,8 +53,7 @@ export const listOrders = async (
         ...filters,
       },
       headers,
-      next,
-      cache: "force-cache",
+      cache: "no-store",
     })
     .then(({ orders }) => orders)
     .catch((err) => medusaError(err))
