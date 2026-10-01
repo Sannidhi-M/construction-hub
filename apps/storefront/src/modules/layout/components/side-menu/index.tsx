@@ -4,11 +4,14 @@ import { Popover, PopoverPanel, Transition } from "@headlessui/react"
 import { XMark } from "@medusajs/icons"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import { Text } from "@modules/common/components/ui"
+import { SITE_NAME } from "@lib/constants"
 import { Fragment } from "react"
 
 const SideMenuItems = {
-  Home: "/",
-  Store: "/store",
+  Materials: "/store",
+  "Labour & Manpower": "/labour",
+  "Engineering Services": "/engineering",
+  Contact: "/contact",
   Account: "/account",
   Cart: "/cart",
 }
@@ -65,7 +68,7 @@ const SideMenu = () => {
                               href={href}
                               className="text-3xl leading-10 hover:text-ui-fg-disabled"
                               onClick={close}
-                              data-testid={`${name.toLowerCase()}-link`}
+                              data-testid={`${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-link`}
                             >
                               {name}
                             </LocalizedClientLink>
@@ -75,7 +78,7 @@ const SideMenu = () => {
                     </ul>
                     <div className="flex flex-col gap-y-6">
                       <Text className="flex justify-between txt-compact-small">
-                        © {new Date().getFullYear()} Medusa Store. All rights
+                        © {new Date().getFullYear()} {SITE_NAME}. All rights
                         reserved.
                       </Text>
                     </div>

@@ -136,7 +136,7 @@ export async function addToCart({
     ...(await getAuthHeaders()),
   }
 
-  await sdk.store.cart
+  return await sdk.store.cart
     .createLineItem(
       cart.id,
       {
@@ -146,12 +146,14 @@ export async function addToCart({
       {},
       headers
     )
-    .then(async () => {
+    .then(async ({ cart }: { cart: HttpTypes.StoreCart }) => {
       const cartCacheTag = await getCacheTag("carts")
       revalidateTag(cartCacheTag)
 
       const fulfillmentCacheTag = await getCacheTag("fulfillment")
       revalidateTag(fulfillmentCacheTag)
+
+      return cart
     })
     .catch(medusaError)
 }

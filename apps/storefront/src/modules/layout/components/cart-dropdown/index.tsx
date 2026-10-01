@@ -9,6 +9,7 @@ import {
 import { convertToLocale } from "@lib/util/money"
 import { HttpTypes } from "@medusajs/types"
 import { Button } from "@modules/common/components/ui"
+import { ShoppingCart } from "@medusajs/icons"
 import DeleteButton from "@modules/common/components/delete-button"
 import LineItemOptions from "@modules/common/components/line-item-options"
 import LineItemPrice from "@modules/common/components/line-item-price"
@@ -82,10 +83,16 @@ const CartDropdown = ({
       <Popover className="relative h-full">
         <PopoverButton className="h-full">
           <LocalizedClientLink
-            className="hover:text-ui-fg-base"
+            className="inline-flex items-center gap-x-2 rounded-md bg-brand-500 text-white px-3 h-9 text-sm font-semibold hover:bg-brand-600 transition-colors"
             href="/cart"
             data-testid="nav-cart-link"
-          >{`Cart (${totalItems})`}</LocalizedClientLink>
+          >
+            <ShoppingCart />
+            Cart
+            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white text-brand-600 text-xs font-bold">
+              {totalItems}
+            </span>
+          </LocalizedClientLink>
         </PopoverButton>
         <Transition
           show={cartDropdownOpen}

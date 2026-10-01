@@ -2,6 +2,10 @@
 .env
 .DS_Store
 /uploads
+# Local file-storage provider's upload target in this Medusa version
+# (product media uploaded via Admin) — local dev/runtime data, not source;
+# production uses S3 per docs/ARCHITECTURE.md, same reasoning as /uploads.
+/static
 /node_modules
 yarn-error.log
 

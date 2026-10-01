@@ -2,6 +2,16 @@ import { CreditCard } from "@medusajs/icons"
 import React from "react"
 
 /*
+ * Brand/contact identity — single source of truth so a future rebrand or
+ * contact-detail change is a one-file edit. Name/logo not finalized yet
+ * (placeholder, per the user); phone/location are real.
+ */
+export const SITE_NAME = "ConstructHub"
+export const SITE_PHONE = "+91 7899692136"
+export const SITE_PHONE_INTL = "917899692136" // digits only, for wa.me/tel: links
+export const SITE_LOCATION = "Davangere, Karnataka"
+
+/*
  * Map of payment provider_id to their title and icon. v1 only uses Medusa's
  * built-in system payment provider (pp_system_default) — see
  * docs/ARCHITECTURE.md §2.4. A later phase adds the real UPI provider entry.

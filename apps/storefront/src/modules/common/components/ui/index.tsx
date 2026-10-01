@@ -59,7 +59,7 @@ Heading.displayName = "Heading"
 
 // Button Component
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: "primary" | "secondary" | "transparent"
+  variant?: "primary" | "secondary" | "transparent" | "outline-light" | "outline-brand"
   size?: "small" | "medium" | "large"
   isLoading?: boolean
 }
@@ -83,10 +83,14 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={disabled || isLoading}
         className={clsx(
           "inline-flex gap-2 items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
-          variant === "primary" && "bg-black text-white hover:bg-gray-800",
+          variant === "primary" && "bg-brand-500 text-white hover:bg-brand-600",
           variant === "secondary" &&
-            "bg-white text-black border border-gray-200 hover:bg-gray-50",
+            "bg-white text-gray-900 border border-gray-200 hover:bg-gray-50",
           variant === "transparent" && "bg-transparent hover:bg-gray-100",
+          variant === "outline-light" &&
+            "bg-transparent text-white border border-white/40 hover:bg-white/10",
+          variant === "outline-brand" &&
+            "bg-transparent text-brand-500 border border-brand-500 hover:bg-brand-500 hover:text-white",
           size === "small" && "h-8 px-3 text-sm",
           size === "medium" && "h-10 px-4",
           size === "large" && "h-12 px-6 text-lg",

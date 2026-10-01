@@ -1,7 +1,7 @@
 import { listProductsWithSort } from "@lib/data/products"
 import { getRegion } from "@lib/data/regions"
 import { OptionValueIds } from "@lib/util/product-option-filters"
-import ProductPreview from "@modules/products/components/product-preview"
+import ShopCard from "@modules/products/components/shop-card"
 import { Pagination } from "@modules/store/components/pagination"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
 
@@ -13,6 +13,7 @@ type PaginatedProductsParams = {
   category_id?: string[]
   id?: string[]
   order?: string
+  q?: string
 }
 
 export default async function PaginatedProducts({
@@ -22,6 +23,7 @@ export default async function PaginatedProducts({
   categoryId,
   productsIds,
   optionValueIds,
+  q,
 }: {
   sortBy?: SortOptions
   page: number
@@ -29,6 +31,7 @@ export default async function PaginatedProducts({
   categoryId?: string
   productsIds?: string[]
   optionValueIds?: OptionValueIds
+  q?: string
 }) {
   const queryParams: PaginatedProductsParams = {
     limit: 12,
@@ -50,6 +53,10 @@ export default async function PaginatedProducts({
     queryParams["order"] = "created_at"
   }
 
+  if (q) {
+    queryParams["q"] = q
+  }
+
   const region = await getRegion()
 
   if (!region) {
@@ -67,20 +74,24 @@ export default async function PaginatedProducts({
 
   const totalPages = Math.ceil(count / PRODUCT_LIMIT)
 
+  if (!products.length) {
+    return (
+      <p className="text-ui-fg-subtle txt-medium py-16 text-center">
+        No materials found.
+      </p>
+    )
+  }
+
   return (
     <>
-      <ul
-        className="grid grid-cols-2 w-full small:grid-cols-3 medium:grid-cols-4 gap-x-6 gap-y-8"
+      <div
+        className="grid grid-cols-2 w-full small:grid-cols-3 medium:grid-cols-4 gap-6"
         data-testid="products-list"
       >
-        {products.map((p) => {
-          return (
-            <li key={p.id}>
-              <ProductPreview product={p} region={region} />
-            </li>
-          )
-        })}
-      </ul>
+        {products.map((p) => (
+          <ShopCard key={p.id} product={p} region={region} />
+        ))}
+      </div>
       {totalPages > 1 && (
         <Pagination
           data-testid="product-pagination"

@@ -33,6 +33,23 @@ module.exports = {
           80: "#1F2937",
           90: "#111827",
         },
+        // Brand accent (construction/orange). Placeholder identity — see
+        // src/lib/constants.tsx SITE_NAME comment; easy to swap wholesale.
+        // 500 is the exact primary orange (#F97415) confirmed from the
+        // Airo design reference's own computed styles (bg-primary), not
+        // eyeballed from a screenshot.
+        brand: {
+          50: "#FFF7ED",
+          100: "#FFEDD5",
+          200: "#FED7AA",
+          300: "#FDBA74",
+          400: "#FB8B3D",
+          500: "#F97415",
+          600: "#DE6110",
+          700: "#B84E0D",
+          800: "#943D0E",
+          900: "#78330F",
+        },
       },
       borderRadius: {
         none: "0px",

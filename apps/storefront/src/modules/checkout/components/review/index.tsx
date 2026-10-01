@@ -7,6 +7,7 @@ import { initiatePaymentSession, placeOrder } from "@lib/data/cart"
 import { listCartPaymentMethods } from "@lib/data/payment"
 import ErrorMessage from "@modules/checkout/components/error-message"
 import { Button, Heading, Text, clx } from "@modules/common/components/ui"
+import { SITE_NAME } from "@lib/constants"
 
 // Fast, non-blocking UX feedback for the minimum-order-value decision
 // (§2.5) — the authoritative check is the completeCartWorkflow validate
@@ -105,7 +106,7 @@ const Review = ({ cart }: { cart: HttpTypes.StoreCart }) => {
                     By clicking the Place Order button, you confirm that you
                     have read, understand and accept our Terms of Use, Terms
                     of Sale and Returns Policy and acknowledge that you have
-                    read Medusa Store&apos;s Privacy Policy.
+                    read {SITE_NAME}&apos;s Privacy Policy.
                   </Text>
                 </div>
               </div>

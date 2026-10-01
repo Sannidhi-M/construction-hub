@@ -46,6 +46,10 @@ yarn-error.log*
 # vercel
 .vercel
 
+# Personal Claude Code MCP server config (e.g. Playwright, for browser access)
+.mcp.json
+.playwright-mcp/
+
 # macOS system files
 .DS_Store
 .DS_Store?
