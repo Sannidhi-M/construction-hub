@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { HttpTypes } from "@medusajs/types"
 import { initiatePaymentSession, placeOrder } from "@lib/data/cart"
+import { completePhoneSignup } from "@lib/data/customer"
 import { listCartPaymentMethods } from "@lib/data/payment"
 import ErrorMessage from "@modules/checkout/components/error-message"
 import PhoneLogin from "@modules/account/components/phone-login"
@@ -51,6 +52,31 @@ const Review = ({
 
   const previousStepsCompleted =
     !!cart.shipping_address && (cart.shipping_methods?.length ?? 0) > 0
+
+  // A brand-new phone number verified at checkout is created as a customer
+  // immediately, using the name/email already collected on the shipping
+  // address — no extra form, since the shopper already typed those once.
+  const handleNewPhone = async ({
+    phone,
+    token,
+  }: {
+    phone: string
+    token: string
+  }) => {
+    const formData = new FormData()
+    formData.set("phone", phone)
+    formData.set("token", token)
+    formData.set("email", cart.email ?? "")
+    formData.set("first_name", cart.shipping_address?.first_name ?? "")
+    formData.set("last_name", cart.shipping_address?.last_name ?? "")
+
+    const result = await completePhoneSignup(null, formData)
+    if (result?.state === "error") {
+      setError(result.error)
+    } else {
+      router.refresh()
+    }
+  }
 
   // Single-provider (system/manual UPI) payment flow: no payment method
   // choice UI. Instead of a dedicated payment step, Review makes sure a
@@ -120,7 +146,10 @@ const Review = ({
               <Text className="txt-medium-plus text-ui-fg-base mb-4">
                 Verify your phone number to place your order.
               </Text>
-              <PhoneLogin onSuccess={() => router.refresh()} />
+              <PhoneLogin
+                onVerified={() => router.refresh()}
+                onNewPhone={handleNewPhone}
+              />
             </div>
           ) : (
             <>

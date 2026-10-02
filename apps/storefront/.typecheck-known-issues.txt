@@ -58,7 +58,8 @@ src/modules/account/components/address-card/add-address.tsx: error TS2786: 'Moda
 src/modules/account/components/address-card/add-address.tsx: error TS2786: 'Modal.Title' cannot be used as a JSX component.
 src/modules/account/components/address-card/edit-address-modal.tsx: error TS2786: 'Edit' cannot be used as a JSX component.
 src/modules/account/components/address-card/edit-address-modal.tsx: error TS2786: 'Trash' cannot be used as a JSX component.
-src/modules/account/components/login/index.tsx: error TS2786: 'Input' cannot be used as a JSX component.
+src/modules/account/components/login/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
+src/modules/account/components/login/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
 src/modules/account/components/order-card/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
 src/modules/account/components/order-card/index.tsx: error TS2786: 'Thumbnail' cannot be used as a JSX component.
 src/modules/account/components/order-overview/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
@@ -66,7 +67,9 @@ src/modules/account/components/overview/index.tsx: error TS2786: 'ChevronDown' c
 src/modules/account/components/overview/index.tsx: error TS2786: 'Container' cannot be used as a JSX component.
 src/modules/account/components/phone-login/index.tsx: error TS2786: 'Input' cannot be used as a JSX component.
 src/modules/account/components/phone-login/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
+src/modules/account/components/register/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
 src/modules/account/components/register/index.tsx: error TS2786: 'Input' cannot be used as a JSX component.
+src/modules/account/components/register/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
 src/modules/account/components/transfer-request-form/index.tsx: error TS2786: 'Heading' cannot be used as a JSX component.
 src/modules/account/components/transfer-request-form/index.tsx: error TS2786: 'IconButton' cannot be used as a JSX component.
 src/modules/account/components/transfer-request-form/index.tsx: error TS2786: 'Input' cannot be used as a JSX component.

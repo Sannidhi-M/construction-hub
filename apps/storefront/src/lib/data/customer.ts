@@ -331,11 +331,13 @@ export async function completePhoneSignup(
   const phone = formData.get("phone") as string
   const email = formData.get("email") as string
   const token = formData.get("token") as string
+  const firstName = (formData.get("first_name") as string) || undefined
+  const lastName = (formData.get("last_name") as string) || undefined
 
   let boundToken: string
   try {
     await sdk.store.customer.create(
-      { phone, email },
+      { phone, email, first_name: firstName, last_name: lastName },
       {},
       { authorization: `Bearer ${token}` }
     )

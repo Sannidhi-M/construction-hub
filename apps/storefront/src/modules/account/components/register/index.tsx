@@ -1,23 +1,154 @@
 "use client"
 
-import { useActionState, useState } from "react"
-import Input from "@modules/common/components/input"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { completePhoneSignup, requestPhoneOtp, verifyPhoneOtp } from "@lib/data/customer"
 import { LOGIN_VIEW } from "@modules/account/templates/login-template"
-import PhoneLogin from "@modules/account/components/phone-login"
 import ErrorMessage from "@modules/checkout/components/error-message"
-import { SubmitButton } from "@modules/checkout/components/submit-button"
-import LocalizedClientLink from "@modules/common/components/localized-client-link"
-import { signup } from "@lib/data/customer"
-import { clx } from "@modules/common/components/ui"
+import Input from "@modules/common/components/input"
+import { Button, Text } from "@modules/common/components/ui"
 import { SITE_NAME } from "@lib/constants"
 
 type Props = {
   setCurrentView: (view: LOGIN_VIEW) => void
 }
 
-const Register = ({ setCurrentView }: Props) => {
-  const [method, setMethod] = useState<"phone" | "email">("phone")
-  const [message, formAction] = useActionState(signup, null)
+// Medusa's customer model has separate first_name/last_name fields, not a
+// single "full name" — split on the first space, everything after it is
+// the last name (handles multi-word last names better than splitting on
+// the last space).
+const splitFullName = (fullName: string) => {
+  const trimmed = fullName.trim()
+  const firstSpace = trimmed.indexOf(" ")
+  if (firstSpace === -1) {
+    return { firstName: trimmed, lastName: "" }
+  }
+  return {
+    firstName: trimmed.slice(0, firstSpace),
+    lastName: trimmed.slice(firstSpace + 1).trim(),
+  }
+}
+
+const CreateAccount = ({ setCurrentView }: Props) => {
+  const router = useRouter()
+  const [step, setStep] = useState<"details" | "otp">("details")
+  const [fullName, setFullName] = useState("")
+  const [phone, setPhone] = useState("")
+  const [email, setEmail] = useState("")
+  const [otp, setOtp] = useState("")
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleGetOtp = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError(null)
+    setSubmitting(true)
+
+    const formData = new FormData()
+    formData.set("phone", phone)
+    const result = await requestPhoneOtp(null, formData)
+
+    setSubmitting(false)
+    if (result?.state === "otp_sent") {
+      setStep("otp")
+    } else if (result?.state === "error") {
+      setError(result.error)
+    }
+  }
+
+  // A returning customer who mistakenly used "Create account" with a phone
+  // that already has one just gets signed in on their existing account —
+  // the name/email they typed here are discarded, matching the sign-in
+  // flow's own behavior for a recognized phone.
+  const handleVerify = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError(null)
+    setSubmitting(true)
+
+    const verifyFormData = new FormData()
+    verifyFormData.set("phone", phone)
+    verifyFormData.set("otp", otp)
+    const verifyResult = await verifyPhoneOtp(null, verifyFormData)
+
+    if (verifyResult?.state === "error") {
+      setSubmitting(false)
+      setError(verifyResult.error)
+      return
+    }
+
+    if (verifyResult?.state === "success") {
+      setSubmitting(false)
+      router.refresh()
+      return
+    }
+
+    if (verifyResult?.state === "email_required") {
+      const { firstName, lastName } = splitFullName(fullName)
+      const signupFormData = new FormData()
+      signupFormData.set("phone", verifyResult.phone)
+      signupFormData.set("token", verifyResult.token)
+      signupFormData.set("email", email)
+      signupFormData.set("first_name", firstName)
+      signupFormData.set("last_name", lastName)
+      const signupResult = await completePhoneSignup(null, signupFormData)
+
+      setSubmitting(false)
+      if (signupResult?.state === "error") {
+        setError(signupResult.error)
+      } else {
+        router.refresh()
+      }
+      return
+    }
+
+    setSubmitting(false)
+  }
+
+  if (step === "otp") {
+    return (
+      <div
+        className="max-w-sm w-full flex flex-col items-center"
+        data-testid="create-account-otp-page"
+      >
+        <h1 className="text-large-semi uppercase mb-6">Verify your phone</h1>
+        <form className="w-full" onSubmit={handleVerify}>
+          <Text className="text-center text-small-regular text-ui-fg-subtle mb-4">
+            Enter the code sent to {phone}.
+          </Text>
+          <div className="flex flex-col w-full gap-y-2">
+            <Input
+              label="OTP"
+              name="otp"
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              required
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              data-testid="create-account-otp-input"
+            />
+          </div>
+          <ErrorMessage error={error} data-testid="create-account-otp-error" />
+          <Button
+            type="submit"
+            isLoading={submitting}
+            className="w-full mt-6"
+            data-testid="create-account-verify-button"
+          >
+            Verify &amp; create account
+          </Button>
+          <button
+            type="button"
+            onClick={() => setStep("details")}
+            className="text-center text-ui-fg-subtle text-small-regular underline w-full mt-4"
+            data-testid="change-phone-button"
+          >
+            Use a different number
+          </button>
+        </form>
+      </div>
+    )
+  }
 
   return (
     <div
@@ -31,104 +162,48 @@ const Register = ({ setCurrentView }: Props) => {
         Create your {SITE_NAME} Member profile, and get access to an enhanced
         shopping experience.
       </p>
-      <div className="flex w-full mb-6 border-b border-ui-border-base">
-        {(["phone", "email"] as const).map((m) => (
-          <button
-            key={m}
-            type="button"
-            onClick={() => setMethod(m)}
-            className={clx(
-              "flex-1 pb-3 text-small-regular capitalize",
-              method === m
-                ? "text-ui-fg-base border-b-2 border-ui-fg-base"
-                : "text-ui-fg-subtle"
-            )}
-            data-testid={`register-method-${m}`}
-          >
-            {m}
-          </button>
-        ))}
-      </div>
-      {method === "phone" ? (
-        <PhoneLogin />
-      ) : (
-        <>
-          {message?.state === "verification_required" && (
-            <div
-              className="w-full mb-4 text-center text-base-regular text-ui-fg-base bg-ui-bg-subtle border border-ui-border-base rounded-rounded p-4"
-              data-testid="register-verification-message"
-            >
-              We sent a verification link to <strong>{message.email}</strong>.
-              Please check your inbox to verify your email, then sign in.
-            </div>
-          )}
-          <form className="w-full flex flex-col" action={formAction}>
-            <div className="flex flex-col w-full gap-y-2">
-              <Input
-                label="First name"
-                name="first_name"
-                required
-                autoComplete="given-name"
-                data-testid="first-name-input"
-              />
-              <Input
-                label="Last name"
-                name="last_name"
-                required
-                autoComplete="family-name"
-                data-testid="last-name-input"
-              />
-              <Input
-                label="Email"
-                name="email"
-                required
-                type="email"
-                autoComplete="email"
-                data-testid="email-input"
-              />
-              <Input
-                label="Phone"
-                name="phone"
-                type="tel"
-                autoComplete="tel"
-                data-testid="phone-input"
-              />
-              <Input
-                label="Password"
-                name="password"
-                required
-                type="password"
-                autoComplete="new-password"
-                data-testid="password-input"
-              />
-            </div>
-            <ErrorMessage
-              error={message?.state === "error" ? message.error : null}
-              data-testid="register-error"
-            />
-            <span className="text-center text-ui-fg-base text-small-regular mt-6">
-              By creating an account, you agree to {SITE_NAME}&apos;s{" "}
-              <LocalizedClientLink
-                href="/content/privacy-policy"
-                className="underline"
-              >
-                Privacy Policy
-              </LocalizedClientLink>{" "}
-              and{" "}
-              <LocalizedClientLink
-                href="/content/terms-of-use"
-                className="underline"
-              >
-                Terms of Use
-              </LocalizedClientLink>
-              .
-            </span>
-            <SubmitButton className="w-full mt-6" data-testid="register-button">
-              Join
-            </SubmitButton>
-          </form>
-        </>
-      )}
+      <form className="w-full flex flex-col" onSubmit={handleGetOtp}>
+        <div className="flex flex-col w-full gap-y-2">
+          <Input
+            label="Full name"
+            name="full_name"
+            required
+            autoComplete="name"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            data-testid="full-name-input"
+          />
+          <Input
+            label="Phone number"
+            name="phone"
+            type="tel"
+            autoComplete="tel"
+            required
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            data-testid="create-account-phone-input"
+          />
+          <Input
+            label="Email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            data-testid="create-account-email-input"
+          />
+        </div>
+        <ErrorMessage error={error} data-testid="create-account-error" />
+        <Button
+          type="submit"
+          isLoading={submitting}
+          className="w-full mt-6"
+          data-testid="get-otp-button"
+        >
+          Get OTP
+        </Button>
+      </form>
       <span className="text-center text-ui-fg-base text-small-regular mt-6">
         Already a member?{" "}
         <button
@@ -143,4 +218,4 @@ const Register = ({ setCurrentView }: Props) => {
   )
 }
 
-export default Register
+export default CreateAccount

@@ -1,19 +1,18 @@
-import { login } from "@lib/data/customer"
+"use client"
+
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { LOGIN_VIEW } from "@modules/account/templates/login-template"
 import PhoneLogin from "@modules/account/components/phone-login"
-import ErrorMessage from "@modules/checkout/components/error-message"
-import { SubmitButton } from "@modules/checkout/components/submit-button"
-import { clx } from "@modules/common/components/ui"
-import Input from "@modules/common/components/input"
-import { useActionState, useState } from "react"
+import { Button, Text } from "@modules/common/components/ui"
 
 type Props = {
   setCurrentView: (view: LOGIN_VIEW) => void
 }
 
 const Login = ({ setCurrentView }: Props) => {
-  const [method, setMethod] = useState<"phone" | "email">("phone")
-  const [message, formAction] = useActionState(login, null)
+  const router = useRouter()
+  const [notFoundPhone, setNotFoundPhone] = useState<string | null>(null)
 
   return (
     <div
@@ -24,78 +23,38 @@ const Login = ({ setCurrentView }: Props) => {
       <p className="text-center text-base-regular text-ui-fg-base mb-8">
         Sign in to access an enhanced shopping experience.
       </p>
-      <div className="flex w-full mb-6 border-b border-ui-border-base">
-        {(["phone", "email"] as const).map((m) => (
-          <button
-            key={m}
-            type="button"
-            onClick={() => setMethod(m)}
-            className={clx(
-              "flex-1 pb-3 text-small-regular capitalize",
-              method === m
-                ? "text-ui-fg-base border-b-2 border-ui-fg-base"
-                : "text-ui-fg-subtle"
-            )}
-            data-testid={`login-method-${m}`}
+      {notFoundPhone ? (
+        <div className="w-full text-center" data-testid="phone-not-found">
+          <Text className="text-base-regular text-ui-fg-base mb-4">
+            We couldn&apos;t find an account for {notFoundPhone}.
+          </Text>
+          <Button
+            onClick={() => setCurrentView(LOGIN_VIEW.REGISTER)}
+            className="w-full"
+            data-testid="go-to-create-account-button"
           >
-            {m}
-          </button>
-        ))}
-      </div>
-      {method === "phone" ? (
-        <PhoneLogin />
+            Create an account
+          </Button>
+        </div>
       ) : (
-        <>
-          {message?.state === "verification_required" && (
-            <div
-              className="w-full mb-6 text-center text-base-regular text-ui-fg-base bg-ui-bg-subtle border border-ui-border-base rounded-rounded p-4"
-              data-testid="login-verification-message"
-            >
-              We sent a verification link to <strong>{message.email}</strong>.
-              Please verify your email, then sign in.
-            </div>
-          )}
-          <form className="w-full" action={formAction}>
-            <div className="flex flex-col w-full gap-y-2">
-              <Input
-                label="Email"
-                name="email"
-                type="email"
-                title="Enter a valid email address."
-                autoComplete="email"
-                required
-                data-testid="email-input"
-              />
-              <Input
-                label="Password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                data-testid="password-input"
-              />
-            </div>
-            <ErrorMessage
-              error={message?.state === "error" ? message.error : null}
-              data-testid="login-error-message"
-            />
-            <SubmitButton data-testid="sign-in-button" className="w-full mt-6">
-              Sign in
-            </SubmitButton>
-          </form>
-        </>
+        <PhoneLogin
+          onVerified={() => router.refresh()}
+          onNewPhone={({ phone }) => setNotFoundPhone(phone)}
+        />
       )}
-      <span className="text-center text-ui-fg-base text-small-regular mt-6">
-        Not a member?{" "}
-        <button
-          onClick={() => setCurrentView(LOGIN_VIEW.REGISTER)}
-          className="underline"
-          data-testid="register-button"
-        >
-          Join us
-        </button>
-        .
-      </span>
+      {!notFoundPhone && (
+        <span className="text-center text-ui-fg-base text-small-regular mt-6">
+          Not a member?{" "}
+          <button
+            onClick={() => setCurrentView(LOGIN_VIEW.REGISTER)}
+            className="underline"
+            data-testid="register-button"
+          >
+            Create account
+          </button>
+          .
+        </span>
+      )}
     </div>
   )
 }

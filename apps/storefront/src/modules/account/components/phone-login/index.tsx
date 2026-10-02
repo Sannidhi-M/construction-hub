@@ -1,29 +1,31 @@
 "use client"
 
-import { completePhoneSignup, requestPhoneOtp, verifyPhoneOtp } from "@lib/data/customer"
+import { requestPhoneOtp, verifyPhoneOtp } from "@lib/data/customer"
 import ErrorMessage from "@modules/checkout/components/error-message"
 import { SubmitButton } from "@modules/checkout/components/submit-button"
 import Input from "@modules/common/components/input"
 import { Text } from "@modules/common/components/ui"
 import { useActionState, useEffect, useState } from "react"
 
+type Props = {
+  onVerified?: () => void
+  // Called when the OTP is valid but no customer exists for this phone yet.
+  // What happens next is left to the caller — it differs by context (sign-in
+  // sends them to Create Account; checkout auto-creates the account from the
+  // shipping address already on the cart).
+  onNewPhone?: (args: { phone: string; token: string }) => void | Promise<void>
+}
+
 /**
- * Phone/OTP login — a single unified flow for both new and returning
- * customers (§3.1/§4.2). There's no separate "register with phone" screen:
- * requesting an OTP works the same either way. A returning customer is
- * logged in as soon as the OTP is verified; a brand-new phone number gets
- * one more step asking for email (Medusa requires it to create a customer
- * account, and the business wants it collected for shipping/invoicing
- * regardless of signup method).
+ * Phone/OTP verification — two steps (phone, OTP).
  */
-const PhoneLogin = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
-  const [step, setStep] = useState<"phone" | "otp" | "email">("phone")
+const PhoneLogin = ({ onVerified, onNewPhone }: Props = {}) => {
+  const [step, setStep] = useState<"phone" | "otp">("phone")
   const [phone, setPhone] = useState("")
-  const [pendingToken, setPendingToken] = useState("")
+  const [creatingAccount, setCreatingAccount] = useState(false)
 
   const [requestState, requestAction] = useActionState(requestPhoneOtp, null)
   const [verifyState, verifyAction] = useActionState(verifyPhoneOtp, null)
-  const [signupState, signupAction] = useActionState(completePhoneSignup, null)
 
   useEffect(() => {
     if (requestState?.state === "otp_sent") {
@@ -33,48 +35,22 @@ const PhoneLogin = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
   }, [requestState])
 
   useEffect(() => {
-    if (verifyState?.state === "email_required") {
-      setPendingToken(verifyState.token)
-      setStep("email")
-    } else if (verifyState?.state === "success") {
-      onSuccess?.()
+    if (verifyState?.state === "success") {
+      onVerified?.()
+    } else if (verifyState?.state === "email_required" && onNewPhone) {
+      setCreatingAccount(true)
+      Promise.resolve(
+        onNewPhone({ phone: verifyState.phone, token: verifyState.token })
+      ).finally(() => setCreatingAccount(false))
     }
-  }, [verifyState, onSuccess])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [verifyState])
 
-  useEffect(() => {
-    if (signupState?.state === "success") {
-      onSuccess?.()
-    }
-  }, [signupState, onSuccess])
-
-  if (step === "email") {
+  if (creatingAccount) {
     return (
-      <form className="w-full" action={signupAction}>
-        <input type="hidden" name="phone" value={phone} />
-        <input type="hidden" name="token" value={pendingToken} />
-        <Text className="text-center text-small-regular text-ui-fg-subtle mb-4">
-          Almost done — what&apos;s your email? We&apos;ll use it for order
-          updates and invoices.
-        </Text>
-        <div className="flex flex-col w-full gap-y-2">
-          <Input
-            label="Email"
-            name="email"
-            type="email"
-            title="Enter a valid email address."
-            autoComplete="email"
-            required
-            data-testid="signup-email-input"
-          />
-        </div>
-        <ErrorMessage
-          error={signupState?.state === "error" ? signupState.error : null}
-          data-testid="signup-email-error-message"
-        />
-        <SubmitButton data-testid="complete-signup-button" className="w-full mt-6">
-          Continue
-        </SubmitButton>
-      </form>
+      <Text className="text-center text-small-regular text-ui-fg-subtle">
+        Creating your account…
+      </Text>
     )
   }
 
