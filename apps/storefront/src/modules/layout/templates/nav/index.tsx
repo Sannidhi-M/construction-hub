@@ -1,6 +1,7 @@
 import { Suspense } from "react"
 import { User } from "@medusajs/icons"
 
+import { retrieveCustomer } from "@lib/data/customer"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import CartButton from "@modules/layout/components/cart-button"
 import SideMenu from "@modules/layout/components/side-menu"
@@ -16,6 +17,8 @@ const primaryNavLinks = [
 ]
 
 export default async function Nav() {
+  const customer = await retrieveCustomer()
+
   return (
     <div className="sticky top-0 inset-x-0 z-50 group">
       {/* Top utility bar — real contact info (src/lib/constants.tsx), not
@@ -60,7 +63,7 @@ export default async function Nav() {
                 data-testid="nav-account-link"
               >
                 <User />
-                Sign In
+                {customer ? customer.first_name || "Account" : "Sign In"}
               </LocalizedClientLink>
             </div>
             <Suspense
