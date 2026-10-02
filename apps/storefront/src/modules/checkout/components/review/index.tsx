@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { HttpTypes } from "@medusajs/types"
 import { initiatePaymentSession, placeOrder } from "@lib/data/cart"
-import { completePhoneSignup } from "@lib/data/customer"
+import { addCustomerAddress, completePhoneSignup } from "@lib/data/customer"
 import { listCartPaymentMethods } from "@lib/data/payment"
 import ErrorMessage from "@modules/checkout/components/error-message"
 import PhoneLogin from "@modules/account/components/phone-login"
@@ -73,9 +73,34 @@ const Review = ({
     const result = await completePhoneSignup(null, formData)
     if (result?.state === "error") {
       setError(result.error)
-    } else {
-      router.refresh()
+      return
     }
+
+    // Save the address they just typed for checkout as their first saved
+    // address (and default billing address) — no reason to make them
+    // retype it next time, or leave "Manage Addresses"/the billing address
+    // on their profile looking empty right after they've placed an order.
+    const shippingAddress = cart.shipping_address
+    if (shippingAddress) {
+      const addressFormData = new FormData()
+      addressFormData.set("first_name", shippingAddress.first_name ?? "")
+      addressFormData.set("last_name", shippingAddress.last_name ?? "")
+      addressFormData.set("company", shippingAddress.company ?? "")
+      addressFormData.set("address_1", shippingAddress.address_1 ?? "")
+      addressFormData.set("address_2", shippingAddress.address_2 ?? "")
+      addressFormData.set("city", shippingAddress.city ?? "")
+      addressFormData.set("postal_code", shippingAddress.postal_code ?? "")
+      addressFormData.set("province", shippingAddress.province ?? "")
+      addressFormData.set("country_code", shippingAddress.country_code ?? "")
+      addressFormData.set("phone", shippingAddress.phone ?? "")
+
+      await addCustomerAddress(
+        { isDefaultBilling: true, isDefaultShipping: true },
+        addressFormData
+      )
+    }
+
+    router.refresh()
   }
 
   // Single-provider (system/manual UPI) payment flow: no payment method
