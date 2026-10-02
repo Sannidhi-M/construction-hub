@@ -17,20 +17,34 @@ const StoreTemplate = async ({
   page,
   optionValueIds,
   q,
+  category,
 }: {
   sortBy?: SortOptions
   page?: string
   optionValueIds?: OptionValueIds
   q?: string
+  category?: string
 }) => {
   const pageNumber = page ? parseInt(page) : 1
   const sort = sortBy || "created_at"
 
   const categories = (await listCategories()) ?? []
+  // `category` is the handle from the URL (?category=cement) — resolve it
+  // to the id PaginatedProducts/listProducts actually filter by.
+  const categoryId = category
+    ? categories.find((c) => c.handle === category)?.id
+    : undefined
 
   const region = await getRegion()
   const { response } = region
-    ? await listProducts({ regionId: region.id, queryParams: { limit: 1, q } })
+    ? await listProducts({
+        regionId: region.id,
+        queryParams: {
+          limit: 1,
+          q,
+          ...(categoryId ? { category_id: categoryId } : {}),
+        },
+      })
     : { response: { count: 0 } }
 
   return (
@@ -45,6 +59,7 @@ const StoreTemplate = async ({
             page={pageNumber}
             optionValueIds={optionValueIds}
             q={q}
+            categoryId={categoryId}
           />
         </Suspense>
       </div>
