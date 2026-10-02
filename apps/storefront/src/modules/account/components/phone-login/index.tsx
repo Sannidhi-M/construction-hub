@@ -16,7 +16,7 @@ import { useActionState, useEffect, useState } from "react"
  * account, and the business wants it collected for shipping/invoicing
  * regardless of signup method).
  */
-const PhoneLogin = () => {
+const PhoneLogin = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
   const [step, setStep] = useState<"phone" | "otp" | "email">("phone")
   const [phone, setPhone] = useState("")
   const [pendingToken, setPendingToken] = useState("")
@@ -36,8 +36,16 @@ const PhoneLogin = () => {
     if (verifyState?.state === "email_required") {
       setPendingToken(verifyState.token)
       setStep("email")
+    } else if (verifyState?.state === "success") {
+      onSuccess?.()
     }
-  }, [verifyState])
+  }, [verifyState, onSuccess])
+
+  useEffect(() => {
+    if (signupState?.state === "success") {
+      onSuccess?.()
+    }
+  }, [signupState, onSuccess])
 
   if (step === "email") {
     return (

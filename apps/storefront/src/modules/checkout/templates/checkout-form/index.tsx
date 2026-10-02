@@ -33,7 +33,7 @@ export default async function CheckoutForm({
        * places the order. A later phase replaces this with the real UPI QR /
        * status UI (see docs/ARCHITECTURE.md §4.2, §2.7).
        */}
-      <Review cart={cart} />
+      <Review cart={cart} customer={customer} />
     </div>
   )
 }

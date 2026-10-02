@@ -1,11 +1,12 @@
 "use client"
 
 import { useState } from "react"
-import { useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { HttpTypes } from "@medusajs/types"
 import { initiatePaymentSession, placeOrder } from "@lib/data/cart"
 import { listCartPaymentMethods } from "@lib/data/payment"
 import ErrorMessage from "@modules/checkout/components/error-message"
+import PhoneLogin from "@modules/account/components/phone-login"
 import { Button, Heading, Text, clx } from "@modules/common/components/ui"
 import { SITE_NAME } from "@lib/constants"
 
@@ -16,10 +17,23 @@ import { SITE_NAME } from "@lib/constants"
 // the check entirely (no minimum), same default as the backend.
 const MIN_ORDER_VALUE_INR = Number(process.env.NEXT_PUBLIC_MIN_ORDER_VALUE_INR ?? 0)
 
-const Review = ({ cart }: { cart: HttpTypes.StoreCart }) => {
+const Review = ({
+  cart,
+  customer,
+}: {
+  cart: HttpTypes.StoreCart
+  customer: HttpTypes.StoreCustomer | null
+}) => {
+  const router = useRouter()
   const searchParams = useSearchParams()
 
   const isOpen = searchParams.get("step") === "review"
+  // `cart.customer_id` isn't a safe signal here — Medusa auto-links a guest
+  // cart to an existing customer record purely by email match at the
+  // address step, with no authentication involved. Whether this *session*
+  // is actually signed in only comes from `customer` (retrieveCustomer()
+  // succeeding, i.e. a valid auth token in the cookie).
+  const isVerifiedCustomer = !!customer
 
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -98,6 +112,16 @@ const Review = ({ cart }: { cart: HttpTypes.StoreCart }) => {
               out. Add ₹{MIN_ORDER_VALUE_INR - cartTotal} more to your cart to
               continue.
             </Text>
+          ) : !isVerifiedCustomer ? (
+            <div
+              className="max-w-sm"
+              data-testid="checkout-phone-verification"
+            >
+              <Text className="txt-medium-plus text-ui-fg-base mb-4">
+                Verify your phone number to place your order.
+              </Text>
+              <PhoneLogin onSuccess={() => router.refresh()} />
+            </div>
           ) : (
             <>
               <div className="flex items-start gap-x-1 w-full mb-6">

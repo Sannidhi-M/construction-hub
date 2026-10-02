@@ -12,7 +12,7 @@ type Props = {
 }
 
 const Login = ({ setCurrentView }: Props) => {
-  const [method, setMethod] = useState<"email" | "phone">("email")
+  const [method, setMethod] = useState<"phone" | "email">("phone")
   const [message, formAction] = useActionState(login, null)
 
   return (
@@ -25,7 +25,7 @@ const Login = ({ setCurrentView }: Props) => {
         Sign in to access an enhanced shopping experience.
       </p>
       <div className="flex w-full mb-6 border-b border-ui-border-base">
-        {(["email", "phone"] as const).map((m) => (
+        {(["phone", "email"] as const).map((m) => (
           <button
             key={m}
             type="button"
