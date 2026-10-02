@@ -4,6 +4,7 @@ import UnderlineLink from "@modules/common/components/interactive-link"
 
 import AccountNav from "../components/account-nav"
 import { HttpTypes } from "@medusajs/types"
+import { clx } from "@modules/common/components/ui"
 
 interface AccountLayoutProps {
   customer: HttpTypes.StoreCustomer | null
@@ -23,7 +24,12 @@ const AccountLayout: React.FC<AccountLayoutProps> = ({
               <AccountNav customer={customer} />
             </div>
           )}
-          <div className="flex-1 bg-white rounded-lg border border-gray-200 shadow-sm p-6 small:p-8">
+          <div
+            className={clx(
+              "flex-1 bg-white rounded-lg border border-gray-200 shadow-sm p-6 small:p-8",
+              { "small:col-span-2": !customer }
+            )}
+          >
             {children}
           </div>
         </div>
