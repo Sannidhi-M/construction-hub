@@ -1,6 +1,6 @@
 import { Disclosure } from "@headlessui/react"
 import { Badge, Button, clx } from "@modules/common/components/ui"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 
 import useToggleState from "@lib/hooks/use-toggle-state"
 import { useFormStatus } from "react-dom"
@@ -41,6 +41,19 @@ const AccountInfo = ({
     }
   }, [isSuccess, close])
 
+  // The success badge otherwise stays on screen indefinitely — confusing
+  // once the shopper has moved on to editing a different field below it.
+  const [showSuccess, setShowSuccess] = useState(false)
+  useEffect(() => {
+    if (!isSuccess) {
+      setShowSuccess(false)
+      return
+    }
+    setShowSuccess(true)
+    const timer = setTimeout(() => setShowSuccess(false), 4000)
+    return () => clearTimeout(timer)
+  }, [isSuccess])
+
   return (
     <div className="text-small-regular" data-testid={dataTestid}>
       <div className="flex items-end justify-between">
@@ -75,8 +88,8 @@ const AccountInfo = ({
           className={clx(
             "transition-[max-height,opacity] duration-300 ease-in-out overflow-hidden",
             {
-              "max-h-[1000px] opacity-100": isSuccess,
-              "max-h-0 opacity-0": !isSuccess,
+              "max-h-[1000px] opacity-100": showSuccess,
+              "max-h-0 opacity-0": !showSuccess,
             }
           )}
           data-testid="success-message"
@@ -110,7 +123,7 @@ const AccountInfo = ({
         <Disclosure.Panel
           static
           className={clx(
-            "transition-[max-height,opacity] duration-300 ease-in-out overflow-visible",
+            "transition-[max-height,opacity] duration-300 ease-in-out overflow-hidden",
             {
               "max-h-[1000px] opacity-100": state,
               "max-h-0 opacity-0": !state,
