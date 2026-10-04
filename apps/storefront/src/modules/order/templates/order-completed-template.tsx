@@ -9,7 +9,7 @@ import OrderDetails from "@modules/order/components/order-details"
 import ShippingDetails from "@modules/order/components/shipping-details"
 import UpiPayment from "@modules/checkout/components/upi-payment"
 import { HttpTypes } from "@medusajs/types"
-import { getCustomerOrderStatus } from "@lib/util/order-status"
+import { getCustomerOrderStatus, isAwaitingPayment } from "@lib/util/order-status"
 
 type OrderCompletedTemplateProps = {
   order: HttpTypes.StoreOrder
@@ -23,8 +23,8 @@ export default async function OrderCompletedTemplate({
   const cookies = await nextCookies()
 
   const isOnboarding = cookies.get("_medusa_onboarding")?.value === "true"
-  const customerStatus = getCustomerOrderStatus(order)
-  const paymentPending = customerStatus === "Payment Pending"
+  const customerStatus = getCustomerOrderStatus(order, alreadyConfirmed)
+  const paymentPending = isAwaitingPayment(customerStatus)
 
   return (
     <div className="py-6 bg-gray-50 min-h-[calc(100vh-64px)]">

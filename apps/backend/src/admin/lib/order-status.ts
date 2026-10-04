@@ -14,8 +14,9 @@
 
 export type CustomerOrderStatus =
   | "Payment Pending"
+  | "Payment Verification Pending"
   | "Order Confirmed"
-  | "Processing"
+  | "Order Processing"
   | "Out for Delivery"
   | "Delivered"
   | "Cancelled"
@@ -24,6 +25,7 @@ type OrderStatusInput = {
   status: string
   payment_status: string
   fulfillment_status: string
+  metadata?: Record<string, unknown> | null
 }
 
 const PAID_STATUSES = new Set(["captured", "partially_captured"])
@@ -42,11 +44,15 @@ export function getCustomerOrderStatus(order: OrderStatusInput): CustomerOrderSt
       return "Out for Delivery"
     case "fulfilled":
     case "partially_fulfilled":
-      return "Processing"
+      return "Order Processing"
   }
 
   if (PAID_STATUSES.has(order.payment_status)) {
     return "Order Confirmed"
+  }
+
+  if (order.metadata?.payment_customer_confirmed) {
+    return "Payment Verification Pending"
   }
 
   return "Payment Pending"

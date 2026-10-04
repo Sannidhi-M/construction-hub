@@ -136,16 +136,17 @@ Admin usage (no new UI needed — this is stock Medusa Admin):
 
 ### 2.7 Customer-facing status mapping
 
-Medusa tracks payment state (`payment_status`) and fulfillment state (`fulfillment_status`) as two separate fields, plus an overall `order.status` (e.g. `canceled`). Customers shouldn't see Medusa's internal vocabulary directly — a small **derived mapping**, not a new stored field, translates the pair into one of six labels:
+Medusa tracks payment state (`payment_status`) and fulfillment state (`fulfillment_status`) as two separate fields, plus an overall `order.status` (e.g. `canceled`). Customers shouldn't see Medusa's internal vocabulary directly — a small **derived mapping**, not a new stored field, translates the pair (plus the customer's own "I've Paid" self-report, §4.2) into one of seven labels:
 
-| Customer sees          | Derived from                                                             |
-|-------------------------|---------------------------------------------------------------------------|
-| Payment Pending          | `payment_status = pending_authorization` (order placed, awaiting UPI verification) |
-| Order Confirmed          | `payment_status = authorized` or `captured`, `fulfillment_status = not_fulfilled`   |
-| Processing               | `fulfillment_status = fulfilled` (fulfillment created, not yet shipped)             |
-| Out for Delivery         | `fulfillment_status = shipped`                                                      |
-| Delivered                | `fulfillment_status = delivered`                                                    |
-| Cancelled                | `order.status = canceled` (overrides all of the above)                              |
+| Customer sees                | Derived from                                                                        |
+|-------------------------------|--------------------------------------------------------------------------------------|
+| Payment Pending               | `payment_status = pending_authorization`, no customer self-report yet                |
+| Payment Verification Pending  | `payment_status = pending_authorization`, `metadata.payment_customer_confirmed = true` (customer clicked "I've Paid") — still just a hint, not a capture |
+| Order Confirmed               | `payment_status = authorized` or `captured`, `fulfillment_status = not_fulfilled`    |
+| Order Processing              | `fulfillment_status = fulfilled` (fulfillment created, not yet shipped)              |
+| Out for Delivery              | `fulfillment_status = shipped`                                                       |
+| Delivered                     | `fulfillment_status = delivered`                                                     |
+| Cancelled                     | `order.status = canceled` (overrides all of the above)                               |
 
 This mapping is pure, stateless, and lives as a small shared utility (e.g. `apps/storefront/src/lib/util/order-status.ts`), consumed by the order-status storefront pages (§4.2) and mirrored in the admin order widget (§3.4) so admin and customer never see contradictory labels for the same order.
 

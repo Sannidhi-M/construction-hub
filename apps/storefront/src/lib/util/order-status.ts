@@ -2,7 +2,7 @@
  * Customer-facing order status mapping (§2.7). Medusa's own
  * `payment_status`/`fulfillment_status`/`status` vocabulary is internal
  * plumbing, not something a customer should have to interpret — this pure,
- * stateless mapping turns that pair into one of six labels, and is
+ * stateless mapping turns that pair into one of these labels, and is
  * consumed by both the storefront order pages and mirrored (via the same
  * logic re-implemented against `AdminOrder`) by the admin order widget so
  * the two sides never show contradictory labels for the same order.
@@ -27,8 +27,9 @@
 
 export type CustomerOrderStatus =
   | "Payment Pending"
+  | "Payment Verification Pending"
   | "Order Confirmed"
-  | "Processing"
+  | "Order Processing"
   | "Out for Delivery"
   | "Delivered"
   | "Cancelled"
@@ -41,7 +42,18 @@ type OrderStatusInput = {
 
 const PAID_STATUSES = new Set(["captured", "partially_captured"])
 
-export function getCustomerOrderStatus(order: OrderStatusInput): CustomerOrderStatus {
+/**
+ * @param customerConfirmedPayment - the "I've Paid" self-report (§4.2) —
+ * `order.metadata.payment_customer_confirmed`. Taken as a separate param
+ * rather than read off `order.metadata` directly because `metadata` isn't
+ * available on every route this runs against (the single-order GET route
+ * doesn't expose it at all — see retrieveOrderPaymentConfirmation); each
+ * caller passes whatever it already has for this order.
+ */
+export function getCustomerOrderStatus(
+  order: OrderStatusInput,
+  customerConfirmedPayment?: boolean
+): CustomerOrderStatus {
   if (order.status === "canceled") {
     return "Cancelled"
   }
@@ -55,12 +67,24 @@ export function getCustomerOrderStatus(order: OrderStatusInput): CustomerOrderSt
       return "Out for Delivery"
     case "fulfilled":
     case "partially_fulfilled":
-      return "Processing"
+      return "Order Processing"
   }
 
   if (PAID_STATUSES.has(order.payment_status)) {
     return "Order Confirmed"
   }
 
+  if (customerConfirmedPayment) {
+    return "Payment Verification Pending"
+  }
+
   return "Payment Pending"
+}
+
+// Both "Payment Pending" and "Payment Verification Pending" mean the same
+// thing for layout purposes (still needs attention, still shows the UPI
+// card) — callers deciding whether to show that card should check this
+// instead of comparing against "Payment Pending" alone.
+export function isAwaitingPayment(status: CustomerOrderStatus): boolean {
+  return status === "Payment Pending" || status === "Payment Verification Pending"
 }

@@ -1,13 +1,18 @@
 import { HttpTypes } from "@medusajs/types"
 import { Text } from "@modules/common/components/ui"
-import { getCustomerOrderStatus } from "@lib/util/order-status"
+import { CustomerOrderStatus, getCustomerOrderStatus } from "@lib/util/order-status"
 
 type OrderDetailsProps = {
   order: HttpTypes.StoreOrder
   showStatus?: boolean
+  // Pass this when the caller already knows the status (e.g. it also
+  // needed the "I've Paid" flag to compute it) — otherwise this falls
+  // back to computing it without that flag, which can't tell "Payment
+  // Pending" apart from "Payment Verification Pending".
+  customerStatus?: CustomerOrderStatus
 }
 
-const OrderDetails = ({ order, showStatus }: OrderDetailsProps) => {
+const OrderDetails = ({ order, showStatus, customerStatus }: OrderDetailsProps) => {
   return (
     <div>
       <Text>
@@ -35,7 +40,7 @@ const OrderDetails = ({ order, showStatus }: OrderDetailsProps) => {
           <Text>
             Status:{" "}
             <span className="text-ui-fg-subtle" data-testid="order-status">
-              {getCustomerOrderStatus(order)}
+              {customerStatus ?? getCustomerOrderStatus(order)}
             </span>
           </Text>
         )}

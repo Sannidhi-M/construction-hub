@@ -19,15 +19,19 @@ const STATUS_BADGE_COLOR: Record<
   "green" | "red" | "blue" | "orange" | "grey" | "purple"
 > = {
   "Payment Pending": "orange",
+  "Payment Verification Pending": "orange",
   "Order Confirmed": "blue",
-  Processing: "blue",
+  "Order Processing": "blue",
   "Out for Delivery": "purple",
   Delivered: "green",
   Cancelled: "red",
 }
 
 const OrderCard = ({ order }: OrderCardProps) => {
-  const customerStatus = getCustomerOrderStatus(order)
+  const customerStatus = getCustomerOrderStatus(
+    order,
+    !!order.metadata?.payment_customer_confirmed
+  )
 
   const numberOfLines = useMemo(() => {
     return (

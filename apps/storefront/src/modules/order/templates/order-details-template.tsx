@@ -9,7 +9,7 @@ import OrderDetails from "@modules/order/components/order-details"
 import OrderSummary from "@modules/order/components/order-summary"
 import ShippingDetails from "@modules/order/components/shipping-details"
 import UpiPayment from "@modules/checkout/components/upi-payment"
-import { getCustomerOrderStatus } from "@lib/util/order-status"
+import { getCustomerOrderStatus, isAwaitingPayment } from "@lib/util/order-status"
 import React from "react"
 
 type OrderDetailsTemplateProps = {
@@ -21,7 +21,7 @@ const OrderDetailsTemplate: React.FC<OrderDetailsTemplateProps> = ({
   order,
   alreadyConfirmed,
 }) => {
-  const customerStatus = getCustomerOrderStatus(order)
+  const customerStatus = getCustomerOrderStatus(order, alreadyConfirmed)
 
   return (
     <div className="flex flex-col justify-center gap-y-4">
@@ -39,8 +39,8 @@ const OrderDetailsTemplate: React.FC<OrderDetailsTemplateProps> = ({
         className="flex flex-col gap-4 h-full bg-white w-full"
         data-testid="order-details-container"
       >
-        <OrderDetails order={order} showStatus />
-        {customerStatus === "Payment Pending" && (
+        <OrderDetails order={order} showStatus customerStatus={customerStatus} />
+        {isAwaitingPayment(customerStatus) && (
           <div className="border-t border-gray-200 pt-4">
             <UpiPayment order={order} alreadyConfirmed={alreadyConfirmed} />
           </div>
