@@ -14,6 +14,86 @@ type ProductListQueryParams = (HttpTypes.FindParams &
   option_value_id?: string | string[]
 }
 
+/**
+ * Product `images[]` (the fallback a thumbnail-less product needs — see
+ * Thumbnail's own `thumbnail || images?.[0]?.url` logic) keyed by product
+ * id, for merging onto cart/order line items. Deliberately a separate
+ * lookup rather than requesting `items.product.images` directly on the
+ * cart/order routes: confirmed against Medusa's own query-config source
+ * that neither route's allowed-field list includes that path at all (the
+ * order route only allows it nested under `items.variant.product.images`,
+ * a different path than cart's — relying on either is fragile), so a
+ * direct request is silently dropped no matter how it's phrased. The
+ * plain products endpoint does support `images` directly, so this fetches
+ * it from there instead and the caller merges it in.
+ */
+export const getProductImagesByIds = async (
+  productIds: string[]
+): Promise<Record<string, HttpTypes.StoreProductImage[]>> => {
+  const uniqueIds = Array.from(new Set(productIds.filter(Boolean)))
+  if (!uniqueIds.length) {
+    return {}
+  }
+
+  const headers = {
+    ...(await getAuthHeaders()),
+  }
+
+  return sdk.client
+    .fetch<HttpTypes.StoreProductListResponse>(`/store/products`, {
+      method: "GET",
+      query: {
+        id: uniqueIds,
+        limit: uniqueIds.length,
+        fields: "id,images.url",
+      },
+      headers,
+      cache: "no-store",
+    })
+    .then(({ products }) => {
+      const map: Record<string, HttpTypes.StoreProductImage[]> = {}
+      products.forEach((product) => {
+        map[product.id] = product.images ?? []
+      })
+      return map
+    })
+    .catch(() => ({}))
+}
+
+type ItemWithProduct = {
+  product_id?: string | null
+  product?: { images?: HttpTypes.StoreProductImage[] | null } | null
+}
+
+/**
+ * Merges each item's product `images[]` in place (see
+ * getProductImagesByIds for why this can't just be requested on the
+ * cart/order routes directly) — shared by retrieveCart, retrieveOrder,
+ * and listOrders so the fix lives in one place.
+ */
+export const attachProductImages = async <T extends ItemWithProduct>(
+  items: T[],
+  // Pass a pre-fetched map to batch across multiple item lists in one
+  // lookup (see listOrders) instead of fetching per list.
+  imagesByProductId?: Record<string, HttpTypes.StoreProductImage[]>
+): Promise<T[]> => {
+  if (!items.length) {
+    return items
+  }
+
+  const images =
+    imagesByProductId ??
+    (await getProductImagesByIds(
+      items.map((item) => item.product_id).filter((v): v is string => !!v)
+    ))
+
+  return items.map((item) =>
+    item.product && item.product_id && images[item.product_id]
+      ? { ...item, product: { ...item.product, images: images[item.product_id] } }
+      : item
+  )
+}
+
 export const listProducts = async ({
   pageParam = 1,
   queryParams,

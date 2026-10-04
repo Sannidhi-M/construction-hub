@@ -3,6 +3,7 @@
 import { sdk } from "@lib/config"
 import medusaError from "@lib/util/medusa-error"
 import { getAuthHeaders } from "./cookies"
+import { attachProductImages, getProductImagesByIds } from "./products"
 import { HttpTypes } from "@medusajs/types"
 
 export const retrieveOrder = async (id: string) => {
@@ -27,7 +28,12 @@ export const retrieveOrder = async (id: string) => {
       headers,
       cache: "no-store",
     })
-    .then(({ order }) => order)
+    .then(async ({ order }) => {
+      if (order.items?.length) {
+        order.items = await attachProductImages(order.items)
+      }
+      return order
+    })
     .catch((err) => medusaError(err))
 }
 
@@ -101,7 +107,25 @@ export const listOrders = async (
       headers,
       cache: "no-store",
     })
-    .then(({ orders }) => orders)
+    .then(async ({ orders }) => {
+      // One batched image lookup across every order's items, rather than
+      // one per order.
+      const imagesByProductId = await getProductImagesByIds(
+        orders
+          .flatMap((order) => order.items ?? [])
+          .map((item) => item.product_id)
+          .filter((v): v is string => !!v)
+      )
+
+      return Promise.all(
+        orders.map(async (order) => {
+          if (order.items?.length) {
+            order.items = await attachProductImages(order.items, imagesByProductId)
+          }
+          return order
+        })
+      )
+    })
     .catch((err) => medusaError(err))
 }
 

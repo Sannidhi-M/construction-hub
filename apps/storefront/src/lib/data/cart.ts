@@ -17,6 +17,7 @@ import { getRegion } from "./regions"
 import { getLocale } from "./locale-actions"
 import { checkPincodeServiceable } from "./delivery-area"
 import { listCartShippingMethods } from "./fulfillment"
+import { attachProductImages } from "./products"
 
 /**
  * Retrieves a cart by its ID. If no ID is provided, it will use the cart ID from the cookies.
@@ -50,7 +51,12 @@ export async function retrieveCart(cartId?: string, fields?: string) {
       next,
       cache: "force-cache",
     })
-    .then(({ cart }: { cart: HttpTypes.StoreCart }) => cart)
+    .then(async ({ cart }: { cart: HttpTypes.StoreCart }) => {
+      if (cart.items?.length) {
+        cart.items = await attachProductImages(cart.items)
+      }
+      return cart
+    })
     .catch(() => null)
 }
 
