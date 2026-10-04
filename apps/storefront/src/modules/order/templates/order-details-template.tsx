@@ -8,15 +8,21 @@ import Items from "@modules/order/components/items"
 import OrderDetails from "@modules/order/components/order-details"
 import OrderSummary from "@modules/order/components/order-summary"
 import ShippingDetails from "@modules/order/components/shipping-details"
+import UpiPayment from "@modules/checkout/components/upi-payment"
+import { getCustomerOrderStatus } from "@lib/util/order-status"
 import React from "react"
 
 type OrderDetailsTemplateProps = {
   order: HttpTypes.StoreOrder
+  alreadyConfirmed?: boolean
 }
 
 const OrderDetailsTemplate: React.FC<OrderDetailsTemplateProps> = ({
   order,
+  alreadyConfirmed,
 }) => {
+  const customerStatus = getCustomerOrderStatus(order)
+
   return (
     <div className="flex flex-col justify-center gap-y-4">
       <div className="flex gap-2 justify-between items-center">
@@ -34,6 +40,11 @@ const OrderDetailsTemplate: React.FC<OrderDetailsTemplateProps> = ({
         data-testid="order-details-container"
       >
         <OrderDetails order={order} showStatus />
+        {customerStatus === "Payment Pending" && (
+          <div className="border-t border-gray-200 pt-4">
+            <UpiPayment order={order} alreadyConfirmed={alreadyConfirmed} />
+          </div>
+        )}
         <Items order={order} />
         <ShippingDetails order={order} />
         <OrderSummary order={order} />

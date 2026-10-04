@@ -25,7 +25,17 @@ export default async function CheckoutForm({
     <div className="w-full grid grid-cols-1 gap-y-8">
       <Addresses cart={cart} customer={customer} />
 
-      <Shipping cart={cart} availableShippingMethods={shippingMethods} />
+      {/*
+       * Delivery is auto-assigned right after the address step (see
+       * setAddresses in lib/data/cart.ts) — there's only ever one real
+       * option (flat-rate, manual delivery), so there's nothing for the
+       * customer to choose and no reason to show this section. Only
+       * rendered as a fallback if that auto-assignment didn't happen
+       * (misconfiguration: no option, or more than one to pick from).
+       */}
+      {(cart.shipping_methods?.length ?? 0) === 0 && (
+        <Shipping cart={cart} availableShippingMethods={shippingMethods} />
+      )}
 
       {/*
        * Single-provider (system/manual UPI) payment flow: there's no payment

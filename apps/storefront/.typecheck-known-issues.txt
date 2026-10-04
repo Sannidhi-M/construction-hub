@@ -57,6 +57,7 @@ src/modules/account/components/address-card/edit-address-modal.tsx: error TS2786
 src/modules/account/components/address-card/edit-address-modal.tsx: error TS2786: 'Trash' cannot be used as a JSX component.
 src/modules/account/components/login/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
 src/modules/account/components/login/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
+src/modules/account/components/order-card/index.tsx: error TS2786: 'Badge' cannot be used as a JSX component.
 src/modules/account/components/order-card/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
 src/modules/account/components/order-card/index.tsx: error TS2786: 'Thumbnail' cannot be used as a JSX component.
 src/modules/account/components/order-overview/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
@@ -108,6 +109,7 @@ src/modules/checkout/components/review/index.tsx: error TS2786: 'Text' cannot be
 src/modules/checkout/components/shipping/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
 src/modules/checkout/components/shipping/index.tsx: error TS2786: 'Heading' cannot be used as a JSX component.
 src/modules/checkout/components/shipping/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
+src/modules/checkout/components/upi-payment/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
 src/modules/checkout/components/upi-payment/index.tsx: error TS2786: 'Heading' cannot be used as a JSX component.
 src/modules/checkout/components/upi-payment/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
 src/modules/checkout/templates/checkout-summary/index.tsx: error TS2786: 'CartTotals' cannot be used as a JSX component.

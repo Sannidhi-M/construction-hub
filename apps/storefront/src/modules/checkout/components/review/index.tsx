@@ -1,10 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { HttpTypes } from "@medusajs/types"
 import { initiatePaymentSession, placeOrder } from "@lib/data/cart"
-import { addCustomerAddress, completePhoneSignup } from "@lib/data/customer"
+import {
+  addCustomerAddress,
+  completePhoneSignup,
+  retrieveCustomer,
+} from "@lib/data/customer"
 import { listCartPaymentMethods } from "@lib/data/payment"
 import ErrorMessage from "@modules/checkout/components/error-message"
 import PhoneLogin from "@modules/account/components/phone-login"
@@ -53,6 +57,60 @@ const Review = ({
   const previousStepsCompleted =
     !!cart.shipping_address && (cart.shipping_methods?.length ?? 0) > 0
 
+  // Saves the address just typed for checkout as the customer's default
+  // billing + shipping address — but only when they don't already have one
+  // saved, so this never overwrites a default an existing customer already
+  // manages themselves (addCustomerAddress's is_default flags would
+  // otherwise collide with one that's already set).
+  const saveCartAddressAsDefaultIfNone = async () => {
+    const shippingAddress = cart.shipping_address
+    if (!shippingAddress) {
+      return
+    }
+
+    const freshCustomer = await retrieveCustomer()
+    if ((freshCustomer?.addresses?.length ?? 0) > 0) {
+      return
+    }
+
+    const addressFormData = new FormData()
+    addressFormData.set("first_name", shippingAddress.first_name ?? "")
+    addressFormData.set("last_name", shippingAddress.last_name ?? "")
+    addressFormData.set("company", shippingAddress.company ?? "")
+    addressFormData.set("address_1", shippingAddress.address_1 ?? "")
+    addressFormData.set("address_2", shippingAddress.address_2 ?? "")
+    addressFormData.set("city", shippingAddress.city ?? "")
+    addressFormData.set("postal_code", shippingAddress.postal_code ?? "")
+    addressFormData.set("province", shippingAddress.province ?? "")
+    addressFormData.set("country_code", shippingAddress.country_code ?? "")
+    addressFormData.set("phone", shippingAddress.phone ?? "")
+
+    await addCustomerAddress(
+      { isDefaultBilling: true, isDefaultShipping: true },
+      addressFormData
+    )
+  }
+
+  // Fires once whenever `customer` transitions from signed-out to
+  // signed-in while this component is mounted — covers a recognized phone
+  // logging in. This is driven by Review's own prop, not a callback from
+  // PhoneLogin: a recognized-phone verification both authenticates *and*
+  // triggers Next's automatic post-server-action page refresh in the same
+  // response, and that refresh swaps PhoneLogin out of the tree (since
+  // `customer` is now truthy) — which can unmount it before its own
+  // `onVerified` effect gets a chance to fire. Tying this to Review's own
+  // prop update instead means it can't be lost to that race (confirmed via
+  // live testing — the brand-new-phone path doesn't hit this, since it
+  // calls completePhoneSignup directly, with no competing refresh to race).
+  const previousCustomerRef = useRef(customer)
+  useEffect(() => {
+    if (!previousCustomerRef.current && customer) {
+      saveCartAddressAsDefaultIfNone()
+    }
+    previousCustomerRef.current = customer
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customer])
+
   // A brand-new phone number verified at checkout is created as a customer
   // immediately, using the name/email already collected on the shipping
   // address — no extra form, since the shopper already typed those once.
@@ -80,25 +138,7 @@ const Review = ({
     // address (and default billing address) — no reason to make them
     // retype it next time, or leave "Manage Addresses"/the billing address
     // on their profile looking empty right after they've placed an order.
-    const shippingAddress = cart.shipping_address
-    if (shippingAddress) {
-      const addressFormData = new FormData()
-      addressFormData.set("first_name", shippingAddress.first_name ?? "")
-      addressFormData.set("last_name", shippingAddress.last_name ?? "")
-      addressFormData.set("company", shippingAddress.company ?? "")
-      addressFormData.set("address_1", shippingAddress.address_1 ?? "")
-      addressFormData.set("address_2", shippingAddress.address_2 ?? "")
-      addressFormData.set("city", shippingAddress.city ?? "")
-      addressFormData.set("postal_code", shippingAddress.postal_code ?? "")
-      addressFormData.set("province", shippingAddress.province ?? "")
-      addressFormData.set("country_code", shippingAddress.country_code ?? "")
-      addressFormData.set("phone", shippingAddress.phone ?? "")
-
-      await addCustomerAddress(
-        { isDefaultBilling: true, isDefaultShipping: true },
-        addressFormData
-      )
-    }
+    await saveCartAddressAsDefaultIfNone()
 
     router.refresh()
   }

@@ -31,6 +31,52 @@ export const retrieveOrder = async (id: string) => {
     .catch((err) => medusaError(err))
 }
 
+/**
+ * `order.metadata` (used for the UPI "I've Paid" customer-confirmation
+ * flag, §4.2) specifically, as its own minimal call. Confirmed against
+ * Medusa's own source (query-config.js): the single-order GET
+ * /store/orders/:id route doesn't have `metadata` in its allowed field
+ * list at all — only the LIST route's defaults include it — so a direct
+ * retrieve silently drops it no matter how it's requested. Kept separate
+ * from retrieveOrder (rather than switching that to the list endpoint)
+ * because the list endpoint's own defaults are a much smaller set (no
+ * email, shipping_address, totals, etc. unless each is individually
+ * requested) — not worth the regression risk for one field.
+ */
+export const retrieveOrderPaymentConfirmation = async (id: string) => {
+  const headers = {
+    ...(await getAuthHeaders()),
+  }
+
+  return sdk.client
+    .fetch<HttpTypes.StoreOrderListResponse>(`/store/orders`, {
+      method: "GET",
+      query: { id: [id], limit: 1, fields: "id,metadata" },
+      headers,
+      cache: "no-store",
+    })
+    .then(({ orders }) => !!orders?.[0]?.metadata?.payment_customer_confirmed)
+    .catch(() => false)
+}
+
+/**
+ * "I've Paid" (§4.2 extension) — the customer self-reports they've sent
+ * the UPI payment. Purely a hint surfaced to the admin; it never captures
+ * or otherwise advances payment state (see the backend route for why).
+ */
+export const confirmPaymentSubmitted = async (orderId: string) => {
+  const headers = {
+    ...(await getAuthHeaders()),
+  }
+
+  return sdk.client
+    .fetch(`/store/orders/${orderId}/payment-submitted`, {
+      method: "POST",
+      headers,
+    })
+    .catch((err) => medusaError(err))
+}
+
 export const listOrders = async (
   limit: number = 10,
   offset: number = 0,

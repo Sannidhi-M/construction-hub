@@ -24,6 +24,9 @@ const OrderPaymentVerificationWidget = ({
 
   const alreadyVerified = !!payment?.captured_at
   const customerStatus = getCustomerOrderStatus(order)
+  const customerConfirmedAt = order.metadata?.payment_customer_confirmed_at as
+    | string
+    | undefined
 
   const handleVerify = async () => {
     setSubmitting(true)
@@ -69,6 +72,13 @@ const OrderPaymentVerificationWidget = ({
             ? "This order's payment has already been verified and captured."
             : "Check your UPI app/bank statement for this order's payment before confirming — this action captures the payment and cannot be undone from here."}
         </Text>
+        {!alreadyVerified && customerConfirmedAt && (
+          <Text size="small" className="text-ui-fg-subtle">
+            Customer marked this as paid on{" "}
+            {new Date(customerConfirmedAt).toLocaleString()} — not yet
+            independently verified.
+          </Text>
+        )}
         {!alreadyVerified && (
           <>
             <Textarea

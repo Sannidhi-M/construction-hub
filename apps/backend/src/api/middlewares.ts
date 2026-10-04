@@ -1,4 +1,4 @@
-import { defineMiddlewares } from "@medusajs/framework/http"
+import { authenticate, defineMiddlewares } from "@medusajs/framework/http"
 import type { MedusaNextFunction, MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { getRedisClient } from "../lib/redis"
 
@@ -36,6 +36,10 @@ export default defineMiddlewares({
     {
       matcher: "/auth/customer/phone-auth*",
       middlewares: [phoneAuthIpRateLimit],
+    },
+    {
+      matcher: "/store/orders/:id/payment-submitted",
+      middlewares: [authenticate("customer", "bearer")],
     },
   ],
 })

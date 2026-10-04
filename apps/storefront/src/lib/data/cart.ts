@@ -16,6 +16,7 @@ import {
 import { getRegion } from "./regions"
 import { getLocale } from "./locale-actions"
 import { checkPincodeServiceable } from "./delivery-area"
+import { listCartShippingMethods } from "./fulfillment"
 
 /**
  * Retrieves a cart by its ID. If no ID is provided, it will use the cart ID from the cookies.
@@ -293,11 +294,12 @@ export async function submitPromotionForm(
 
 // TODO: Pass a POJO instead of a form entity here
 export async function setAddresses(currentState: unknown, formData: FormData) {
+  const cartId = await getCartId()
+
   try {
     if (!formData) {
       throw new Error("No form data found when setting addresses")
     }
-    const cartId = getCartId()
     if (!cartId) {
       throw new Error("No existing cart found when setting addresses")
     }
@@ -349,7 +351,36 @@ export async function setAddresses(currentState: unknown, formData: FormData) {
     return e instanceof Error ? e.message : String(e)
   }
 
-  redirect(`/checkout?step=delivery`)
+  // This business has exactly one real delivery option (flat-rate,
+  // manual) — nothing for the customer to actually choose, so the
+  // Delivery step is skipped and it's auto-assigned here instead. Falls
+  // back to showing the step if that assumption ever stops holding (no
+  // option configured, or more than one to choose from).
+  let redirectStep = "review"
+  const updatedCart = await retrieveCart(cartId)
+
+  if (!updatedCart?.shipping_methods?.length) {
+    const shippingOptions = await listCartShippingMethods(cartId)
+    const deliveryOptions = (shippingOptions ?? []).filter(
+      (option) =>
+        (
+          option as unknown as {
+            service_zone?: { fulfillment_set?: { type?: string } }
+          }
+        ).service_zone?.fulfillment_set?.type !== "pickup"
+    )
+
+    if (deliveryOptions.length === 1) {
+      await setShippingMethod({
+        cartId,
+        shippingMethodId: deliveryOptions[0].id,
+      })
+    } else {
+      redirectStep = "delivery"
+    }
+  }
+
+  redirect(`/checkout?step=${redirectStep}`)
 }
 
 /**

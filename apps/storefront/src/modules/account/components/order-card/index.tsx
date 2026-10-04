@@ -1,16 +1,34 @@
-import { Button } from "@modules/common/components/ui"
+import { Badge, Button } from "@modules/common/components/ui"
 import { useMemo } from "react"
 
 import Thumbnail from "@modules/products/components/thumbnail"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import { convertToLocale } from "@lib/util/money"
 import { HttpTypes } from "@medusajs/types"
+import {
+  CustomerOrderStatus,
+  getCustomerOrderStatus,
+} from "@lib/util/order-status"
 
 type OrderCardProps = {
   order: HttpTypes.StoreOrder
 }
 
+const STATUS_BADGE_COLOR: Record<
+  CustomerOrderStatus,
+  "green" | "red" | "blue" | "orange" | "grey" | "purple"
+> = {
+  "Payment Pending": "orange",
+  "Order Confirmed": "blue",
+  Processing: "blue",
+  "Out for Delivery": "purple",
+  Delivered: "green",
+  Cancelled: "red",
+}
+
 const OrderCard = ({ order }: OrderCardProps) => {
+  const customerStatus = getCustomerOrderStatus(order)
+
   const numberOfLines = useMemo(() => {
     return (
       order.items?.reduce((acc, item) => {
@@ -25,8 +43,16 @@ const OrderCard = ({ order }: OrderCardProps) => {
 
   return (
     <div className="bg-white flex flex-col" data-testid="order-card">
-      <div className="uppercase text-large-semi mb-1">
-        #<span data-testid="order-display-id">{order.display_id}</span>
+      <div className="flex items-center gap-x-3 mb-1">
+        <span className="uppercase text-large-semi">
+          #<span data-testid="order-display-id">{order.display_id}</span>
+        </span>
+        <Badge
+          color={STATUS_BADGE_COLOR[customerStatus]}
+          data-testid="order-customer-status"
+        >
+          {customerStatus}
+        </Badge>
       </div>
       <div className="flex items-center divide-x divide-gray-200 text-small-regular text-ui-fg-base">
         <span className="pr-2" data-testid="order-created-at">
