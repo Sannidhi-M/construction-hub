@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { HttpTypes } from "@medusajs/types"
 import { initiatePaymentSession, placeOrder } from "@lib/data/cart"
 import {
@@ -12,8 +12,7 @@ import {
 import { listCartPaymentMethods } from "@lib/data/payment"
 import ErrorMessage from "@modules/checkout/components/error-message"
 import PhoneLogin from "@modules/account/components/phone-login"
-import { Button, Heading, Text, clx } from "@modules/common/components/ui"
-import { SITE_NAME } from "@lib/constants"
+import { Button, Text } from "@modules/common/components/ui"
 
 // Fast, non-blocking UX feedback for the minimum-order-value decision
 // (§2.5) — the authoritative check is the completeCartWorkflow validate
@@ -30,9 +29,7 @@ const Review = ({
   customer: HttpTypes.StoreCustomer | null
 }) => {
   const router = useRouter()
-  const searchParams = useSearchParams()
 
-  const isOpen = searchParams.get("step") === "review"
   // `cart.customer_id` isn't a safe signal here — Medusa auto-links a guest
   // cart to an existing customer record purely by email match at the
   // address step, with no authentication involved. Whether this *session*
@@ -177,70 +174,48 @@ const Review = ({
     }
   }
 
+  if (!previousStepsCompleted) {
+    return null
+  }
+
   return (
-    <div className="bg-white">
-      <div className="flex flex-row items-center justify-between mb-6">
-        <Heading
-          level="h2"
-          className={clx(
-            "flex flex-row text-3xl-regular gap-x-2 items-baseline",
-            {
-              "opacity-50 pointer-events-none select-none": !isOpen,
-            }
-          )}
+    <div className="border-t border-gray-200 mt-6 pt-6">
+      {belowMinimumOrderValue ? (
+        <Text
+          className="txt-medium text-rose-500"
+          data-testid="minimum-order-value-message"
         >
-          Review
-        </Heading>
-      </div>
-      {isOpen && previousStepsCompleted && (
-        <>
-          {belowMinimumOrderValue ? (
-            <Text
-              className="txt-medium text-rose-500 mb-6"
-              data-testid="minimum-order-value-message"
-            >
-              A minimum order of ₹{MIN_ORDER_VALUE_INR} is required to check
-              out. Add ₹{MIN_ORDER_VALUE_INR - cartTotal} more to your cart to
-              continue.
-            </Text>
-          ) : !isVerifiedCustomer ? (
-            <div
-              className="max-w-sm"
-              data-testid="checkout-phone-verification"
-            >
-              <Text className="txt-medium-plus text-ui-fg-base mb-4">
-                Verify your phone number to place your order.
-              </Text>
-              <PhoneLogin
-                onVerified={() => router.refresh()}
-                onNewPhone={handleNewPhone}
-              />
-            </div>
-          ) : (
-            <>
-              <div className="flex items-start gap-x-1 w-full mb-6">
-                <div className="w-full">
-                  <Text className="txt-medium-plus text-ui-fg-base mb-1">
-                    By clicking the Place Order button, you confirm that you
-                    have read, understand and accept our Terms of Use, Terms
-                    of Sale and Returns Policy and acknowledge that you have
-                    read {SITE_NAME}&apos;s Privacy Policy.
-                  </Text>
-                </div>
-              </div>
-              <Button
-                size="large"
-                onClick={handlePlaceOrder}
-                isLoading={submitting}
-                data-testid="submit-order-button"
-              >
-                Place order
-              </Button>
-            </>
-          )}
-          <ErrorMessage error={error} data-testid="review-error-message" />
-        </>
+          A minimum order of ₹{MIN_ORDER_VALUE_INR} is required to check
+          out. Add ₹{MIN_ORDER_VALUE_INR - cartTotal} more to your cart to
+          continue.
+        </Text>
+      ) : !isVerifiedCustomer ? (
+        <div data-testid="checkout-phone-verification">
+          <Text className="txt-medium-plus text-ui-fg-base mb-4">
+            Verify your phone number to place your order.
+          </Text>
+          <PhoneLogin
+            onVerified={() => router.refresh()}
+            onNewPhone={handleNewPhone}
+          />
+        </div>
+      ) : (
+        <div className="flex flex-col items-center text-center">
+          <Button
+            size="large"
+            onClick={handlePlaceOrder}
+            isLoading={submitting}
+            data-testid="submit-order-button"
+            className="w-full"
+          >
+            Place order
+          </Button>
+          <Text className="txt-small text-ui-fg-subtle mt-3">
+            By placing this order, you agree to our Terms of Service.
+          </Text>
+        </div>
       )}
+      <ErrorMessage error={error} data-testid="review-error-message" />
     </div>
   )
 }

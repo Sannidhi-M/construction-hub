@@ -123,7 +123,7 @@ const UpiPayment = ({
 
   return (
     <div
-      className="rounded-lg border border-gray-200 p-6"
+      className="rounded-lg border border-gray-200 p-6 text-center"
       data-testid="upi-payment-container"
     >
       <Text className="text-gray-600 mb-1">

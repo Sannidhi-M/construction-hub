@@ -18,7 +18,9 @@ function getCheckoutStep(cart: HttpTypes.StoreCart) {
   } else if (cart?.shipping_methods?.length === 0) {
     return "delivery"
   } else {
-    return "payment"
+    // There's no separate payment step (§2.4) — Review both initiates
+    // payment and places the order.
+    return "review"
   }
 }
 

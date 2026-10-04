@@ -28,6 +28,7 @@ const ItemsTemplate = ({ cart }: ItemsTemplateProps) => {
             <Table.HeaderCell className="!pr-0 text-right">
               Total
             </Table.HeaderCell>
+            <Table.HeaderCell className="!pr-0"></Table.HeaderCell>
           </Table.Row>
         </Table.Header>
         <Table.Body>

@@ -298,6 +298,45 @@ export async function submitPromotionForm(
   }
 }
 
+/**
+ * This business has exactly one real delivery option (flat-rate, manual)
+ * — nothing for the customer to actually choose, so the Delivery step is
+ * skipped and this assigns it automatically instead. Safe to call
+ * whenever a cart has an address but no shipping method yet, regardless
+ * of *why* — not just right after the address form is submitted, but
+ * also as a self-heal for a cart whose address was set some other way
+ * (e.g. before this auto-assignment existed) and never got one. Returns
+ * whether a method is assigned by the time it returns (`true` whether it
+ * was already set or this just set it) — `false` only in the genuine
+ * fallback case (no delivery option configured, or more than one to pick
+ * from), which still needs the manual Delivery step shown.
+ */
+export async function ensureDefaultShippingMethod(
+  cartId: string
+): Promise<boolean> {
+  const cart = await retrieveCart(cartId, "id,shipping_methods")
+  if (cart?.shipping_methods?.length) {
+    return true
+  }
+
+  const shippingOptions = await listCartShippingMethods(cartId)
+  const deliveryOptions = (shippingOptions ?? []).filter(
+    (option) =>
+      (
+        option as unknown as {
+          service_zone?: { fulfillment_set?: { type?: string } }
+        }
+      ).service_zone?.fulfillment_set?.type !== "pickup"
+  )
+
+  if (deliveryOptions.length !== 1) {
+    return false
+  }
+
+  await setShippingMethod({ cartId, shippingMethodId: deliveryOptions[0].id })
+  return true
+}
+
 // TODO: Pass a POJO instead of a form entity here
 export async function setAddresses(currentState: unknown, formData: FormData) {
   const cartId = await getCartId()
@@ -357,36 +396,8 @@ export async function setAddresses(currentState: unknown, formData: FormData) {
     return e instanceof Error ? e.message : String(e)
   }
 
-  // This business has exactly one real delivery option (flat-rate,
-  // manual) — nothing for the customer to actually choose, so the
-  // Delivery step is skipped and it's auto-assigned here instead. Falls
-  // back to showing the step if that assumption ever stops holding (no
-  // option configured, or more than one to choose from).
-  let redirectStep = "review"
-  const updatedCart = await retrieveCart(cartId)
-
-  if (!updatedCart?.shipping_methods?.length) {
-    const shippingOptions = await listCartShippingMethods(cartId)
-    const deliveryOptions = (shippingOptions ?? []).filter(
-      (option) =>
-        (
-          option as unknown as {
-            service_zone?: { fulfillment_set?: { type?: string } }
-          }
-        ).service_zone?.fulfillment_set?.type !== "pickup"
-    )
-
-    if (deliveryOptions.length === 1) {
-      await setShippingMethod({
-        cartId,
-        shippingMethodId: deliveryOptions[0].id,
-      })
-    } else {
-      redirectStep = "delivery"
-    }
-  }
-
-  redirect(`/checkout?step=${redirectStep}`)
+  const assigned = await ensureDefaultShippingMethod(cartId)
+  redirect(`/checkout?step=${assigned ? "review" : "delivery"}`)
 }
 
 /**

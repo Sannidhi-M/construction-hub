@@ -198,7 +198,7 @@ const ShopCard = ({
                     }
                   }}
                   aria-label="Quantity"
-                  className="w-12 text-center text-sm font-medium border-0 focus:outline-none focus:ring-2 focus:ring-brand-500 rounded disabled:opacity-50"
+                  className="w-12 text-center text-sm font-medium border border-gray-300 rounded-md mx-1 py-1 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 disabled:opacity-50"
                 />
                 <button
                   type="button"

@@ -1,9 +1,9 @@
 "use client"
 
+import { Minus, Plus } from "@medusajs/icons"
 import { Table, Text, clx } from "@modules/common/components/ui"
 import { updateLineItem } from "@lib/data/cart"
 import { HttpTypes } from "@medusajs/types"
-import CartItemSelect from "@modules/cart/components/cart-item-select"
 import ErrorMessage from "@modules/checkout/components/error-message"
 import DeleteButton from "@modules/common/components/delete-button"
 import LineItemOptions from "@modules/common/components/line-item-options"
@@ -12,7 +12,7 @@ import LineItemUnitPrice from "@modules/common/components/line-item-unit-price"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import Spinner from "@modules/common/icons/spinner"
 import Thumbnail from "@modules/products/components/thumbnail"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 type ItemProps = {
   item: HttpTypes.StoreCartLineItem
@@ -23,26 +23,53 @@ type ItemProps = {
 const Item = ({ item, type = "full", currencyCode }: ItemProps) => {
   const [updating, setUpdating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Decoupled from `item.quantity` while the customer is actively typing
+  // (e.g. clearing the field to type "30") — only committed on blur/Enter,
+  // or immediately by the +/- buttons. Re-synced whenever the server's own
+  // quantity changes under us (a successful update round-trip, or the cart
+  // refreshing for an unrelated reason).
+  const [draftValue, setDraftValue] = useState(String(item.quantity))
 
-  const changeQuantity = async (quantity: number) => {
+  useEffect(() => {
+    setDraftValue(String(item.quantity))
+  }, [item.quantity])
+
+  const commitQuantity = async (nextQuantity: number) => {
+    if (updating || nextQuantity === item.quantity) {
+      setDraftValue(String(item.quantity))
+      return
+    }
+
+    // The trash button handles removal — the stepper's floor is 1, not 0.
+    if (nextQuantity < 1) {
+      setDraftValue(String(item.quantity))
+      return
+    }
+
     setError(null)
     setUpdating(true)
+    setDraftValue(String(nextQuantity))
 
-    await updateLineItem({
-      lineId: item.id,
-      quantity,
-    })
-      .catch((err) => {
+    await updateLineItem({ lineId: item.id, quantity: nextQuantity }).catch(
+      (err) => {
+        setDraftValue(String(item.quantity))
         setError(err.message)
-      })
-      .finally(() => {
-        setUpdating(false)
-      })
+      }
+    )
+
+    setUpdating(false)
   }
 
-  // TODO: Update this to grab the actual max inventory
-  const maxQtyFromInventory = 10
-  const maxQuantity = item.variant?.manage_inventory ? 10 : maxQtyFromInventory
+  const handleDraftBlur = () => {
+    const parsed = parseInt(draftValue, 10)
+
+    if (Number.isNaN(parsed)) {
+      setDraftValue(String(item.quantity))
+      return
+    }
+
+    commitQuantity(parsed)
+  }
 
   return (
     <Table.Row className="w-full" data-testid="product-row">
@@ -74,30 +101,48 @@ const Item = ({ item, type = "full", currencyCode }: ItemProps) => {
 
       {type === "full" && (
         <Table.Cell>
-          <div className="flex gap-2 items-center w-28">
-            <DeleteButton id={item.id} data-testid="product-delete-button" />
-            <CartItemSelect
-              value={item.quantity}
-              onChange={(value) => changeQuantity(parseInt(value.target.value))}
-              className="w-14 h-10 p-4"
-              data-testid="product-select-button"
-            >
-              {/* TODO: Update this with the v2 way of managing inventory */}
-              {Array.from(
-                {
-                  length: Math.min(maxQuantity, 10),
-                },
-                (_, i) => (
-                  <option value={i + 1} key={i}>
-                    {i + 1}
-                  </option>
-                )
-              )}
-
-              <option value={1} key={1}>
-                1
-              </option>
-            </CartItemSelect>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center border border-gray-300 rounded-md">
+              <button
+                type="button"
+                onClick={() => commitQuantity(item.quantity - 1)}
+                disabled={updating || item.quantity <= 1}
+                className="p-2 hover:bg-gray-50 disabled:opacity-50"
+                aria-label="Decrease quantity"
+                data-testid="quantity-decrease-button"
+              >
+                <Minus />
+              </button>
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={draftValue}
+                disabled={updating}
+                onChange={(e) =>
+                  setDraftValue(e.target.value.replace(/[^0-9]/g, ""))
+                }
+                onBlur={handleDraftBlur}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.currentTarget.blur()
+                  }
+                }}
+                aria-label="Quantity"
+                data-testid="quantity-input"
+                className="w-12 text-center text-sm font-medium border-0 focus:outline-none focus:ring-2 focus:ring-brand-500 rounded disabled:opacity-50"
+              />
+              <button
+                type="button"
+                onClick={() => commitQuantity(item.quantity + 1)}
+                disabled={updating}
+                className="p-2 hover:bg-gray-50 disabled:opacity-50"
+                aria-label="Increase quantity"
+                data-testid="quantity-increase-button"
+              >
+                <Plus />
+              </button>
+            </div>
             {updating && <Spinner />}
           </div>
           <ErrorMessage error={error} data-testid="product-error-message" />
@@ -114,9 +159,9 @@ const Item = ({ item, type = "full", currencyCode }: ItemProps) => {
         </Table.Cell>
       )}
 
-      <Table.Cell className="!pr-0">
+      <Table.Cell className={type === "full" ? undefined : "!pr-0"}>
         <span
-          className={clx("!pr-0", {
+          className={clx({
             "flex flex-col items-end h-full justify-center": type === "preview",
           })}
         >
@@ -137,6 +182,12 @@ const Item = ({ item, type = "full", currencyCode }: ItemProps) => {
           />
         </span>
       </Table.Cell>
+
+      {type === "full" && (
+        <Table.Cell className="!pr-0 text-right" data-testid="product-delete-button">
+          <DeleteButton id={item.id} className="justify-end" />
+        </Table.Cell>
+      )}
     </Table.Row>
   )
 }

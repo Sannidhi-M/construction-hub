@@ -22,6 +22,7 @@
 #     | grep -E "^\S+\([0-9]+,[0-9]+\): error TS[0-9]+:" \
 #     | sed -E 's/\([0-9]+,[0-9]+\)//' | sort -u > .typecheck-known-issues.txt
 src/app/(checkout)/layout.tsx: error TS2786: 'ChevronDown' cannot be used as a JSX component.
+src/app/(checkout)/layout.tsx: error TS2786: 'LogoMark' cannot be used as a JSX component.
 src/app/(main)/account/@dashboard/addresses/page.tsx: error TS2786: 'AddressBook' cannot be used as a JSX component.
 src/app/(main)/account/@dashboard/loading.tsx: error TS2786: 'Spinner' cannot be used as a JSX component.
 src/app/(main)/account/@dashboard/orders/details/[id]/page.tsx: error TS2786: 'OrderDetailsTemplate' cannot be used as a JSX component.
@@ -76,7 +77,6 @@ src/modules/cart/components/cart-item-select/index.tsx: error TS2786: 'ChevronDo
 src/modules/cart/components/cart-item-select/index.tsx: error TS2786: 'IconBadge' cannot be used as a JSX component.
 src/modules/cart/components/empty-cart-message/index.tsx: error TS2786: 'Heading' cannot be used as a JSX component.
 src/modules/cart/components/empty-cart-message/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
-src/modules/cart/components/item/index.tsx: error TS2786: 'CartItemSelect' cannot be used as a JSX component.
 src/modules/cart/components/item/index.tsx: error TS2786: 'Spinner' cannot be used as a JSX component.
 src/modules/cart/components/item/index.tsx: error TS2786: 'Table.Cell' cannot be used as a JSX component.
 src/modules/cart/components/item/index.tsx: error TS2786: 'Table.Row' cannot be used as a JSX component.
@@ -113,7 +113,6 @@ src/modules/checkout/components/upi-payment/index.tsx: error TS2786: 'Button' ca
 src/modules/checkout/components/upi-payment/index.tsx: error TS2786: 'Heading' cannot be used as a JSX component.
 src/modules/checkout/components/upi-payment/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
 src/modules/checkout/templates/checkout-summary/index.tsx: error TS2786: 'CartTotals' cannot be used as a JSX component.
-src/modules/checkout/templates/checkout-summary/index.tsx: error TS2786: 'DiscountCode' cannot be used as a JSX component.
 src/modules/checkout/templates/checkout-summary/index.tsx: error TS2786: 'Heading' cannot be used as a JSX component.
 src/modules/collections/templates/index.tsx: error TS2786: 'Suspense' cannot be used as a JSX component.
 src/modules/common/components/filter-radio-group/index.tsx: error TS2786: 'Label' cannot be used as a JSX component.

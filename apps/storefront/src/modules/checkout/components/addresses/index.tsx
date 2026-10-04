@@ -4,7 +4,6 @@ import useToggleState from "@lib/hooks/use-toggle-state"
 import compareAddresses from "@lib/util/compare-addresses"
 import { CheckCircleSolid } from "@medusajs/icons"
 import { HttpTypes } from "@medusajs/types"
-import Divider from "@modules/common/components/divider"
 import { Heading, Text } from "@modules/common/components/ui"
 import Spinner from "@modules/common/icons/spinner"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
@@ -83,9 +82,11 @@ const Addresses = ({
                 <BillingAddress cart={cart} />
               </div>
             )}
-            <SubmitButton className="mt-6" data-testid="submit-address-button">
-              Continue to review
-            </SubmitButton>
+            <div className="flex justify-center mt-6">
+              <SubmitButton data-testid="submit-address-button">
+                Continue to review
+              </SubmitButton>
+            </div>
             <ErrorMessage error={message} data-testid="address-error-message" />
           </div>
         </form>
@@ -176,7 +177,6 @@ const Addresses = ({
           </div>
         </div>
       )}
-      <Divider className="mt-8" />
     </div>
   )
 }

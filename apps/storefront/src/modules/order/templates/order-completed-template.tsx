@@ -1,8 +1,8 @@
 import { Heading, Text } from "@modules/common/components/ui"
+import { CheckCircleSolid } from "@medusajs/icons"
 import { cookies as nextCookies } from "next/headers"
 
 import CartTotals from "@modules/common/components/cart-totals"
-import Help from "@modules/order/components/help"
 import Items from "@modules/order/components/items"
 import OnboardingCta from "@modules/order/components/onboarding-cta"
 import OrderDetails from "@modules/order/components/order-details"
@@ -31,14 +31,16 @@ export default async function OrderCompletedTemplate({
       <div className="content-container flex flex-col gap-y-6 w-full">
         {isOnboarding && <OnboardingCta orderId={order.id} />}
 
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 small:p-10">
-          <Heading
-            level="h1"
-            className="flex flex-col gap-y-2 text-ui-fg-base text-3xl mb-2"
-          >
-            <span>Thank you!</span>
-            <span>Your order was placed successfully.</span>
+        <div className="bg-brand-50 border border-brand-100 rounded-lg p-6 small:p-8 flex flex-col items-center text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-500 text-white mb-3">
+            <CheckCircleSolid className="w-6 h-6" />
+          </div>
+          <Heading level="h1" className="text-2xl small:text-3xl font-bold text-gray-900">
+            Thank you!
           </Heading>
+          <Text className="text-gray-600 mt-1">
+            Your order was placed successfully.
+          </Text>
         </div>
 
         {/*
@@ -77,10 +79,6 @@ export default async function OrderCompletedTemplate({
             <CartTotals totals={order} />
             <ShippingDetails order={order} />
           </div>
-        </div>
-
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 small:p-10">
-          <Help />
         </div>
       </div>
     </div>
