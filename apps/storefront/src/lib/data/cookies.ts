@@ -122,10 +122,18 @@ export const getCartId = async () => {
 
 // See the note on `setAuthToken`: `sameSite: "lax"` so the cart cookie survives
 // the cross-site return navigation from a redirect-based payment method.
+//
+// Deliberately much shorter-lived than the auth cookie: Medusa treats
+// knowing the cart ID as sufficient to read it (no auth required), so this
+// cookie is the only thing standing between a shared/returned-to browser and
+// whatever PII (shipping address, email, phone) was last saved to that cart
+// — including residue from a session that was authenticated at the time but
+// isn't anymore. A short window limits how long that stays reachable, while
+// still covering same-day shopping across tab closes.
 export const setCartId = async (cartId: string) => {
   const cookies = await nextCookies()
   cookies.set("_medusa_cart_id", cartId, {
-    maxAge: 60 * 60 * 24 * 7,
+    maxAge: 60 * 60 * 24,
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
