@@ -1,3 +1,4 @@
+import { retrieveCart } from "@lib/data/cart"
 import { listProductsWithSort } from "@lib/data/products"
 import { getRegion } from "@lib/data/regions"
 import { OptionValueIds } from "@lib/util/product-option-filters"
@@ -82,6 +83,14 @@ export default async function PaginatedProducts({
     )
   }
 
+  const cart = await retrieveCart()
+  const cartItemsByVariant = new Map(
+    (cart?.items ?? []).map((item) => [
+      item.variant_id,
+      { lineItemId: item.id, quantity: item.quantity },
+    ])
+  )
+
   return (
     <>
       <div
@@ -89,7 +98,12 @@ export default async function PaginatedProducts({
         data-testid="products-list"
       >
         {products.map((p) => (
-          <ShopCard key={p.id} product={p} region={region} />
+          <ShopCard
+            key={p.id}
+            product={p}
+            region={region}
+            cartItem={cartItemsByVariant.get(p.variants?.[0]?.id ?? "")}
+          />
         ))}
       </div>
       {totalPages > 1 && (

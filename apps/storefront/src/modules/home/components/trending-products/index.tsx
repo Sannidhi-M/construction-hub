@@ -1,4 +1,5 @@
 import { HttpTypes } from "@medusajs/types"
+import { retrieveCart } from "@lib/data/cart"
 import { listProducts } from "@lib/data/products"
 import { Heading } from "@modules/common/components/ui"
 import ShopCard from "@modules/products/components/shop-card"
@@ -42,6 +43,14 @@ const TrendingProducts = async ({
     return null
   }
 
+  const cart = await retrieveCart()
+  const cartItemsByVariant = new Map(
+    (cart?.items ?? []).map((item) => [
+      item.variant_id,
+      { lineItemId: item.id, quantity: item.quantity },
+    ])
+  )
+
   return (
     <div className="mb-8">
       <div className="flex items-center gap-x-3 mb-6">
@@ -52,7 +61,12 @@ const TrendingProducts = async ({
       </div>
       <div className="grid grid-cols-2 xsmall:grid-cols-3 medium:grid-cols-5 gap-6">
         {products.map((product) => (
-          <ShopCard key={product.id} product={product} region={region} />
+          <ShopCard
+            key={product.id}
+            product={product}
+            region={region}
+            cartItem={cartItemsByVariant.get(product.variants?.[0]?.id ?? "")}
+          />
         ))}
       </div>
     </div>

@@ -28,19 +28,28 @@ import { Button, Heading, Text } from "@modules/common/components/ui"
 const ShopCard = ({
   product,
   region,
+  cartItem,
 }: {
   product: HttpTypes.StoreProduct
   region: HttpTypes.StoreRegion
+  // Pre-existing cart line for this product's variant, if any — so a
+  // product already in the cart (e.g. the customer added it, then
+  // navigated away and came back) renders the quantity stepper right away
+  // instead of a plain "Add to Cart" button that would just add a second,
+  // separate quantity-1 line on click.
+  cartItem?: { lineItemId: string; quantity: number }
 }) => {
   // lineItemId is null until the customer actually adds this to their cart
   // — that's what switches the card from a plain "Add to Cart" button into
   // the quantity stepper, not local component state alone.
-  const [lineItemId, setLineItemId] = useState<string | null>(null)
-  const [quantity, setQuantity] = useState(1)
+  const [lineItemId, setLineItemId] = useState<string | null>(
+    cartItem?.lineItemId ?? null
+  )
+  const [quantity, setQuantity] = useState(cartItem?.quantity ?? 1)
   // The input's own text, decoupled from `quantity` while the customer is
   // actively typing (e.g. clearing the field to type "30") — only synced
   // back to `quantity` on blur/Enter, or immediately by the +/- buttons.
-  const [draftValue, setDraftValue] = useState("1")
+  const [draftValue, setDraftValue] = useState(String(cartItem?.quantity ?? 1))
   const [isAdding, setIsAdding] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
   const [error, setError] = useState<string | null>(null)

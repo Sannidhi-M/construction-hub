@@ -28,7 +28,7 @@ const CategoryChips = ({
         return (
           <LocalizedClientLink
             key={category.id}
-            href={`/categories/${category.handle}`}
+            href={`/store?category=${category.handle}`}
             className="flex items-center gap-2.5 shrink-0 bg-gray-100 hover:bg-brand-500 hover:text-white border border-gray-300 hover:border-brand-500 rounded-lg px-4 py-2.5 text-sm font-semibold text-gray-900 transition-colors"
           >
             {imageUrl ? (
