@@ -10,20 +10,25 @@ import ShippingDetails from "@modules/order/components/shipping-details"
 import UpiPayment from "@modules/checkout/components/upi-payment"
 import { HttpTypes } from "@medusajs/types"
 import { getCustomerOrderStatus, isAwaitingPayment } from "@lib/util/order-status"
+import { convertToLocale } from "@lib/util/money"
 
 type OrderCompletedTemplateProps = {
   order: HttpTypes.StoreOrder
   alreadyConfirmed?: boolean
+  paymentMethod?: "upi" | "cod"
+  requestedDeliveryDate?: string
 }
 
 export default async function OrderCompletedTemplate({
   order,
   alreadyConfirmed,
+  paymentMethod,
+  requestedDeliveryDate,
 }: OrderCompletedTemplateProps) {
   const cookies = await nextCookies()
 
   const isOnboarding = cookies.get("_medusa_onboarding")?.value === "true"
-  const customerStatus = getCustomerOrderStatus(order, alreadyConfirmed)
+  const customerStatus = getCustomerOrderStatus(order, alreadyConfirmed, paymentMethod)
   const paymentPending = isAwaitingPayment(customerStatus)
 
   return (
@@ -72,12 +77,22 @@ export default async function OrderCompletedTemplate({
                 Status: <span className="font-semibold">{customerStatus}</span>
               </Text>
             )}
+            {paymentMethod === "cod" && (
+              <Text className="mt-2 text-gray-600" data-testid="order-cod-note">
+                Cash on Delivery — pay{" "}
+                {convertToLocale({
+                  amount: order.total ?? 0,
+                  currency_code: order.currency_code,
+                })}{" "}
+                when your order arrives.
+              </Text>
+            )}
             <Heading level="h2" className="flex flex-row text-3xl-regular">
               Summary
             </Heading>
             <Items order={order} />
             <CartTotals totals={order} />
-            <ShippingDetails order={order} />
+            <ShippingDetails order={order} requestedDeliveryDate={requestedDeliveryDate} />
           </div>
         </div>
       </div>

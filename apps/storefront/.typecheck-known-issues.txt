@@ -102,9 +102,13 @@ src/modules/checkout/components/address-select/index.tsx: error TS2322: Type 'Ex
 src/modules/checkout/components/addresses/index.tsx: error TS2786: 'Heading' cannot be used as a JSX component.
 src/modules/checkout/components/addresses/index.tsx: error TS2786: 'Spinner' cannot be used as a JSX component.
 src/modules/checkout/components/addresses/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
+src/modules/checkout/components/checkout-saving-context.tsx: error TS2322: Type 'React.ReactNode' is not assignable to type 'import("/Users/sannidihim/construction-hub/apps/storefront/node_modules/@types/react/index").ReactNode'.
+src/modules/checkout/components/checkout-saving-context.tsx: error TS2786: 'CheckoutSavingContext.Provider' cannot be used as a JSX component.
 src/modules/checkout/components/country-select/index.tsx: error TS2786: 'NativeSelect' cannot be used as a JSX component.
+src/modules/checkout/components/delivery-date/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
+src/modules/checkout/components/payment-method/index.tsx: error TS2786: 'Heading' cannot be used as a JSX component.
+src/modules/checkout/components/payment-method/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
 src/modules/checkout/components/review/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
-src/modules/checkout/components/review/index.tsx: error TS2786: 'Heading' cannot be used as a JSX component.
 src/modules/checkout/components/review/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
 src/modules/checkout/components/shipping/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
 src/modules/checkout/components/shipping/index.tsx: error TS2786: 'Heading' cannot be used as a JSX component.

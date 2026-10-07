@@ -9,6 +9,7 @@ import Spinner from "@modules/common/icons/spinner"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useActionState } from "react"
 import BillingAddress from "../billing_address"
+import DeliveryDate from "../delivery-date"
 import ErrorMessage from "../error-message"
 import ShippingAddress from "../shipping-address"
 import { SubmitButton } from "../submit-button"
@@ -80,6 +81,11 @@ const Addresses = ({
                 </Heading>
 
                 <BillingAddress cart={cart} />
+              </div>
+            )}
+            {cart && (
+              <div className="mt-8">
+                <DeliveryDate cart={cart} />
               </div>
             )}
             <div className="flex justify-center mt-6">

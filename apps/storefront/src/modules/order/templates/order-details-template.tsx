@@ -9,19 +9,25 @@ import OrderDetails from "@modules/order/components/order-details"
 import OrderSummary from "@modules/order/components/order-summary"
 import ShippingDetails from "@modules/order/components/shipping-details"
 import UpiPayment from "@modules/checkout/components/upi-payment"
+import { Text } from "@modules/common/components/ui"
+import { convertToLocale } from "@lib/util/money"
 import { getCustomerOrderStatus, isAwaitingPayment } from "@lib/util/order-status"
 import React from "react"
 
 type OrderDetailsTemplateProps = {
   order: HttpTypes.StoreOrder
   alreadyConfirmed?: boolean
+  paymentMethod?: "upi" | "cod"
+  requestedDeliveryDate?: string
 }
 
 const OrderDetailsTemplate: React.FC<OrderDetailsTemplateProps> = ({
   order,
   alreadyConfirmed,
+  paymentMethod,
+  requestedDeliveryDate,
 }) => {
-  const customerStatus = getCustomerOrderStatus(order, alreadyConfirmed)
+  const customerStatus = getCustomerOrderStatus(order, alreadyConfirmed, paymentMethod)
 
   return (
     <div className="flex flex-col justify-center gap-y-4">
@@ -40,13 +46,18 @@ const OrderDetailsTemplate: React.FC<OrderDetailsTemplateProps> = ({
         data-testid="order-details-container"
       >
         <OrderDetails order={order} showStatus customerStatus={customerStatus} />
+        {paymentMethod === "cod" && (
+          <Text className="text-ui-fg-subtle" data-testid="order-cod-note">
+            Cash on Delivery — pay {convertToLocale({ amount: order.total ?? 0, currency_code: order.currency_code })} when your order arrives.
+          </Text>
+        )}
         {isAwaitingPayment(customerStatus) && (
           <div className="border-t border-gray-200 pt-4">
             <UpiPayment order={order} alreadyConfirmed={alreadyConfirmed} />
           </div>
         )}
         <Items order={order} />
-        <ShippingDetails order={order} />
+        <ShippingDetails order={order} requestedDeliveryDate={requestedDeliveryDate} />
         <OrderSummary order={order} />
         <Help />
       </div>

@@ -12,6 +12,7 @@ import {
 import { listCartPaymentMethods } from "@lib/data/payment"
 import ErrorMessage from "@modules/checkout/components/error-message"
 import PhoneLogin from "@modules/account/components/phone-login"
+import { useCheckoutSaving } from "@modules/checkout/components/checkout-saving-context"
 import { Button, Text } from "@modules/common/components/ui"
 
 // Fast, non-blocking UX feedback for the minimum-order-value decision
@@ -29,6 +30,7 @@ const Review = ({
   customer: HttpTypes.StoreCustomer | null
 }) => {
   const router = useRouter()
+  const { isSaving: isCheckoutSaving } = useCheckoutSaving()
 
   // `cart.customer_id` isn't a safe signal here — Medusa auto-links a guest
   // cart to an existing customer record purely by email match at the
@@ -205,6 +207,7 @@ const Review = ({
             size="large"
             onClick={handlePlaceOrder}
             isLoading={submitting}
+            disabled={isCheckoutSaving}
             data-testid="submit-order-button"
             className="w-full"
           >

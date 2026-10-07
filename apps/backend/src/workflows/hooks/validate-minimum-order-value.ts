@@ -18,17 +18,46 @@ import { MedusaError } from "@medusajs/framework/utils"
  */
 const MIN_ORDER_VALUE_INR = Number(process.env.MIN_ORDER_VALUE_INR ?? 0)
 
+const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
+
+// Anchored to Asia/Kolkata, not the backend process's own timezone.
+const todayInIndia = () =>
+  new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(
+    new Date()
+  )
+
+// Medusa allows only one validate handler per workflow, so every checkout
+// rule lives in this single registration.
 completeCartWorkflow.hooks.validate(async ({ cart }) => {
-  if (!MIN_ORDER_VALUE_INR) {
+  if (MIN_ORDER_VALUE_INR) {
+    const cartTotal = Number((cart as { total?: number }).total ?? 0)
+
+    if (cartTotal < MIN_ORDER_VALUE_INR) {
+      throw new MedusaError(
+        MedusaError.Types.INVALID_DATA,
+        `The minimum order value is ₹${MIN_ORDER_VALUE_INR}. This cart's total is ₹${cartTotal}.`
+      )
+    }
+  }
+
+  const requested = (cart.metadata as Record<string, unknown> | null)
+    ?.requested_delivery_date
+
+  if (requested === undefined || requested === null || requested === "") {
     return
   }
 
-  const cartTotal = Number((cart as { total?: number }).total ?? 0)
-
-  if (cartTotal < MIN_ORDER_VALUE_INR) {
+  if (typeof requested !== "string" || !DATE_PATTERN.test(requested)) {
     throw new MedusaError(
       MedusaError.Types.INVALID_DATA,
-      `The minimum order value is ₹${MIN_ORDER_VALUE_INR}. This cart's total is ₹${cartTotal}.`
+      "The requested delivery date is not a valid date."
+    )
+  }
+
+  if (requested < todayInIndia()) {
+    throw new MedusaError(
+      MedusaError.Types.INVALID_DATA,
+      "The requested delivery date cannot be in the past. Please choose today or a later date."
     )
   }
 })

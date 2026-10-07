@@ -1,15 +1,18 @@
-import { ensureDefaultShippingMethod, retrieveCart } from "@lib/data/cart"
 import { listCartShippingMethods } from "@lib/data/fulfillment"
 import { HttpTypes } from "@medusajs/types"
 import Addresses from "@modules/checkout/components/addresses"
+import EnsureShippingMethod from "@modules/checkout/components/ensure-shipping-method"
+import PaymentMethod from "@modules/checkout/components/payment-method"
 import Shipping from "@modules/checkout/components/shipping"
 
 export default async function CheckoutForm({
   cart,
   customer,
+  activeStep,
 }: {
   cart: HttpTypes.StoreCart | null
   customer: HttpTypes.StoreCustomer | null
+  activeStep?: string
 }) {
   if (!cart) {
     return null
@@ -21,19 +24,6 @@ export default async function CheckoutForm({
     return null
   }
 
-  // Self-heals a cart that has an address but no shipping method for any
-  // reason other than the genuine fallback case (e.g. the address was set
-  // before this auto-assignment logic existed) — otherwise the "Delivery"
-  // card below would show empty and permanently stuck, every single visit,
-  // for a cart like that. Re-fetches afterward so everything downstream
-  // (including Review's own completion check) sees the assigned method.
-  if (cart.shipping_address && !cart.shipping_methods?.length) {
-    const assigned = await ensureDefaultShippingMethod(cart.id)
-    if (assigned) {
-      cart = (await retrieveCart(cart.id)) ?? cart
-    }
-  }
-
   const hasAddress = !!cart.shipping_address
   const hasShippingMethod = (cart.shipping_methods?.length ?? 0) > 0
 
@@ -42,6 +32,10 @@ export default async function CheckoutForm({
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 small:p-8">
         <Addresses cart={cart} customer={customer} />
       </div>
+
+      {activeStep !== "address" && hasAddress && hasShippingMethod && (
+        <PaymentMethod cart={cart} />
+      )}
 
       {/*
        * Delivery is auto-assigned right after the address step (see
@@ -55,9 +49,12 @@ export default async function CheckoutForm({
        * shouldn't show an empty "Delivery" card.
        */}
       {hasAddress && !hasShippingMethod && (
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 small:p-8">
-          <Shipping cart={cart} availableShippingMethods={shippingMethods} />
-        </div>
+        <>
+          <EnsureShippingMethod cartId={cart.id} />
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 small:p-8">
+            <Shipping cart={cart} availableShippingMethods={shippingMethods} />
+          </div>
+        </>
       )}
     </div>
   )

@@ -50,9 +50,15 @@ const PAID_STATUSES = new Set(["captured", "partially_captured"])
  * doesn't expose it at all — see retrieveOrderPaymentConfirmation); each
  * caller passes whatever it already has for this order.
  */
+/**
+ * @param paymentMethod - `order.metadata.payment_method`. For "cod" the order
+ * is "Order Confirmed" as soon as it's placed, since cash is collected at
+ * delivery; "Order Confirmed" means placed, not paid, for COD orders.
+ */
 export function getCustomerOrderStatus(
   order: OrderStatusInput,
-  customerConfirmedPayment?: boolean
+  customerConfirmedPayment?: boolean,
+  paymentMethod?: "upi" | "cod"
 ): CustomerOrderStatus {
   if (order.status === "canceled") {
     return "Cancelled"
@@ -68,6 +74,10 @@ export function getCustomerOrderStatus(
     case "fulfilled":
     case "partially_fulfilled":
       return "Order Processing"
+  }
+
+  if (paymentMethod === "cod") {
+    return "Order Confirmed"
   }
 
   if (PAID_STATUSES.has(order.payment_status)) {

@@ -1,4 +1,4 @@
-import { retrieveOrder, retrieveOrderPaymentConfirmation } from "@lib/data/orders"
+import { retrieveOrder, retrieveOrderCheckoutMetadata } from "@lib/data/orders"
 import OrderDetailsTemplate from "@modules/order/templates/order-details-template"
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
@@ -29,7 +29,14 @@ export default async function OrderDetailPage(props: Props) {
     notFound()
   }
 
-  const alreadyConfirmed = await retrieveOrderPaymentConfirmation(order.id)
+  const checkoutMetadata = await retrieveOrderCheckoutMetadata(order.id)
 
-  return <OrderDetailsTemplate order={order} alreadyConfirmed={alreadyConfirmed} />
+  return (
+    <OrderDetailsTemplate
+      order={order}
+      alreadyConfirmed={checkoutMetadata.paymentCustomerConfirmed}
+      paymentMethod={checkoutMetadata.paymentMethod}
+      requestedDeliveryDate={checkoutMetadata.requestedDeliveryDate}
+    />
+  )
 }

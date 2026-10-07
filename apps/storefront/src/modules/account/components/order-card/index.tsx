@@ -30,7 +30,8 @@ const STATUS_BADGE_COLOR: Record<
 const OrderCard = ({ order }: OrderCardProps) => {
   const customerStatus = getCustomerOrderStatus(
     order,
-    !!order.metadata?.payment_customer_confirmed
+    !!order.metadata?.payment_customer_confirmed,
+    order.metadata?.payment_method === "cod" ? "cod" : undefined
   )
 
   const numberOfLines = useMemo(() => {

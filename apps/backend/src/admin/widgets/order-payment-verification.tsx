@@ -24,6 +24,7 @@ const OrderPaymentVerificationWidget = ({
 
   const alreadyVerified = !!payment?.captured_at
   const customerStatus = getCustomerOrderStatus(order)
+  const isCod = order.metadata?.payment_method === "cod"
   const customerConfirmedAt = order.metadata?.payment_customer_confirmed_at as
     | string
     | undefined
@@ -61,7 +62,9 @@ const OrderPaymentVerificationWidget = ({
   return (
     <Container className="divide-y p-0">
       <div className="flex items-center justify-between px-6 py-4">
-        <Heading level="h2">UPI Payment Verification</Heading>
+        <Heading level="h2">
+          {isCod ? "Cash on Delivery" : "UPI Payment Verification"}
+        </Heading>
         <StatusBadge color={alreadyVerified ? "green" : "orange"}>
           {customerStatus}
         </StatusBadge>
@@ -70,9 +73,11 @@ const OrderPaymentVerificationWidget = ({
         <Text size="small" className="text-ui-fg-subtle">
           {alreadyVerified
             ? "This order's payment has already been verified and captured."
-            : "Check your UPI app/bank statement for this order's payment before confirming — this action captures the payment and cannot be undone from here."}
+            : isCod
+              ? "Collect the cash from the customer at delivery, then confirm here — this action captures the payment and cannot be undone from here."
+              : "Check your UPI app/bank statement for this order's payment before confirming — this action captures the payment and cannot be undone from here."}
         </Text>
-        {!alreadyVerified && customerConfirmedAt && (
+        {!isCod && !alreadyVerified && customerConfirmedAt && (
           <Text size="small" className="text-ui-fg-subtle">
             Customer marked this as paid on{" "}
             {new Date(customerConfirmedAt).toLocaleString()} — not yet
@@ -93,7 +98,7 @@ const OrderPaymentVerificationWidget = ({
                 onClick={handleVerify}
                 isLoading={submitting}
               >
-                Mark Payment Verified
+                {isCod ? "Mark Cash Collected" : "Mark Payment Verified"}
               </Button>
             </div>
           </>

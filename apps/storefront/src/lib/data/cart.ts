@@ -27,7 +27,7 @@ import { attachProductImages } from "./products"
 export async function retrieveCart(cartId?: string, fields?: string) {
   const id = cartId || (await getCartId())
   fields ??=
-    "*items, *region, *items.product, *items.variant, *items.thumbnail, *items.metadata, +items.total, *promotions, +shipping_methods.name"
+    "*items, *region, *items.product, *items.variant, *items.thumbnail, *items.metadata, +items.total, *promotions, +shipping_methods.name, metadata"
 
   if (!id) {
     return null
@@ -120,6 +120,26 @@ export async function updateCart(data: HttpTypes.StoreUpdateCart) {
       return cart
     })
     .catch(medusaError)
+}
+
+async function updateCartMetadata(patch: Record<string, unknown>) {
+  const cart = await retrieveCart(undefined, "id,metadata")
+
+  if (!cart) {
+    throw new Error("No existing cart found, please create one before updating")
+  }
+
+  return updateCart({
+    metadata: { ...(cart.metadata ?? {}), ...patch },
+  })
+}
+
+export async function setDeliveryDate(requestedDeliveryDate: string) {
+  return updateCartMetadata({ requested_delivery_date: requestedDeliveryDate })
+}
+
+export async function setPaymentMethod(paymentMethod: "upi" | "cod") {
+  return updateCartMetadata({ payment_method: paymentMethod })
 }
 
 export async function addToCart({

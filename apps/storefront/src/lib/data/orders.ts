@@ -37,9 +37,14 @@ export const retrieveOrder = async (id: string) => {
     .catch((err) => medusaError(err))
 }
 
+export type CheckoutMetadata = {
+  paymentCustomerConfirmed: boolean
+  paymentMethod?: "upi" | "cod"
+  requestedDeliveryDate?: string
+}
+
 /**
- * `order.metadata` (used for the UPI "I've Paid" customer-confirmation
- * flag, §4.2) specifically, as its own minimal call. Confirmed against
+ * `order.metadata` specifically, as its own minimal call. Confirmed against
  * Medusa's own source (query-config.js): the single-order GET
  * /store/orders/:id route doesn't have `metadata` in its allowed field
  * list at all — only the LIST route's defaults include it — so a direct
@@ -49,9 +54,13 @@ export const retrieveOrder = async (id: string) => {
  * email, shipping_address, totals, etc. unless each is individually
  * requested) — not worth the regression risk for one field.
  */
-export const retrieveOrderPaymentConfirmation = async (id: string) => {
+export const retrieveOrderCheckoutMetadata = async (id: string) => {
   const headers = {
     ...(await getAuthHeaders()),
+  }
+
+  const empty: CheckoutMetadata = {
+    paymentCustomerConfirmed: false,
   }
 
   return sdk.client
@@ -61,8 +70,18 @@ export const retrieveOrderPaymentConfirmation = async (id: string) => {
       headers,
       cache: "no-store",
     })
-    .then(({ orders }) => !!orders?.[0]?.metadata?.payment_customer_confirmed)
-    .catch(() => false)
+    .then(({ orders }): CheckoutMetadata => {
+      const metadata = orders?.[0]?.metadata
+      return {
+        paymentCustomerConfirmed: !!metadata?.payment_customer_confirmed,
+        paymentMethod: metadata?.payment_method === "cod" ? "cod" : undefined,
+        requestedDeliveryDate:
+          typeof metadata?.requested_delivery_date === "string"
+            ? metadata.requested_delivery_date
+            : undefined,
+      }
+    })
+    .catch(() => empty)
 }
 
 /**

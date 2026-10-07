@@ -47,6 +47,12 @@ export function getCustomerOrderStatus(order: OrderStatusInput): CustomerOrderSt
       return "Order Processing"
   }
 
+  // Cash on Delivery has no pre-payment verification step; "Order Confirmed"
+  // means placed here, not paid. Capture state lives on the payment itself.
+  if (order.metadata?.payment_method === "cod") {
+    return "Order Confirmed"
+  }
+
   if (PAID_STATUSES.has(order.payment_status)) {
     return "Order Confirmed"
   }
