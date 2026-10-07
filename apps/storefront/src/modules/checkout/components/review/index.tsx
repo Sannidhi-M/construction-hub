@@ -25,9 +25,11 @@ const MIN_ORDER_VALUE_INR = Number(process.env.NEXT_PUBLIC_MIN_ORDER_VALUE_INR ?
 const Review = ({
   cart,
   customer,
+  activeStep,
 }: {
   cart: HttpTypes.StoreCart
   customer: HttpTypes.StoreCustomer | null
+  activeStep?: string
 }) => {
   const router = useRouter()
   const { isSaving: isCheckoutSaving } = useCheckoutSaving()
@@ -176,7 +178,10 @@ const Review = ({
     }
   }
 
-  if (!previousStepsCompleted) {
+  // Hidden while the address step is open — avoids showing "Place order"
+  // (or the phone-verification box) at the same time as "Continue to
+  // review", which is confusing: only one call-to-action at a time.
+  if (!previousStepsCompleted || activeStep === "address") {
     return null
   }
 

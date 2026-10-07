@@ -28,7 +28,7 @@ export default async function Checkout(props: Props) {
     <CheckoutSavingProvider>
       <div className="grid grid-cols-1 small:grid-cols-[1fr_456px] content-container gap-x-10 py-8 small:py-12 items-start">
         <CheckoutForm cart={cart} customer={customer} activeStep={step} />
-        <CheckoutSummary cart={cart} customer={customer} />
+        <CheckoutSummary cart={cart} customer={customer} activeStep={step} />
       </div>
     </CheckoutSavingProvider>
   )

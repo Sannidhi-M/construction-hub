@@ -8,9 +8,11 @@ import { HttpTypes } from "@medusajs/types"
 const CheckoutSummary = ({
   cart,
   customer,
+  activeStep,
 }: {
   cart: HttpTypes.StoreCart
   customer: HttpTypes.StoreCustomer | null
+  activeStep?: string
 }) => {
   return (
     <div className="sticky top-6 py-8 small:py-0 small:max-h-[calc(100vh-3rem)]">
@@ -28,7 +30,7 @@ const CheckoutSummary = ({
           <ItemsPreviewTemplate cart={cart} />
         </div>
         <div className="shrink-0">
-          <Review cart={cart} customer={customer} />
+          <Review cart={cart} customer={customer} activeStep={activeStep} />
         </div>
       </div>
     </div>
