@@ -58,12 +58,12 @@ const BillingAddress = ({ cart }: { cart: HttpTypes.StoreCart | null }) => {
           data-testid="billing-address-input"
         />
         <Input
-          label="Company"
+          label="Landmark"
           name="billing_address.company"
           value={formData["billing_address.company"]}
           onChange={handleChange}
-          autoComplete="organization"
-          data-testid="billing-company-input"
+          autoComplete="off"
+          data-testid="billing-landmark-input"
         />
         <Input
           label="Postal code"
@@ -101,9 +101,15 @@ const BillingAddress = ({ cart }: { cart: HttpTypes.StoreCart | null }) => {
         <Input
           label="Phone"
           name="billing_address.phone"
+          type="tel"
+          inputMode="numeric"
           autoComplete="tel"
+          maxLength={10}
           value={formData["billing_address.phone"]}
-          onChange={handleChange}
+          onChange={(e) => {
+            e.target.value = e.target.value.replace(/\D/g, "").slice(0, 10)
+            handleChange(e)
+          }}
           data-testid="billing-phone-input"
         />
       </div>

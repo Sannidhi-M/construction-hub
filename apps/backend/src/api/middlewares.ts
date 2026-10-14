@@ -38,6 +38,10 @@ export default defineMiddlewares({
       middlewares: [phoneAuthIpRateLimit],
     },
     {
+      matcher: "/store/customers/phone-exists",
+      middlewares: [phoneAuthIpRateLimit],
+    },
+    {
       matcher: "/store/orders/:id/payment-submitted",
       middlewares: [authenticate("customer", "bearer")],
     },

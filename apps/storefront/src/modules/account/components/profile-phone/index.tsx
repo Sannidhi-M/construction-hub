@@ -7,6 +7,7 @@ import Input from "@modules/common/components/input"
 import AccountInfo from "../account-info"
 import { HttpTypes } from "@medusajs/types"
 import { updateCustomer } from "@lib/data/customer"
+import { normalizeIndianPhone } from "@lib/util/phone"
 
 type MyInformationProps = {
   customer: HttpTypes.StoreCustomer
@@ -19,12 +20,18 @@ const ProfileEmail: React.FC<MyInformationProps> = ({ customer }) => {
     _currentState: Record<string, unknown>,
     formData: FormData
   ) => {
-    const customer = {
-      phone: formData.get("phone") as string,
+    const rawPhone = formData.get("phone") as string
+    const normalized = normalizeIndianPhone(rawPhone)
+
+    if (!normalized) {
+      return {
+        success: false,
+        error: "Enter a valid 10-digit Indian mobile number.",
+      }
     }
 
     try {
-      await updateCustomer(customer)
+      await updateCustomer({ phone: normalized })
       return { success: true, error: null }
     } catch (error) {
       return { success: false, error: String(error) }
@@ -59,10 +66,15 @@ const ProfileEmail: React.FC<MyInformationProps> = ({ customer }) => {
           <Input
             label="Phone"
             name="phone"
-            type="phone"
-            autoComplete="phone"
+            type="tel"
+            inputMode="numeric"
+            autoComplete="tel"
             required
-            defaultValue={customer.phone ?? ""}
+            maxLength={10}
+            defaultValue={(customer.phone ?? "").replace(/^\+91/, "")}
+            onChange={(e) => {
+              e.target.value = e.target.value.replace(/\D/g, "").slice(0, 10)
+            }}
             data-testid="phone-input"
           />
         </div>

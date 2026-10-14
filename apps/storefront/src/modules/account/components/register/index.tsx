@@ -177,10 +177,12 @@ const CreateAccount = ({ setCurrentView }: Props) => {
             label="Phone number"
             name="phone"
             type="tel"
+            inputMode="numeric"
             autoComplete="tel"
             required
+            maxLength={10}
             value={phone}
-            onChange={(e) => setPhone(e.target.value)}
+            onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
             data-testid="create-account-phone-input"
           />
           <Input

@@ -45,11 +45,28 @@ const OrderDetailsTemplate: React.FC<OrderDetailsTemplateProps> = ({
         className="flex flex-col gap-4 h-full bg-white w-full"
         data-testid="order-details-container"
       >
-        <OrderDetails order={order} showStatus customerStatus={customerStatus} />
+        <OrderDetails
+          order={order}
+          showStatus
+          customerStatus={customerStatus}
+          requestedDeliveryDate={requestedDeliveryDate}
+        />
         {paymentMethod === "cod" && (
-          <Text className="text-ui-fg-subtle" data-testid="order-cod-note">
-            Cash on Delivery — pay {convertToLocale({ amount: order.total ?? 0, currency_code: order.currency_code })} when your order arrives.
-          </Text>
+          <div
+            className="flex items-center gap-x-2 bg-brand-50 border border-brand-100 rounded-md px-4 py-3"
+            data-testid="order-cod-note"
+          >
+            <Text className="text-brand-700 txt-medium">
+              Cash on Delivery — pay{" "}
+              <span className="font-semibold">
+                {convertToLocale({
+                  amount: order.total ?? 0,
+                  currency_code: order.currency_code,
+                })}
+              </span>{" "}
+              when your order arrives.
+            </Text>
+          </div>
         )}
         {isAwaitingPayment(customerStatus) && (
           <div className="border-t border-gray-200 pt-4">
@@ -57,7 +74,7 @@ const OrderDetailsTemplate: React.FC<OrderDetailsTemplateProps> = ({
           </div>
         )}
         <Items order={order} />
-        <ShippingDetails order={order} requestedDeliveryDate={requestedDeliveryDate} />
+        <ShippingDetails order={order} />
         <OrderSummary order={order} />
         <Help />
       </div>

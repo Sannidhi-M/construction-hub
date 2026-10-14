@@ -6,25 +6,12 @@ import LocalizedClientLink from "@modules/common/components/localized-client-lin
 import { convertToLocale } from "@lib/util/money"
 import { HttpTypes } from "@medusajs/types"
 import {
-  CustomerOrderStatus,
   getCustomerOrderStatus,
+  STATUS_BADGE_COLOR,
 } from "@lib/util/order-status"
 
 type OrderCardProps = {
   order: HttpTypes.StoreOrder
-}
-
-const STATUS_BADGE_COLOR: Record<
-  CustomerOrderStatus,
-  "green" | "red" | "blue" | "orange" | "grey" | "purple"
-> = {
-  "Payment Pending": "orange",
-  "Payment Verification Pending": "orange",
-  "Order Confirmed": "blue",
-  "Order Processing": "blue",
-  "Out for Delivery": "purple",
-  Delivered: "green",
-  Cancelled: "red",
 }
 
 const OrderCard = ({ order }: OrderCardProps) => {

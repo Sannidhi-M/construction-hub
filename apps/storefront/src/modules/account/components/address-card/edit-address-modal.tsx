@@ -146,11 +146,11 @@ const EditAddress: React.FC<EditAddressProps> = ({
                 />
               </div>
               <Input
-                label="Company"
+                label="Landmark"
                 name="company"
-                autoComplete="organization"
+                autoComplete="off"
                 defaultValue={address.company || undefined}
-                data-testid="company-input"
+                data-testid="landmark-input"
               />
               <Input
                 label="Address"
@@ -203,8 +203,14 @@ const EditAddress: React.FC<EditAddressProps> = ({
               <Input
                 label="Phone"
                 name="phone"
-                autoComplete="phone"
+                type="tel"
+                inputMode="numeric"
+                autoComplete="tel"
+                maxLength={10}
                 defaultValue={address.phone || undefined}
+                onChange={(e) => {
+                  e.target.value = e.target.value.replace(/\D/g, "").slice(0, 10)
+                }}
                 data-testid="phone-input"
               />
             </div>

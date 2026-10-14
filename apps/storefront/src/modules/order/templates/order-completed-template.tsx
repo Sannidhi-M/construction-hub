@@ -46,6 +46,10 @@ export default async function OrderCompletedTemplate({
           <Text className="text-gray-600 mt-1">
             Your order was placed successfully.
           </Text>
+          <Text className="text-gray-600 mt-1">
+            Our team will call you shortly to confirm the order before it's
+            out for delivery.
+          </Text>
         </div>
 
         {/*
@@ -71,28 +75,39 @@ export default async function OrderCompletedTemplate({
             className="flex flex-col gap-4 bg-white rounded-lg border border-gray-200 shadow-sm w-full p-6 small:p-10"
             data-testid="order-complete-container"
           >
-            <OrderDetails order={order} />
-            {!paymentPending && (
-              <Text data-testid="order-customer-status" className="mt-2">
-                Status: <span className="font-semibold">{customerStatus}</span>
-              </Text>
-            )}
+            <OrderDetails
+              order={order}
+              showStatus={!paymentPending}
+              customerStatus={customerStatus}
+              requestedDeliveryDate={requestedDeliveryDate}
+            />
             {paymentMethod === "cod" && (
-              <Text className="mt-2 text-gray-600" data-testid="order-cod-note">
-                Cash on Delivery — pay{" "}
-                {convertToLocale({
-                  amount: order.total ?? 0,
-                  currency_code: order.currency_code,
-                })}{" "}
-                when your order arrives.
-              </Text>
+              <div
+                className="flex items-center gap-x-2 bg-brand-50 border border-brand-100 rounded-md px-4 py-3"
+                data-testid="order-cod-note"
+              >
+                <Text className="text-brand-700 txt-medium">
+                  Cash on Delivery — pay{" "}
+                  <span className="font-semibold">
+                    {convertToLocale({
+                      amount: order.total ?? 0,
+                      currency_code: order.currency_code,
+                    })}
+                  </span>{" "}
+                  when your order arrives.
+                </Text>
+              </div>
             )}
-            <Heading level="h2" className="flex flex-row text-3xl-regular">
-              Summary
-            </Heading>
-            <Items order={order} />
-            <CartTotals totals={order} />
-            <ShippingDetails order={order} requestedDeliveryDate={requestedDeliveryDate} />
+            <div className="border-t border-gray-200 pt-6 mt-2">
+              <Heading level="h2" className="flex flex-row text-3xl-regular mb-4">
+                Summary
+              </Heading>
+              <Items order={order} />
+              <CartTotals totals={order} />
+            </div>
+            <div className="border-t border-gray-200 pt-2">
+              <ShippingDetails order={order} />
+            </div>
           </div>
         </div>
       </div>

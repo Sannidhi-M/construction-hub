@@ -40,6 +40,8 @@ const Login = ({ setCurrentView }: Props) => {
         <PhoneLogin
           onVerified={() => router.refresh()}
           onNewPhone={({ phone }) => setNotFoundPhone(phone)}
+          requireExistingAccount
+          onPhoneNotFound={(phone) => setNotFoundPhone(phone)}
         />
       )}
       {!notFoundPhone && (

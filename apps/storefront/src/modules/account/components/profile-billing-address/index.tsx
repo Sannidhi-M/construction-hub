@@ -118,18 +118,24 @@ const ProfileBillingAddress: React.FC<MyInformationProps> = ({
             />
           </div>
           <Input
-            label="Company"
+            label="Landmark"
             name="company"
+            autoComplete="off"
             defaultValue={billingAddress?.company || undefined}
-            data-testid="billing-company-input"
+            data-testid="billing-landmark-input"
           />
           <Input
             label="Phone"
             name="phone"
-            type="phone"
-            autoComplete="phone"
+            type="tel"
+            inputMode="numeric"
+            autoComplete="tel"
             required
+            maxLength={10}
             defaultValue={billingAddress?.phone ?? customer?.phone ?? ""}
+            onChange={(e) => {
+              e.target.value = e.target.value.replace(/\D/g, "").slice(0, 10)
+            }}
             data-testid="billing-phone-input"
           />
           <Input

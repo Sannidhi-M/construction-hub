@@ -189,6 +189,7 @@ src/modules/order/components/items/index.tsx: error TS2786: 'Table.Body' cannot 
 src/modules/order/components/onboarding-cta/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
 src/modules/order/components/onboarding-cta/index.tsx: error TS2786: 'Container' cannot be used as a JSX component.
 src/modules/order/components/onboarding-cta/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
+src/modules/order/components/order-details/index.tsx: error TS2786: 'Badge' cannot be used as a JSX component.
 src/modules/order/components/order-details/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
 src/modules/order/components/shipping-details/index.tsx: error TS2786: 'Heading' cannot be used as a JSX component.
 src/modules/order/components/shipping-details/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.

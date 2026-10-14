@@ -14,12 +14,23 @@ type Props = {
   // sends them to Create Account; checkout auto-creates the account from the
   // shipping address already on the cart).
   onNewPhone?: (args: { phone: string; token: string }) => void | Promise<void>
+  // When true, an OTP is only sent if the phone already has an account —
+  // otherwise `onPhoneNotFound` fires and no OTP is sent at all. Sign In
+  // sets this; checkout never does, since it lets a brand-new number sign
+  // up inline.
+  requireExistingAccount?: boolean
+  onPhoneNotFound?: (phone: string) => void
 }
 
 /**
  * Phone/OTP verification — two steps (phone, OTP).
  */
-const PhoneLogin = ({ onVerified, onNewPhone }: Props = {}) => {
+const PhoneLogin = ({
+  onVerified,
+  onNewPhone,
+  requireExistingAccount,
+  onPhoneNotFound,
+}: Props = {}) => {
   const [step, setStep] = useState<"phone" | "otp">("phone")
   const [phone, setPhone] = useState("")
   const [creatingAccount, setCreatingAccount] = useState(false)
@@ -31,7 +42,10 @@ const PhoneLogin = ({ onVerified, onNewPhone }: Props = {}) => {
     if (requestState?.state === "otp_sent") {
       setPhone(requestState.phone)
       setStep("otp")
+    } else if (requestState?.state === "not_found") {
+      onPhoneNotFound?.(requestState.phone)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [requestState])
 
   useEffect(() => {
@@ -93,13 +107,21 @@ const PhoneLogin = ({ onVerified, onNewPhone }: Props = {}) => {
 
   return (
     <form className="w-full" action={requestAction}>
+      {requireExistingAccount && (
+        <input type="hidden" name="require_existing" value="true" />
+      )}
       <div className="flex flex-col w-full gap-y-2">
         <Input
           label="Phone number"
           name="phone"
           type="tel"
+          inputMode="numeric"
           autoComplete="tel"
           required
+          maxLength={10}
+          onChange={(e) => {
+            e.target.value = e.target.value.replace(/\D/g, "").slice(0, 10)
+          }}
           data-testid="phone-input"
         />
       </div>

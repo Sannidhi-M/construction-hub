@@ -1,6 +1,10 @@
 import { HttpTypes } from "@medusajs/types"
-import { Text } from "@modules/common/components/ui"
-import { CustomerOrderStatus, getCustomerOrderStatus } from "@lib/util/order-status"
+import { Badge, Text } from "@modules/common/components/ui"
+import {
+  CustomerOrderStatus,
+  getCustomerOrderStatus,
+  STATUS_BADGE_COLOR,
+} from "@lib/util/order-status"
 
 type OrderDetailsProps = {
   order: HttpTypes.StoreOrder
@@ -10,39 +14,67 @@ type OrderDetailsProps = {
   // back to computing it without that flag, which can't tell "Payment
   // Pending" apart from "Payment Verification Pending".
   customerStatus?: CustomerOrderStatus
+  requestedDeliveryDate?: string
 }
 
-const OrderDetails = ({ order, showStatus, customerStatus }: OrderDetailsProps) => {
-  return (
-    <div>
-      <Text>
-        We have sent the order confirmation details to{" "}
-        <span
-          className="text-ui-fg-medium-plus font-semibold"
-          data-testid="order-email"
-        >
-          {order.email}
-        </span>
-        .
-      </Text>
-      <Text className="mt-2">
-        Order date:{" "}
-        <span data-testid="order-date">
-          {new Date(order.created_at).toDateString()}
-        </span>
-      </Text>
-      <Text className="mt-2 text-ui-fg-interactive">
-        Order number: <span data-testid="order-id">{order.display_id}</span>
-      </Text>
+const Field = ({
+  label,
+  value,
+  testId,
+  highlight,
+}: {
+  label: string
+  value: string
+  testId?: string
+  highlight?: boolean
+}) => (
+  <Text className="break-words">
+    <span className="txt-small text-ui-fg-subtle">{label}: </span>
+    <span
+      className={highlight ? "font-semibold text-brand-600" : "font-semibold text-gray-900"}
+      data-testid={testId}
+    >
+      {value}
+    </span>
+  </Text>
+)
 
-      <div className="flex items-center text-compact-small gap-x-4 mt-4">
+const OrderDetails = ({
+  order,
+  showStatus,
+  customerStatus,
+  requestedDeliveryDate,
+}: OrderDetailsProps) => {
+  const status = customerStatus ?? getCustomerOrderStatus(order)
+
+  return (
+    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 small:p-6">
+      <div className="flex flex-wrap items-start justify-between gap-y-3">
+        <div className="flex flex-col gap-y-2">
+          <Field
+            label="Order number"
+            value={`#${order.display_id}`}
+            testId="order-id"
+            highlight
+          />
+          <Field
+            label="Order date"
+            value={new Date(order.created_at).toDateString()}
+            testId="order-date"
+          />
+          {requestedDeliveryDate && (
+            <Field
+              label="Delivery date"
+              value={new Date(`${requestedDeliveryDate}T00:00:00`).toDateString()}
+              testId="order-delivery-date"
+            />
+          )}
+          <Field label="Confirmation sent to" value={order.email ?? ""} />
+        </div>
         {showStatus && (
-          <Text>
-            Status:{" "}
-            <span className="text-ui-fg-subtle" data-testid="order-status">
-              {customerStatus ?? getCustomerOrderStatus(order)}
-            </span>
-          </Text>
+          <Badge color={STATUS_BADGE_COLOR[status]} data-testid="order-status">
+            {status}
+          </Badge>
         )}
       </div>
     </div>

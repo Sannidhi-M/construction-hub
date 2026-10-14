@@ -79,10 +79,10 @@ const AddAddress = ({
                 />
               </div>
               <Input
-                label="Company"
+                label="Landmark"
                 name="company"
-                autoComplete="organization"
-                data-testid="company-input"
+                autoComplete="off"
+                data-testid="landmark-input"
               />
               <Input
                 label="Address"
@@ -129,7 +129,13 @@ const AddAddress = ({
               <Input
                 label="Phone"
                 name="phone"
-                autoComplete="phone"
+                type="tel"
+                inputMode="numeric"
+                autoComplete="tel"
+                maxLength={10}
+                onChange={(e) => {
+                  e.target.value = e.target.value.replace(/\D/g, "").slice(0, 10)
+                }}
                 data-testid="phone-input"
               />
             </div>

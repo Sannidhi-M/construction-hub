@@ -2,6 +2,7 @@
 
 import { sdk } from "@lib/config"
 import medusaError from "@lib/util/medusa-error"
+import { normalizeIndianPhone } from "@lib/util/phone"
 import { HttpTypes } from "@medusajs/types"
 import { FetchError } from "@medusajs/js-sdk"
 import { revalidateTag } from "next/cache"
@@ -23,6 +24,7 @@ export type CustomerAuthState =
   | { state: "error"; error: string }
   | { state: "verification_required"; email: string }
   | { state: "otp_sent"; phone: string }
+  | { state: "not_found"; phone: string }
   | { state: "email_required"; phone: string; token: string }
   | { state: "success" }
   | null
@@ -239,13 +241,32 @@ async function completeLogin(
 // phone" screen; the backend creates the auth identity on the first
 // successful OTP verification (see phone-otp-auth's validateCallback).
 
+// Sign In (not checkout) can require the phone to already have an account
+// before sending an OTP for it, so a first-time visitor sees "no account"
+// immediately instead of verifying a code only to be told that afterwards.
+// Checkout's own phone step never sets this — it deliberately lets a
+// brand-new number sign up inline.
 export async function requestPhoneOtp(
   _currentState: unknown,
   formData: FormData
 ): Promise<CustomerAuthState> {
   const phone = formData.get("phone") as string
+  const requireExistingAccount = formData.get("require_existing") === "true"
 
   try {
+    if (requireExistingAccount) {
+      const exists = await sdk.client
+        .fetch<{ exists: boolean }>("/store/customers/phone-exists", {
+          query: { phone },
+        })
+        .then((res) => res.exists)
+        .catch(() => true) // fail open — don't block sign-in over a check failing
+
+      if (!exists) {
+        return { state: "not_found", phone }
+      }
+    }
+
     const result = await sdk.auth.login("customer", "phone-auth", { phone })
 
     // phone-auth's authenticate() always returns `{ location: "otp" }` — it
@@ -328,11 +349,18 @@ export async function completePhoneSignup(
   _currentState: unknown,
   formData: FormData
 ): Promise<CustomerAuthState> {
-  const phone = formData.get("phone") as string
+  const rawPhone = formData.get("phone") as string
   const email = formData.get("email") as string
   const token = formData.get("token") as string
   const firstName = (formData.get("first_name") as string) || undefined
   const lastName = (formData.get("last_name") as string) || undefined
+
+  // Store the same normalized form the auth identity itself uses — not
+  // whatever raw string the customer happened to type — so customer.phone
+  // is always in a consistent, lookup-able format (confirmed the hard way:
+  // without this, existing records ended up a mix of "9009009009" and
+  // "+919009009009" depending on which screen created them).
+  const phone = normalizeIndianPhone(rawPhone) ?? rawPhone
 
   let boundToken: string
   try {

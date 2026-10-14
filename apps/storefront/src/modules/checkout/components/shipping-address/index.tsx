@@ -239,12 +239,12 @@ const ShippingAddress = ({
           data-testid="shipping-address-input"
         />
         <Input
-          label="Company"
+          label="Landmark"
           name="shipping_address.company"
           value={formData["shipping_address.company"]}
           onChange={handleChange}
-          autoComplete="organization"
-          data-testid="shipping-company-input"
+          autoComplete="off"
+          data-testid="shipping-landmark-input"
         />
         <div>
           <Input
@@ -325,9 +325,15 @@ const ShippingAddress = ({
         <Input
           label="Phone"
           name="shipping_address.phone"
+          type="tel"
+          inputMode="numeric"
           autoComplete="tel"
+          maxLength={10}
           value={formData["shipping_address.phone"]}
-          onChange={handleChange}
+          onChange={(e) => {
+            e.target.value = e.target.value.replace(/\D/g, "").slice(0, 10)
+            handleChange(e)
+          }}
           data-testid="shipping-phone-input"
         />
       </div>

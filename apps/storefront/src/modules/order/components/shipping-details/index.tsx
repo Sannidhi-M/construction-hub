@@ -5,23 +5,14 @@ import Divider from "@modules/common/components/divider"
 
 type ShippingDetailsProps = {
   order: HttpTypes.StoreOrder
-  requestedDeliveryDate?: string
 }
 
-const ShippingDetails = ({ order, requestedDeliveryDate }: ShippingDetailsProps) => {
+const ShippingDetails = ({ order }: ShippingDetailsProps) => {
   return (
     <div>
       <Heading level="h2" className="flex flex-row text-3xl-regular my-6">
         Delivery
       </Heading>
-      {requestedDeliveryDate && (
-        <Text className="txt-medium text-ui-fg-subtle mb-4" data-testid="requested-delivery-date">
-          Requested delivery:{" "}
-          <span className="font-semibold text-ui-fg-base">
-            {new Date(`${requestedDeliveryDate}T00:00:00`).toDateString()}
-          </span>
-        </Text>
-      )}
       <div className="flex items-start gap-x-8">
         <div
           className="flex flex-col w-1/2"

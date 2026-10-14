@@ -98,3 +98,18 @@ export function getCustomerOrderStatus(
 export function isAwaitingPayment(status: CustomerOrderStatus): boolean {
   return status === "Payment Pending" || status === "Payment Verification Pending"
 }
+
+// Shared badge color per status, so the account order list and an order's
+// own detail/confirmation pages never color the same status differently.
+export const STATUS_BADGE_COLOR: Record<
+  CustomerOrderStatus,
+  "green" | "red" | "blue" | "orange" | "grey" | "purple"
+> = {
+  "Payment Pending": "orange",
+  "Payment Verification Pending": "orange",
+  "Order Confirmed": "blue",
+  "Order Processing": "blue",
+  "Out for Delivery": "purple",
+  Delivered: "green",
+  Cancelled: "red",
+}
