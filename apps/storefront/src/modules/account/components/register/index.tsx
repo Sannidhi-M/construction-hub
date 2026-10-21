@@ -8,25 +8,10 @@ import ErrorMessage from "@modules/checkout/components/error-message"
 import Input from "@modules/common/components/input"
 import { Button, Text } from "@modules/common/components/ui"
 import { SITE_NAME } from "@lib/constants"
+import { splitFullName } from "@lib/util/split-full-name"
 
 type Props = {
   setCurrentView: (view: LOGIN_VIEW) => void
-}
-
-// Medusa's customer model has separate first_name/last_name fields, not a
-// single "full name" — split on the first space, everything after it is
-// the last name (handles multi-word last names better than splitting on
-// the last space).
-const splitFullName = (fullName: string) => {
-  const trimmed = fullName.trim()
-  const firstSpace = trimmed.indexOf(" ")
-  if (firstSpace === -1) {
-    return { firstName: trimmed, lastName: "" }
-  }
-  return {
-    firstName: trimmed.slice(0, firstSpace),
-    lastName: trimmed.slice(firstSpace + 1).trim(),
-  }
 }
 
 const CreateAccount = ({ setCurrentView }: Props) => {

@@ -8,6 +8,7 @@ import OnboardingCta from "@modules/order/components/onboarding-cta"
 import OrderDetails from "@modules/order/components/order-details"
 import ShippingDetails from "@modules/order/components/shipping-details"
 import UpiPayment from "@modules/checkout/components/upi-payment"
+import { confirmPaymentSubmitted } from "@lib/data/orders"
 import { HttpTypes } from "@medusajs/types"
 import { getCustomerOrderStatus, isAwaitingPayment } from "@lib/util/order-status"
 import { convertToLocale } from "@lib/util/money"
@@ -67,7 +68,16 @@ export default async function OrderCompletedTemplate({
         >
           {paymentPending && (
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 small:p-10">
-              <UpiPayment order={order} alreadyConfirmed={alreadyConfirmed} />
+              <UpiPayment
+                amount={Number(order.total ?? 0)}
+                currencyCode={order.currency_code}
+                referenceLabel={`Order #${order.display_id}`}
+                transactionNote={`Order ${order.display_id}`}
+                alreadyConfirmed={alreadyConfirmed}
+                onConfirmPaid={confirmPaymentSubmitted.bind(null, order.id)}
+                viewHref={`/account/orders/details/${order.id}`}
+                viewLabel="View Order"
+              />
             </div>
           )}
 

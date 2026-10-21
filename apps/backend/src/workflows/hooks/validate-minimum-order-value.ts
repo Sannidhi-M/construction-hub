@@ -1,5 +1,7 @@
 import { completeCartWorkflow } from "@medusajs/medusa/core-flows"
 import { MedusaError } from "@medusajs/framework/utils"
+import { DELIVERY_AREA_MODULE } from "../../modules/delivery-area"
+import DeliveryAreaModuleService from "../../modules/delivery-area/service"
 
 /**
  * Server-side minimum order value enforcement (§2.5) — the authoritative
@@ -28,7 +30,7 @@ const todayInIndia = () =>
 
 // Medusa allows only one validate handler per workflow, so every checkout
 // rule lives in this single registration.
-completeCartWorkflow.hooks.validate(async ({ cart }) => {
+completeCartWorkflow.hooks.validate(async ({ cart }, { container }) => {
   if (MIN_ORDER_VALUE_INR) {
     const cartTotal = Number((cart as { total?: number }).total ?? 0)
 
@@ -59,5 +61,27 @@ completeCartWorkflow.hooks.validate(async ({ cart }) => {
       MedusaError.Types.INVALID_DATA,
       "The requested delivery date cannot be in the past. Please choose today or a later date."
     )
+  }
+
+  // Same serviceable-pincode coverage area enforced for Labour bookings
+  // (create-labour-booking.ts) — previously this was only a storefront UX
+  // hint (the pincode-blur check in ShippingAddress) with nothing stopping
+  // a direct Store API call from completing an order outside the area.
+  const postalCode = cart.shipping_address?.postal_code
+
+  if (postalCode) {
+    const deliveryAreaModuleService: DeliveryAreaModuleService =
+      container.resolve(DELIVERY_AREA_MODULE)
+
+    const serviceable = await deliveryAreaModuleService.isServiceable(
+      postalCode
+    )
+
+    if (!serviceable) {
+      throw new MedusaError(
+        MedusaError.Types.INVALID_DATA,
+        `We don't currently serve pincode ${postalCode}.`
+      )
+    }
   }
 })

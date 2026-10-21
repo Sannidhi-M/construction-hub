@@ -6,6 +6,7 @@ import LabourPreview from "@modules/home/components/labour-preview"
 import EngineeringPreview from "@modules/home/components/engineering-preview"
 import { listCategories } from "@lib/data/categories"
 import { getRegion } from "@lib/data/regions"
+import { retrieveCustomer } from "@lib/data/customer"
 import { SITE_NAME } from "@lib/constants"
 
 export const metadata: Metadata = {
@@ -17,6 +18,7 @@ export const metadata: Metadata = {
 export default async function Home() {
   const region = await getRegion()
   const categories = await listCategories()
+  const customer = await retrieveCustomer()
 
   if (!region) {
     return null
@@ -26,7 +28,7 @@ export default async function Home() {
     <>
       <Hero />
       <MaterialsPreview categories={categories ?? []} region={region} />
-      <LabourPreview />
+      <LabourPreview customer={customer} />
       <EngineeringPreview />
     </>
   )

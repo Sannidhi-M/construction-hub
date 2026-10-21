@@ -17,6 +17,9 @@ module.exports = defineConfig({
     {
       resolve: './src/modules/delivery-area',
     },
+    {
+      resolve: './src/modules/labour-booking',
+    },
     // Declaring the Auth/Notification modules ourselves REPLACES (not
     // merges with) Medusa's own default `providers` array for that module
     // (see apps/backend/node_modules/@medusajs/utils's defineConfig source)

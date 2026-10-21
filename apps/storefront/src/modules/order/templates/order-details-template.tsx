@@ -9,6 +9,7 @@ import OrderDetails from "@modules/order/components/order-details"
 import OrderSummary from "@modules/order/components/order-summary"
 import ShippingDetails from "@modules/order/components/shipping-details"
 import UpiPayment from "@modules/checkout/components/upi-payment"
+import { confirmPaymentSubmitted } from "@lib/data/orders"
 import { Text } from "@modules/common/components/ui"
 import { convertToLocale } from "@lib/util/money"
 import { getCustomerOrderStatus, isAwaitingPayment } from "@lib/util/order-status"
@@ -70,7 +71,16 @@ const OrderDetailsTemplate: React.FC<OrderDetailsTemplateProps> = ({
         )}
         {isAwaitingPayment(customerStatus) && (
           <div className="border-t border-gray-200 pt-4">
-            <UpiPayment order={order} alreadyConfirmed={alreadyConfirmed} />
+            <UpiPayment
+              amount={Number(order.total ?? 0)}
+              currencyCode={order.currency_code}
+              referenceLabel={`Order #${order.display_id}`}
+              transactionNote={`Order ${order.display_id}`}
+              alreadyConfirmed={alreadyConfirmed}
+              onConfirmPaid={() => confirmPaymentSubmitted(order.id)}
+              viewHref={`/account/orders/details/${order.id}`}
+              viewLabel="View Order"
+            />
           </div>
         )}
         <Items order={order} />
