@@ -8,35 +8,17 @@ import {
   confirmLabourBookingPaymentSubmitted,
 } from "@lib/data/labour-bookings"
 import { SITE_NAME } from "@lib/constants"
+import {
+  BOOKING_STATUS_COLOR,
+  BOOKING_STATUS_LABEL,
+  bookingNumber,
+  estimateBookingTotal,
+  formatBookingSchedule,
+  isBookingAwaitingPayment,
+} from "@lib/util/labour-booking"
 
 export const metadata: Metadata = {
   title: `Booking Confirmed | ${SITE_NAME}`,
-}
-
-const STATUS_COLOR: Record<string, "orange" | "blue" | "green" | "red"> = {
-  requested: "orange",
-  confirmed: "blue",
-  completed: "green",
-  cancelled: "red",
-}
-
-const STATUS_LABEL: Record<string, string> = {
-  requested: "Requested",
-  confirmed: "Confirmed",
-  completed: "Completed",
-  cancelled: "Cancelled",
-}
-
-const formatSchedule = (booking: Awaited<ReturnType<typeof retrieveLabourBooking>>) => {
-  if (!booking) return ""
-  if (booking.rate_type === "day") {
-    return booking.start_date === booking.end_date
-      ? new Date(`${booking.start_date}T00:00:00`).toDateString()
-      : `${new Date(`${booking.start_date}T00:00:00`).toDateString()} → ${new Date(
-          `${booking.end_date}T00:00:00`
-        ).toDateString()}`
-  }
-  return `${new Date(`${booking.start_date}T00:00:00`).toDateString()} at ${booking.scheduled_time} (${booking.duration_hours}h)`
 }
 
 type Props = {
@@ -51,23 +33,8 @@ export default async function LabourBookingConfirmedPage(props: Props) {
     return notFound()
   }
 
-  const numDays =
-    booking.rate_type === "day" && booking.start_date && booking.end_date
-      ? Math.max(
-          1,
-          Math.round(
-            (new Date(`${booking.end_date}T00:00:00`).getTime() -
-              new Date(`${booking.start_date}T00:00:00`).getTime()) /
-              (1000 * 60 * 60 * 24)
-          ) + 1
-        )
-      : 1
-  const estimatedTotal =
-    booking.rate_amount *
-    (booking.rate_type === "day" ? numDays : booking.duration_hours ?? 1) *
-    booking.num_workers
-
-  const awaitingPayment = booking.payment_method === "upi" && !booking.payment_received
+  const estimatedTotal = estimateBookingTotal(booking)
+  const awaitingPayment = isBookingAwaitingPayment(booking)
 
   return (
     <div className="py-6 bg-gray-50 min-h-[calc(100vh-64px)]">
@@ -96,7 +63,7 @@ export default async function LabourBookingConfirmedPage(props: Props) {
               <UpiPayment
                 amount={estimatedTotal}
                 currencyCode="inr"
-                referenceLabel={`Booking #${booking.id.slice(-8).toUpperCase()}`}
+                referenceLabel={`Booking #${bookingNumber(booking)}`}
                 transactionNote={`Labour Booking ${booking.id}`}
                 alreadyConfirmed={booking.payment_customer_confirmed}
                 onConfirmPaid={confirmLabourBookingPaymentSubmitted.bind(null, booking.id)}
@@ -113,7 +80,7 @@ export default async function LabourBookingConfirmedPage(props: Props) {
                   <Text className="break-words">
                     <span className="txt-small text-ui-fg-subtle">Booking number: </span>
                     <span className="font-semibold text-brand-600">
-                      #{booking.id.slice(-8).toUpperCase()}
+                      #{bookingNumber(booking)}
                     </span>
                   </Text>
                   <Text className="break-words">
@@ -122,15 +89,15 @@ export default async function LabourBookingConfirmedPage(props: Props) {
                   </Text>
                   <Text className="break-words">
                     <span className="txt-small text-ui-fg-subtle">Schedule: </span>
-                    <span className="font-semibold text-gray-900">{formatSchedule(booking)}</span>
+                    <span className="font-semibold text-gray-900">{formatBookingSchedule(booking)}</span>
                   </Text>
                   <Text className="break-words">
                     <span className="txt-small text-ui-fg-subtle">Workers: </span>
                     <span className="font-semibold text-gray-900">{booking.num_workers}</span>
                   </Text>
                 </div>
-                <Badge color={STATUS_COLOR[booking.status]}>
-                  {STATUS_LABEL[booking.status]}
+                <Badge color={BOOKING_STATUS_COLOR[booking.status]}>
+                  {BOOKING_STATUS_LABEL[booking.status]}
                 </Badge>
               </div>
             </div>

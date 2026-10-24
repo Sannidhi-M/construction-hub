@@ -1,5 +1,7 @@
 import { AuthenticatedMedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import createLabourBookingWorkflow from "../../../workflows/create-labour-booking"
+import { LABOUR_BOOKING_MODULE } from "../../../modules/labour-booking"
+import LabourBookingModuleService from "../../../modules/labour-booking/service"
 
 type CreateLabourBookingBody = {
   service_slug: string
@@ -18,6 +20,26 @@ type CreateLabourBookingBody = {
   phone: string
   email?: string
   payment_method: "upi" | "cod"
+}
+
+/**
+ * The signed-in customer's own bookings, newest first — filtered by
+ * `customer_id` in the query itself (not fetched-then-filtered), so one
+ * customer's bookings are never loaded for another's request.
+ */
+export async function GET(
+  req: AuthenticatedMedusaRequest,
+  res: MedusaResponse
+) {
+  const labourBookingModuleService: LabourBookingModuleService =
+    req.scope.resolve(LABOUR_BOOKING_MODULE)
+
+  const bookings = await labourBookingModuleService.listLabourBookings(
+    { customer_id: req.auth_context.actor_id },
+    { order: { created_at: "DESC" } }
+  )
+
+  res.json({ bookings })
 }
 
 /**

@@ -69,6 +69,26 @@ export const createLabourBooking = async (
     .catch((err) => medusaError(err))
 }
 
+/**
+ * The signed-in customer's own bookings, newest first. Returns `null` on any
+ * error (matching `listOrders`), so the caller can tell "failed to load"
+ * apart from "genuinely has no bookings" (an empty array).
+ */
+export const listLabourBookings = async (): Promise<LabourBooking[] | null> => {
+  const headers = {
+    ...(await getAuthHeaders()),
+  }
+
+  return sdk.client
+    .fetch<{ bookings: LabourBooking[] }>("/store/labour-bookings", {
+      method: "GET",
+      headers,
+      cache: "no-store",
+    })
+    .then(({ bookings }) => bookings)
+    .catch(() => null)
+}
+
 export const retrieveLabourBooking = async (
   id: string
 ): Promise<LabourBooking | null> => {

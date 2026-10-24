@@ -61,6 +61,9 @@ src/modules/account/components/address-card/add-address.tsx: error TS2786: 'Moda
 src/modules/account/components/address-card/add-address.tsx: error TS2786: 'Modal.Title' cannot be used as a JSX component.
 src/modules/account/components/address-card/edit-address-modal.tsx: error TS2786: 'Edit' cannot be used as a JSX component.
 src/modules/account/components/address-card/edit-address-modal.tsx: error TS2786: 'Trash' cannot be used as a JSX component.
+src/modules/account/components/labour-booking-card/index.tsx: error TS2786: 'Badge' cannot be used as a JSX component.
+src/modules/account/components/labour-booking-card/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
+src/modules/account/components/labour-booking-overview/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
 src/modules/account/components/login/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
 src/modules/account/components/login/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
 src/modules/account/components/order-card/index.tsx: error TS2786: 'Badge' cannot be used as a JSX component.
@@ -174,9 +177,13 @@ src/modules/labour/components/booking-modal/index.tsx: error TS2786: 'Heading' c
 src/modules/labour/components/booking-modal/index.tsx: error TS2786: 'Input' cannot be used as a JSX component.
 src/modules/labour/components/booking-modal/index.tsx: error TS2786: 'Modal.Title' cannot be used as a JSX component.
 src/modules/labour/components/booking-modal/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
+src/modules/labour/components/booking-tracker/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
 src/modules/labour/components/labour-service-card/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
 src/modules/labour/components/labour-service-card/index.tsx: error TS2786: 'Heading' cannot be used as a JSX component.
 src/modules/labour/components/labour-service-card/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
+src/modules/labour/templates/labour-booking-details-template.tsx: error TS2786: 'Badge' cannot be used as a JSX component.
+src/modules/labour/templates/labour-booking-details-template.tsx: error TS2786: 'Heading' cannot be used as a JSX component.
+src/modules/labour/templates/labour-booking-details-template.tsx: error TS2786: 'Text' cannot be used as a JSX component.
 src/modules/layout/components/cart-dropdown/index.tsx: error TS2322: Type 'ExoticComponent<{ children?: ReactNode; }>' is not assignable to type 'ElementType | undefined'.
 src/modules/layout/components/cart-dropdown/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
 src/modules/layout/components/cart-dropdown/index.tsx: error TS2786: 'Thumbnail' cannot be used as a JSX component.

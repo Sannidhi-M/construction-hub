@@ -33,7 +33,7 @@ export default async function LabourPage() {
         <LabourBookingGrid
           services={labourServices}
           customer={customer}
-          gridClassName="grid grid-cols-1 xsmall:grid-cols-2 medium:grid-cols-3 gap-6"
+          gridClassName="grid grid-cols-1 xsmall:grid-cols-2 medium:grid-cols-4 gap-6"
         />
       </div>
     </div>

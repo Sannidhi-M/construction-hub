@@ -107,6 +107,13 @@ const formatHours = (hours: number) => {
 
 const digitsOnly = (value: string) => value.replace(/\D/g, "").slice(0, 10)
 
+// Same shape the backend's own customer-creation validator enforces — the
+// modal's "Continue" isn't a native <form> submit, so the browser's own
+// type="email" constraint validation never runs here (unlike register's
+// form). A malformed/blank email would otherwise pass this step silently
+// and only get rejected much later, deep in a brand-new phone's signup.
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 const BookingModal = ({
   service,
   customer,
@@ -235,6 +242,16 @@ const BookingModal = ({
     }
     if (!name.trim()) {
       return "Please enter a name."
+    }
+    // Required whenever the phone isn't already a signed-in customer's own
+    // — a brand-new number's signup step needs a valid email to create the
+    // account (see completePhoneSignup / handleNewPhone below); an existing
+    // customer doesn't need one, but a provided value must still be valid.
+    if (!customer && !email.trim()) {
+      return "Please enter an email address."
+    }
+    if (email.trim() && !EMAIL_PATTERN.test(email.trim())) {
+      return "Please enter a valid email address."
     }
     if (phone.length !== 10) {
       return "Please enter a valid 10-digit phone number."
@@ -397,7 +414,7 @@ const BookingModal = ({
                   </div>
                 </div>
                 <Text
-                  className="txt-small-plus text-brand-600 mt-1"
+                  className="txt-medium-plus text-brand-600 mt-1"
                   data-testid="day-count-label"
                 >
                   {formatDays(daysBetween(startDate, endDate))}
@@ -471,7 +488,7 @@ const BookingModal = ({
                 </div>
                 {durationHours > 0 && (
                   <Text
-                    className="txt-small-plus text-brand-600 mt-1"
+                    className="txt-medium-plus text-brand-600 mt-1"
                     data-testid="hour-count-label"
                   >
                     {formatHours(durationHours)}
@@ -602,7 +619,7 @@ const BookingModal = ({
               </div>
             </div>
 
-            <Text className="txt-medium-plus">
+            <Text className="txt-large-plus text-brand-600 bg-brand-50 border border-brand-100 rounded-md px-4 py-3">
               Estimated total: ₹{estimatedTotal}
             </Text>
 
@@ -656,7 +673,7 @@ const BookingModal = ({
                 </label>
               ))}
             </div>
-            <Text className="txt-medium-plus">
+            <Text className="txt-large-plus text-brand-600 bg-brand-50 border border-brand-100 rounded-md px-4 py-3">
               Estimated total:{" "}
               {convertToLocale({ amount: estimatedTotal, currency_code: "inr" })}
             </Text>
