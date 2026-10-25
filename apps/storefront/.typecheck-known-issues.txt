@@ -62,12 +62,10 @@ src/modules/account/components/address-card/add-address.tsx: error TS2786: 'Moda
 src/modules/account/components/address-card/edit-address-modal.tsx: error TS2786: 'Edit' cannot be used as a JSX component.
 src/modules/account/components/address-card/edit-address-modal.tsx: error TS2786: 'Trash' cannot be used as a JSX component.
 src/modules/account/components/labour-booking-card/index.tsx: error TS2786: 'Badge' cannot be used as a JSX component.
-src/modules/account/components/labour-booking-card/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
 src/modules/account/components/labour-booking-overview/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
 src/modules/account/components/login/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
 src/modules/account/components/login/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
 src/modules/account/components/order-card/index.tsx: error TS2786: 'Badge' cannot be used as a JSX component.
-src/modules/account/components/order-card/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
 src/modules/account/components/order-card/index.tsx: error TS2786: 'Thumbnail' cannot be used as a JSX component.
 src/modules/account/components/order-overview/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
 src/modules/account/components/phone-login/index.tsx: error TS2786: 'Input' cannot be used as a JSX component.
@@ -162,9 +160,14 @@ src/modules/common/icons/spinner.tsx: error TS2322: Type '{ children: Element[];
 src/modules/common/icons/trash.tsx: error TS2322: Type '{ children: Element[]; suppressHydrationWarning?: boolean | undefined; className?: string | undefined; height: string | number; id?: string | undefined; lang?: string | undefined; ... 472 more ...; onTransitionStartCapture?: TransitionEventHandler<...> | undefined; }' is not assignable to type 'SVGProps<SVGSVGElement>'.
 src/modules/common/icons/user.tsx: error TS2322: Type '{ children: Element[]; suppressHydrationWarning?: boolean | undefined; className?: string | undefined; height: string | number; id?: string | undefined; lang?: string | undefined; ... 472 more ...; onTransitionStartCapture?: TransitionEventHandler<...> | undefined; }' is not assignable to type 'SVGProps<SVGSVGElement>'.
 src/modules/common/icons/x.tsx: error TS2322: Type '{ children: Element[]; suppressHydrationWarning?: boolean | undefined; className?: string | undefined; height: string | number; id?: string | undefined; lang?: string | undefined; ... 472 more ...; onTransitionStartCapture?: TransitionEventHandler<...> | undefined; }' is not assignable to type 'SVGProps<SVGSVGElement>'.
-src/modules/home/components/engineering-preview/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
-src/modules/home/components/engineering-preview/index.tsx: error TS2786: 'Heading' cannot be used as a JSX component.
-src/modules/home/components/engineering-preview/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
+src/modules/engineering/components/engineering-showcase/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
+src/modules/engineering/components/engineering-showcase/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
+src/modules/engineering/components/quote-form/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
+src/modules/engineering/components/quote-form/index.tsx: error TS2786: 'Heading' cannot be used as a JSX component.
+src/modules/engineering/components/quote-form/index.tsx: error TS2786: 'Input' cannot be used as a JSX component.
+src/modules/engineering/components/quote-form/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
+src/modules/engineering/templates/quote-page-template.tsx: error TS2786: 'Heading' cannot be used as a JSX component.
+src/modules/engineering/templates/quote-page-template.tsx: error TS2786: 'Text' cannot be used as a JSX component.
 src/modules/home/components/hero/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
 src/modules/home/components/hero/index.tsx: error TS2786: 'Heading' cannot be used as a JSX component.
 src/modules/home/components/hero/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.

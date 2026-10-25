@@ -1,39 +1,40 @@
 /**
- * Placeholder data for the Engineering Services platform. There is no
- * backend for this yet — no quote-request/lead data model exists (see
- * docs plan for the storefront redesign). This file is the single source
- * both the homepage rail and the /engineering page read from.
+ * The services a free quote can be requested for — the picklists of the two
+ * quote forms: "Engineering Services" (/engineering/quote) and "Other
+ * Services" (/engineering/other-services/quote). Mirrors the backend's
+ * authoritative list (apps/backend/src/modules/quote-request/
+ * service-catalog.ts), which is what actually validates a submission; the
+ * two apps can't share a module, so adding or renaming a service means
+ * editing both files.
  */
 
 export type EngineeringService = {
   slug: string
   name: string
-  description: string
 }
 
 export const engineeringServices: EngineeringService[] = [
+  { slug: "architectural-floor-plans", name: "Architectural Floor Plans" },
+  { slug: "3d-elevations-visualization", name: "3D Elevations & Visualization" },
+  { slug: "structural-design-drawings", name: "Structural Design & Drawings" },
+  { slug: "interior-design-space-planning", name: "Interior Design & Space Planning" },
+  { slug: "boq-quantity-estimation", name: "BOQ & Quantity Estimation" },
+  { slug: "cost-estimation", name: "Cost Estimation" },
+  { slug: "property-valuation-assessment", name: "Property Valuation & Assessment" },
   {
-    slug: "building-plans",
-    name: "Building Plans",
-    description:
-      "Architectural drawings and 2D/3D floor plans for residential and commercial projects.",
+    slug: "turnkey-construction",
+    name: "Complete Turnkey Construction – Foundation to Finishing",
   },
-  {
-    slug: "mep-plans",
-    name: "MEP Plans",
-    description:
-      "Mechanical, electrical and plumbing drawings and specifications for your build.",
-  },
-  {
-    slug: "site-supervision",
-    name: "Site Supervision",
-    description:
-      "On-site engineering oversight to keep quality, safety and timelines on track.",
-  },
-  {
-    slug: "full-home-construction",
-    name: "Full Home Construction",
-    description:
-      "End-to-end construction from foundation to handover — tell us your requirements.",
-  },
+  { slug: "other", name: "Other" },
+]
+
+export const otherServices: EngineeringService[] = [
+  { slug: "precast-compound-walls", name: "Precast Compound Walls" },
+  { slug: "steel-fabrication", name: "Steel Fabrication" },
+  { slug: "ms-steel-gates-grills", name: "MS/Steel Gates & Grills" },
+  { slug: "aluminium-works", name: "Aluminium Works" },
+  { slug: "upvc-doors-windows", name: "UPVC Doors & Windows" },
+  { slug: "glass-glazing-works", name: "Glass & Glazing Works" },
+  { slug: "waterproofing", name: "Waterproofing" },
+  { slug: "roofing-works", name: "Roofing Works" },
 ]

@@ -13,6 +13,7 @@ import { createLabourBooking } from "@lib/data/labour-bookings"
 import { completePhoneSignup } from "@lib/data/customer"
 import { checkPincodeServiceable } from "@lib/data/delivery-area"
 import { splitFullName } from "@lib/util/split-full-name"
+import { isValidEmail } from "@lib/util/email"
 import { convertToLocale } from "@lib/util/money"
 import AddressSelect from "@modules/checkout/components/address-select"
 
@@ -106,13 +107,6 @@ const formatHours = (hours: number) => {
 }
 
 const digitsOnly = (value: string) => value.replace(/\D/g, "").slice(0, 10)
-
-// Same shape the backend's own customer-creation validator enforces — the
-// modal's "Continue" isn't a native <form> submit, so the browser's own
-// type="email" constraint validation never runs here (unlike register's
-// form). A malformed/blank email would otherwise pass this step silently
-// and only get rejected much later, deep in a brand-new phone's signup.
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 const BookingModal = ({
   service,
@@ -250,7 +244,7 @@ const BookingModal = ({
     if (!customer && !email.trim()) {
       return "Please enter an email address."
     }
-    if (email.trim() && !EMAIL_PATTERN.test(email.trim())) {
+    if (email.trim() && !isValidEmail(email)) {
       return "Please enter a valid email address."
     }
     if (phone.length !== 10) {

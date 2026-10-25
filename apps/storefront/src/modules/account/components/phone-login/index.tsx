@@ -20,6 +20,9 @@ type Props = {
   // up inline.
   requireExistingAccount?: boolean
   onPhoneNotFound?: (phone: string) => void
+  // Prefills the phone step, for callers that already collected the number
+  // earlier in their own form (still editable).
+  initialPhone?: string
 }
 
 /**
@@ -30,6 +33,7 @@ const PhoneLogin = ({
   onNewPhone,
   requireExistingAccount,
   onPhoneNotFound,
+  initialPhone,
 }: Props = {}) => {
   const [step, setStep] = useState<"phone" | "otp">("phone")
   const [phone, setPhone] = useState("")
@@ -119,6 +123,7 @@ const PhoneLogin = ({
           autoComplete="tel"
           required
           maxLength={10}
+          defaultValue={initialPhone}
           onChange={(e) => {
             e.target.value = e.target.value.replace(/\D/g, "").slice(0, 10)
           }}

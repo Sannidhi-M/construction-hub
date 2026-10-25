@@ -57,5 +57,9 @@ export default defineMiddlewares({
       matcher: "/store/labour-bookings/:id/payment-submitted",
       middlewares: [authenticate("customer", "bearer")],
     },
+    {
+      matcher: "/store/quote-requests",
+      middlewares: [authenticate("customer", "bearer")],
+    },
   ],
 })
