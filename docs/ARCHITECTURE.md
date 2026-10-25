@@ -188,6 +188,15 @@ A labour booking is a lead-capture + status-tracking record, not a sale of inven
 - **Service catalog**: two picklists, one per storefront section — "Engineering Services" (8 services + "Other") and "Other Services" (precast walls, steel fabrication, gates & grills, aluminium, UPVC, glazing, waterproofing, roofing). The backend's `service-catalog.ts` is the authoritative list: the workflow rejects any slug not in it and snapshots the name from it, never from the client. The storefront's `lib/data/engineering-services.ts` mirrors it; the two apps can't share a module, so a change means editing both (same accepted tradeoff as `MIN_ORDER_VALUE_INR`).
 - **Validation (server-side, authoritative)**: valid service slug, non-blank name (≤100), well-formed email, notes ≤1000 — each with a clear 400. The storefront mirrors these as inline field errors, but the workflow is the real gate.
 
+### 2.12 Contact messages (added later — own module, open to anyone)
+
+The "Contact Us" page's message form is a lead the business reads and replies to by phone/email, so — like labour bookings (§2.10) and quote requests (§2.11) — it's its own small module, `apps/backend/src/modules/contact-message/` (same scaffold: model + service + index + migration, one workflow per mutation).
+
+- **Model** `ContactMessage`: `topic_slug`/`topic_name` (the "Subject" picklist, snapshotted from a server-side catalog like the quote services), `name`, `email`, `phone` (required), `message`, `customer_id` (nullable), `status` (`new → replied → closed`, admin-driven), `admin_note`.
+- **Deliberately not OTP-gated** — unlike quote requests (§2.11) and labour bookings, which require a verified phone. A contact form that demanded sign-in would defeat its purpose, so it's open to anyone; `customer_id` is only set when the sender happened to be signed in (the store route uses `authenticate("customer", "bearer", { allowUnauthenticated: true })`, so a missing *or junk* token is simply treated as a guest). The phone is required and format-validated (parsed with `libphonenumber-js`, region IN, stored as E.164) but, unlike a quote's, **not verified** — the business calls back on whatever was typed.
+- **Abuse controls, since there's no sign-in gate**: a per-IP rate limit (5/hour, Redis-backed; the real local Redis persists across backend restarts, so a tripped counter lasts its hour), a honeypot field (a hidden input real visitors never fill — a filled one gets the same `201` success as a real submission but nothing is stored), and the workflow's server-side validation (valid subject slug, non-blank name ≤100, well-formed email, valid phone, message 10–2000 chars).
+- **Per-IP limiter refactor**: the existing phone-auth limiter in `middlewares.ts` was hard-wired to OTP requests; it's now a small `createIpRateLimit({ keyPrefix, maxPerHour, message })` factory, with the phone-auth limiter's Redis key and 20/hour ceiling unchanged.
+
 ## 3. Custom Backend Work
 
 ### 3.1 Phone + OTP auth provider
@@ -266,6 +275,12 @@ Implementation: custom workflow `apps/backend/src/workflows/verify-order-payment
 - **Routes**: `POST /store/quote-requests` (customer-authenticated via `middlewares.ts`); `GET /admin/quote-requests` (list, newest first) and `GET`/`POST /admin/quote-requests/:id` (detail, status update).
 - **Admin UI**: a custom route page, `apps/backend/src/admin/routes/quote-requests/page.tsx` ("Quote Requests" in the Admin nav) — a table of requests (received time, name, contact, service, notes, status) with a per-row status `Select`, calling the admin routes via same-origin `fetch(..., { credentials: "include" })`, same pattern as the Labour Bookings page.
 
+### 3.7 Contact message backend routes & admin UI
+
+- **Workflows**: `create-contact-message.ts` (validation per §2.12, creation, compensation = delete) and `update-contact-message-status.ts` (admin-only; retrieve-before/restore-on-failure).
+- **Routes**: `POST /store/contact-messages` (open; rate-limited + honeypot per §2.12); `GET /admin/contact-messages` and `GET`/`POST /admin/contact-messages/:id` (list, detail, status update).
+- **Admin UI**: a "Contact Messages" route page (`apps/backend/src/admin/routes/contact-messages/page.tsx`) — received time, sender (name/email/phone), subject, message, status with a per-row `Select` — same pattern as the Labour Bookings and Quote Requests pages.
+
 ## 4. Storefront Work
 
 ### 4.1 Strip out
@@ -301,6 +316,13 @@ Implementation: custom workflow `apps/backend/src/workflows/verify-order-payment
 - **Slider** (`EngineeringSlider`): horizontal slide with prev/next arrows, dots, touch swipe, and autoplay (5s by default, overridable so two side-by-side sliders don't flip in lockstep) that pauses while the pointer or focus is inside it and is skipped entirely under `prefers-reduced-motion`; proper carousel/slide ARIA roles. Photos are placeholders from Wikimedia Commons (credited in the footer; only the CC BY site plan needs it) pending real project photography. Images are served unoptimized (`images.unoptimized`), so they're pre-sized to ~150–270 KB each.
 - **Quote form** (`QuoteForm`): name, email, phone, service (picklist), optional notes, Submit → (if not signed in) phone-OTP verification → automatic submit → a "Thank you … we'll call you back shortly" card with a reference number. Signed-in customers see their phone read-only with a "✓ Verified" note; a brand-new number gets an account created from the name/email already typed (same sub-flow as checkout and the booking modal); `PhoneLogin` gained an optional `initialPhone` so the number isn't asked for twice, and the shared `Input` gained an optional `invalid` prop for field-error styling. Failures return the visitor to the form with the error visible, with the backend's "email already has an account" message rewritten into plain next steps — unlike the booking modal, which hides signup errors behind its verify step.
 - **Shared email check**: `lib/util/email.ts` (`isValidEmail`) now backs both this form and the booking modal — their submit buttons aren't native `<form>` submits (or are `noValidate`), so the browser's own `type="email"` validation never runs.
+
+### 4.5 Contact page
+
+- **`/contact`** (previously a 404 linked from the nav, footer, mobile menu and the "Need help?" blocks on order and booking pages): a banner, then a two-column layout — a "Send us a message" form on the left (name, email, phone, subject picklist, message; inline field errors; a "Message sent!" confirmation with "Send another message" / "Back to home"), and a "Contact information" column on the right with Call Us (tap-to-call), Email Us (tap-to-email), Visit Us, Business Hours, and a map card with an "Open in Google Maps" link. Signed-in visitors get name/email/phone prefilled.
+- **Contact details are config, not invented**: phone, location and email are fixed constants in `lib/constants.tsx` (the single source of truth for contact identity, also used by the footer); the full street address and business hours are optional env settings (`NEXT_PUBLIC_SITE_ADDRESS`, `NEXT_PUBLIC_SITE_HOURS`), and their cards simply don't render until set — so the page never shows made-up details. The map link searches the address if set, else the location string.
+- **Shared banner**: the page uses the same `PlatformBanner` as the three platform pages; its label prop was renamed `platform` → `eyebrow` since "Contact" isn't a platform.
+- **Error messages (cross-cutting fix)**: `medusaError` was written for the older axios-style error shape (`err.response`); the v2 SDK's `FetchError` (what `sdk.client.fetch` throws for any non-2xx) has no `response`, so every server message used to be prefixed "Error setting up the request:". It now recognizes `FetchError` (numeric `status` + the server's own `message`) and surfaces the message cleanly, ending in a period only if it doesn't already — improving every form's server errors (booking, quote, contact), not just this one.
 
 ## 5. Sequencing
 

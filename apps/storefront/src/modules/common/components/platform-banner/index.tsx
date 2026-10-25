@@ -2,9 +2,10 @@ import { ReactNode } from "react"
 import { Heading, Text } from "@modules/common/components/ui"
 
 type PlatformBannerProps = {
-  // "Platform 1" / "Platform 2" / "Platform 3" — the same label the
-  // homepage's section headings use.
-  platform: string
+  // The small orange label above the title: "Platform 1" / "Platform 2" /
+  // "Platform 3" on the three platform pages (the same label the homepage's
+  // section headings use), or a plain label like "Contact" elsewhere.
+  eyebrow: string
   // The platform's name, as in the nav ("Construction Materials", ...).
   title: string
   description: string
@@ -15,14 +16,14 @@ type PlatformBannerProps = {
 
 /**
  * The dark header band at the top of each platform's own page (Materials,
- * Labour & Manpower, Engineering Services), so the three read as one
- * family. Styling (bg color, spacing) was confirmed against the Airo
+ * Labour & Manpower, Engineering Services) and the Contact page, so they
+ * read as one family. Styling (bg color, spacing) was confirmed against the Airo
  * design reference's own computed styles, not eyeballed from a screenshot —
  * it's the Materials banner's, extracted so the other platforms can't drift
  * from it.
  */
 const PlatformBanner = ({
-  platform,
+  eyebrow,
   title,
   description,
   aside,
@@ -32,7 +33,7 @@ const PlatformBanner = ({
       <div className="content-container py-10 flex flex-col small:flex-row small:items-center small:justify-between gap-4">
         <div>
           <Text className="text-sm font-semibold text-brand-500 mb-1">
-            {platform}
+            {eyebrow}
           </Text>
           <Heading level="h1" className="text-3xl font-extrabold text-white">
             {title}

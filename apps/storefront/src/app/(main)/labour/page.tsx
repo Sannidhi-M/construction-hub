@@ -16,7 +16,7 @@ export default async function LabourPage() {
   return (
     <div className="bg-gray-50 min-h-[calc(100vh-64px)]">
       <PlatformBanner
-        platform="Platform 2"
+        eyebrow="Platform 2"
         title="Labour & Manpower"
         description="Skilled workers, booked your way. Pick a service, choose per-day or per-hour, and book in minutes — verified workers, delivered to your site."
       />

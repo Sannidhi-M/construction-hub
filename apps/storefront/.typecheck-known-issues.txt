@@ -161,6 +161,14 @@ src/modules/common/icons/spinner.tsx: error TS2322: Type '{ children: Element[];
 src/modules/common/icons/trash.tsx: error TS2322: Type '{ children: Element[]; suppressHydrationWarning?: boolean | undefined; className?: string | undefined; height: string | number; id?: string | undefined; lang?: string | undefined; ... 472 more ...; onTransitionStartCapture?: TransitionEventHandler<...> | undefined; }' is not assignable to type 'SVGProps<SVGSVGElement>'.
 src/modules/common/icons/user.tsx: error TS2322: Type '{ children: Element[]; suppressHydrationWarning?: boolean | undefined; className?: string | undefined; height: string | number; id?: string | undefined; lang?: string | undefined; ... 472 more ...; onTransitionStartCapture?: TransitionEventHandler<...> | undefined; }' is not assignable to type 'SVGProps<SVGSVGElement>'.
 src/modules/common/icons/x.tsx: error TS2322: Type '{ children: Element[]; suppressHydrationWarning?: boolean | undefined; className?: string | undefined; height: string | number; id?: string | undefined; lang?: string | undefined; ... 472 more ...; onTransitionStartCapture?: TransitionEventHandler<...> | undefined; }' is not assignable to type 'SVGProps<SVGSVGElement>'.
+src/modules/contact/components/contact-form/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
+src/modules/contact/components/contact-form/index.tsx: error TS2786: 'Heading' cannot be used as a JSX component.
+src/modules/contact/components/contact-form/index.tsx: error TS2786: 'Input' cannot be used as a JSX component.
+src/modules/contact/components/contact-form/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
+src/modules/contact/components/contact-info/index.tsx: error TS2322: Type 'import("/Users/sannidihim/construction-hub/apps/storefront/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+src/modules/contact/components/contact-info/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
+src/modules/contact/components/contact-info/index.tsx: error TS2786: 'Heading' cannot be used as a JSX component.
+src/modules/contact/components/contact-info/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
 src/modules/engineering/components/engineering-service-card/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
 src/modules/engineering/components/engineering-service-card/index.tsx: error TS2786: 'Heading' cannot be used as a JSX component.
 src/modules/engineering/components/engineering-service-card/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.

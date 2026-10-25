@@ -4,7 +4,7 @@ import PlatformBanner from "@modules/common/components/platform-banner"
 const MaterialsBanner = () => {
   return (
     <PlatformBanner
-      platform="Platform 1"
+      eyebrow="Platform 1"
       title="Construction Materials"
       description="Prices updated every morning. Order online, delivered to your site."
       aside={

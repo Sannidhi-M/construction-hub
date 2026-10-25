@@ -23,6 +23,9 @@ module.exports = defineConfig({
     {
       resolve: './src/modules/quote-request',
     },
+    {
+      resolve: './src/modules/contact-message',
+    },
     // Declaring the Auth/Notification modules ourselves REPLACES (not
     // merges with) Medusa's own default `providers` array for that module
     // (see apps/backend/node_modules/@medusajs/utils's defineConfig source)

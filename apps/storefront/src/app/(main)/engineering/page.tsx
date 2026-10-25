@@ -14,7 +14,7 @@ export default function EngineeringPage() {
   return (
     <>
       <PlatformBanner
-        platform="Platform 3"
+        eyebrow="Platform 3"
         title="Engineering Services"
         description="Request a free quote online and our engineers will call you back shortly."
       />
