@@ -41,3 +41,46 @@ export const createQuoteRequest = async (
     .then(({ quote_request }) => quote_request)
     .catch((err) => medusaError(err))
 }
+
+// Not cached — same reasoning as orders and labour bookings: the status is
+// changed from Admin, which this app never sees, so a cached read could show
+// an outdated status indefinitely.
+//
+/**
+ * The signed-in customer's own quote requests, newest first. `null` on any
+ * error (matching `listOrders`/`listLabourBookings`), so a failed load can be
+ * told apart from "genuinely has none" (an empty array).
+ */
+export const listQuoteRequests = async (): Promise<QuoteRequest[] | null> => {
+  const headers = {
+    ...(await getAuthHeaders()),
+  }
+
+  return sdk.client
+    .fetch<{ quote_requests: QuoteRequest[] }>("/store/quote-requests", {
+      method: "GET",
+      headers,
+      cache: "no-store",
+    })
+    .then(({ quote_requests }) => quote_requests)
+    .catch(() => null)
+}
+
+export const retrieveQuoteRequest = async (
+  id: string
+): Promise<QuoteRequest | null> => {
+  const headers = {
+    ...(await getAuthHeaders()),
+  }
+
+  // null covers both a nonexistent request and one that isn't the signed-in
+  // customer's own — the backend route enforces ownership.
+  return sdk.client
+    .fetch<{ quote_request: QuoteRequest }>(`/store/quote-requests/${id}`, {
+      method: "GET",
+      headers,
+      cache: "no-store",
+    })
+    .then(({ quote_request }) => quote_request)
+    .catch(() => null)
+}

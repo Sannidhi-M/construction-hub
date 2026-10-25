@@ -2,7 +2,7 @@ import type { LabourBooking } from "@lib/data/labour-bookings"
 
 /**
  * Customer-facing presentation helpers for a labour booking, shared by the
- * post-booking confirmation page and the account's "My Orders" → Labour
+ * post-booking confirmation page and the account's "My Orders & Requests" → Labour
  * card/detail views, so the same booking never shows a different status
  * color, schedule string or total depending on which page it's on (same
  * reasoning as order-status.ts's shared STATUS_BADGE_COLOR for Materials).

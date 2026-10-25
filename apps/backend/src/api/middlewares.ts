@@ -89,6 +89,10 @@ export default defineMiddlewares({
       middlewares: [authenticate("customer", "bearer")],
     },
     {
+      matcher: "/store/quote-requests/:id",
+      middlewares: [authenticate("customer", "bearer")],
+    },
+    {
       // Open to anyone; a signed-in customer's message is just linked to
       // their account (hence allowUnauthenticated).
       matcher: "/store/contact-messages",

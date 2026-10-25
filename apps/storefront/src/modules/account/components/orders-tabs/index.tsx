@@ -1,10 +1,11 @@
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
-export type OrdersTab = "materials" | "labour"
+export type OrdersTab = "materials" | "labour" | "engineering"
 
 const TABS: { id: OrdersTab; label: string; href: string }[] = [
   { id: "materials", label: "Materials", href: "/account/orders" },
   { id: "labour", label: "Labour", href: "/account/orders?tab=labour" },
+  { id: "engineering", label: "Engineering", href: "/account/orders?tab=engineering" },
 ]
 
 // Plain links driven by a `?tab=` search param (not client state), so each

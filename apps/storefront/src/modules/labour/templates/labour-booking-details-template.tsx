@@ -2,6 +2,8 @@ import { XMark } from "@medusajs/icons"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import UpiPayment from "@modules/checkout/components/upi-payment"
 import BookingTracker from "@modules/labour/components/booking-tracker"
+import DetailField from "@modules/common/components/detail-field"
+import Help from "@modules/order/components/help"
 import { Badge, Heading, Text } from "@modules/common/components/ui"
 import {
   confirmLabourBookingPaymentSubmitted,
@@ -17,25 +19,6 @@ import {
   getBookingPaymentLabel,
   isBookingAwaitingPayment,
 } from "@lib/util/labour-booking"
-
-const Field = ({
-  label,
-  value,
-  highlight,
-}: {
-  label: string
-  value: string
-  highlight?: boolean
-}) => (
-  <Text className="break-words">
-    <span className="txt-small text-ui-fg-subtle">{label}: </span>
-    <span
-      className={highlight ? "font-semibold text-brand-600" : "font-semibold text-gray-900"}
-    >
-      {value}
-    </span>
-  </Text>
-)
 
 // Server Component on purpose (like order-completed-template.tsx): the
 // UPI "I've Paid" action is passed to a Client Component below, and across
@@ -64,13 +47,13 @@ const LabourBookingDetailsTemplate = ({ booking }: { booking: LabourBooking }) =
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 small:p-6">
           <div className="flex flex-wrap items-start justify-between gap-y-3">
             <div className="flex flex-col gap-y-2">
-              <Field label="Booking number" value={`#${bookingNumber(booking)}`} highlight />
-              <Field label="Booked on" value={new Date(booking.created_at).toDateString()} />
-              <Field label="Service" value={booking.service_name} />
-              <Field label="Schedule" value={formatBookingSchedule(booking)} />
-              <Field label="Workers" value={String(booking.num_workers)} />
-              <Field label="Payment" value={getBookingPaymentLabel(booking)} />
-              <Field
+              <DetailField label="Booking number" value={`#${bookingNumber(booking)}`} highlight />
+              <DetailField label="Booked on" value={new Date(booking.created_at).toDateString()} />
+              <DetailField label="Service" value={booking.service_name} />
+              <DetailField label="Schedule" value={formatBookingSchedule(booking)} />
+              <DetailField label="Workers" value={String(booking.num_workers)} />
+              <DetailField label="Payment" value={getBookingPaymentLabel(booking)} />
+              <DetailField
                 label="Estimated total"
                 value={convertToLocale({ amount: estimatedTotal, currency_code: "inr" })}
               />
@@ -138,12 +121,7 @@ const LabourBookingDetailsTemplate = ({ booking }: { booking: LabourBooking }) =
           </Text>
         </div>
 
-        <div className="mt-2">
-          <Heading className="text-base-semi">Need help?</Heading>
-          <div className="text-base-regular my-2">
-            <LocalizedClientLink href="/contact">Contact us</LocalizedClientLink>
-          </div>
-        </div>
+        <Help />
       </div>
     </div>
   )

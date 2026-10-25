@@ -1,11 +1,34 @@
 import { AuthenticatedMedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import createQuoteRequestWorkflow from "../../../workflows/create-quote-request"
+import { QUOTE_REQUEST_MODULE } from "../../../modules/quote-request"
+import QuoteRequestModuleService from "../../../modules/quote-request/service"
 
 type CreateQuoteRequestBody = {
   service_slug: string
   name: string
   email: string
   notes?: string
+}
+
+/**
+ * The signed-in customer's own quote requests, newest first — filtered by
+ * `customer_id` in the query itself (not fetched-then-filtered), so one
+ * customer's requests are never loaded for another's request. Backs the
+ * account "My Orders" → Engineering tab.
+ */
+export async function GET(
+  req: AuthenticatedMedusaRequest,
+  res: MedusaResponse
+) {
+  const quoteRequestModuleService: QuoteRequestModuleService =
+    req.scope.resolve(QUOTE_REQUEST_MODULE)
+
+  const quoteRequests = await quoteRequestModuleService.listQuoteRequests(
+    { customer_id: req.auth_context.actor_id },
+    { order: { created_at: "DESC" } }
+  )
+
+  res.json({ quote_requests: quoteRequests })
 }
 
 /**

@@ -15,7 +15,7 @@ import { IconProps } from "types/icon"
 const navItems = [
   { href: "/account/profile", label: "Profile Information", icon: User, testId: "profile-link" },
   { href: "/account/addresses", label: "Manage Addresses", icon: MapPin, testId: "addresses-link" },
-  { href: "/account/orders", label: "My Orders", icon: Package, testId: "orders-link" },
+  { href: "/account/orders", label: "My Orders & Requests", icon: Package, testId: "orders-link" },
 ]
 
 const AccountNav = ({

@@ -6,11 +6,12 @@ import LocalizedClientLink from "@modules/common/components/localized-client-lin
 import Help from "@modules/order/components/help"
 import Items from "@modules/order/components/items"
 import OrderDetails from "@modules/order/components/order-details"
+import OrderTracker from "@modules/order/components/order-tracker"
 import OrderSummary from "@modules/order/components/order-summary"
 import ShippingDetails from "@modules/order/components/shipping-details"
 import UpiPayment from "@modules/checkout/components/upi-payment"
 import { confirmPaymentSubmitted } from "@lib/data/orders"
-import { Text } from "@modules/common/components/ui"
+import { Heading, Text } from "@modules/common/components/ui"
 import { convertToLocale } from "@lib/util/money"
 import { getCustomerOrderStatus, isAwaitingPayment } from "@lib/util/order-status"
 import React from "react"
@@ -52,6 +53,12 @@ const OrderDetailsTemplate: React.FC<OrderDetailsTemplateProps> = ({
           customerStatus={customerStatus}
           requestedDeliveryDate={requestedDeliveryDate}
         />
+        <div className="border-t border-gray-200 pt-6">
+          <Heading level="h2" className="text-3xl-regular mb-4">
+            Order status
+          </Heading>
+          <OrderTracker status={customerStatus} paymentMethod={paymentMethod} />
+        </div>
         {paymentMethod === "cod" && (
           <div
             className="flex items-center gap-x-2 bg-brand-50 border border-brand-100 rounded-md px-4 py-3"

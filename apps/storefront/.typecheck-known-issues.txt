@@ -68,6 +68,8 @@ src/modules/account/components/order-card/index.tsx: error TS2786: 'Thumbnail' c
 src/modules/account/components/order-overview/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
 src/modules/account/components/phone-login/index.tsx: error TS2786: 'Input' cannot be used as a JSX component.
 src/modules/account/components/phone-login/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
+src/modules/account/components/quote-request-card/index.tsx: error TS2786: 'Badge' cannot be used as a JSX component.
+src/modules/account/components/quote-request-overview/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
 src/modules/account/components/register/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
 src/modules/account/components/register/index.tsx: error TS2786: 'Input' cannot be used as a JSX component.
 src/modules/account/components/register/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
@@ -123,6 +125,8 @@ src/modules/checkout/components/upi-payment/index.tsx: error TS2786: 'Text' cann
 src/modules/checkout/templates/checkout-summary/index.tsx: error TS2786: 'CartTotals' cannot be used as a JSX component.
 src/modules/checkout/templates/checkout-summary/index.tsx: error TS2786: 'Heading' cannot be used as a JSX component.
 src/modules/collections/templates/index.tsx: error TS2786: 'Suspense' cannot be used as a JSX component.
+src/modules/common/components/cancelled-notice/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
+src/modules/common/components/detail-field/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
 src/modules/common/components/filter-radio-group/index.tsx: error TS2786: 'Label' cannot be used as a JSX component.
 src/modules/common/components/filter-radio-group/index.tsx: error TS2786: 'RadioGroup' cannot be used as a JSX component.
 src/modules/common/components/filter-radio-group/index.tsx: error TS2786: 'RadioGroup.Item' cannot be used as a JSX component.
@@ -138,6 +142,7 @@ src/modules/common/components/native-select/index.tsx: error TS2322: Type 'impor
 src/modules/common/components/platform-banner/index.tsx: error TS2322: Type 'import("/Users/sannidihim/construction-hub/apps/storefront/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
 src/modules/common/components/platform-banner/index.tsx: error TS2786: 'Heading' cannot be used as a JSX component.
 src/modules/common/components/platform-banner/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
+src/modules/common/components/status-tracker/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
 src/modules/common/components/ui/index.tsx: error TS2322: Type 'import("/Users/sannidihim/construction-hub/apps/storefront/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
 src/modules/common/components/ui/index.tsx: error TS2322: Type '{ accept?: string | undefined; alt?: string | undefined; autoComplete?: HTMLInputAutoCompleteAttribute | undefined; capture?: boolean | "user" | "environment" | undefined; ... 302 more ...; className: string; }' is not assignable to type 'DetailedHTMLProps<InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>'.
 src/modules/common/components/ui/index.tsx: error TS2322: Type '{ name?: string | undefined; value?: string | number | readonly string[] | undefined; size?: number | undefined; defaultChecked?: boolean | undefined; defaultValue?: string | number | readonly string[] | undefined; ... 301 more ...; className: string; }' is not assignable to type 'DetailedHTMLProps<InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>'.
@@ -180,6 +185,9 @@ src/modules/engineering/components/quote-form/index.tsx: error TS2786: 'Input' c
 src/modules/engineering/components/quote-form/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
 src/modules/engineering/templates/quote-page-template.tsx: error TS2786: 'Heading' cannot be used as a JSX component.
 src/modules/engineering/templates/quote-page-template.tsx: error TS2786: 'Text' cannot be used as a JSX component.
+src/modules/engineering/templates/quote-request-details-template.tsx: error TS2786: 'Badge' cannot be used as a JSX component.
+src/modules/engineering/templates/quote-request-details-template.tsx: error TS2786: 'Heading' cannot be used as a JSX component.
+src/modules/engineering/templates/quote-request-details-template.tsx: error TS2786: 'Text' cannot be used as a JSX component.
 src/modules/home/components/hero/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
 src/modules/home/components/hero/index.tsx: error TS2786: 'Heading' cannot be used as a JSX component.
 src/modules/home/components/hero/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
@@ -192,7 +200,6 @@ src/modules/labour/components/booking-modal/index.tsx: error TS2786: 'Heading' c
 src/modules/labour/components/booking-modal/index.tsx: error TS2786: 'Input' cannot be used as a JSX component.
 src/modules/labour/components/booking-modal/index.tsx: error TS2786: 'Modal.Title' cannot be used as a JSX component.
 src/modules/labour/components/booking-modal/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
-src/modules/labour/components/booking-tracker/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
 src/modules/labour/components/labour-service-card/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
 src/modules/labour/components/labour-service-card/index.tsx: error TS2786: 'Heading' cannot be used as a JSX component.
 src/modules/labour/components/labour-service-card/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
@@ -212,6 +219,7 @@ src/modules/layout/templates/footer/index.tsx: error TS2786: 'LogoMark' cannot b
 src/modules/layout/templates/footer/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
 src/modules/layout/templates/nav/index.tsx: error TS2786: 'LogoMark' cannot be used as a JSX component.
 src/modules/layout/templates/nav/index.tsx: error TS2786: 'Suspense' cannot be used as a JSX component.
+src/modules/order/components/help/index.tsx: error TS2786: 'ChatBubbleLeftRight' cannot be used as a JSX component.
 src/modules/order/components/item/index.tsx: error TS2786: 'Table.Cell' cannot be used as a JSX component.
 src/modules/order/components/item/index.tsx: error TS2786: 'Table.Row' cannot be used as a JSX component.
 src/modules/order/components/item/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
