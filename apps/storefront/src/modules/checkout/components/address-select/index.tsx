@@ -36,21 +36,26 @@ const AddressSelect = ({
     <Listbox onChange={handleSelect} value={selectedAddress?.id ?? ""}>
       <div className="relative">
         <Listbox.Button
-          className="relative w-full flex justify-between items-center px-4 py-[10px] text-left bg-white cursor-default focus:outline-none border rounded-rounded focus-visible:ring-2 focus-visible:ring-opacity-75 focus-visible:ring-white focus-visible:ring-offset-gray-300 focus-visible:ring-offset-2 focus-visible:border-gray-300 text-base-regular"
+          className="relative w-full flex justify-between items-center gap-x-3 px-4 py-4 text-left bg-white cursor-pointer shadow-sm focus:outline-none border border-brand-300 hover:border-brand-500 rounded-rounded focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 text-large-semi"
           data-testid="shipping-address-select"
         >
           {({ open }) => (
             <>
-              <span className="block truncate">
+              <span className="block truncate text-gray-900">
                 {selectedAddress
                   ? selectedAddress.address_1
                   : "Choose an address"}
               </span>
-              <ChevronUpDown
-                className={clx("transition-rotate duration-200", {
-                  "transform rotate-180": open,
-                })}
-              />
+              {/* Spelled out, so the control reads as "you can change this"
+                  rather than as a pre-filled form field. */}
+              <span className="flex shrink-0 items-center gap-x-2 text-brand-600 text-base-semi">
+                {selectedAddress ? "Change" : "Select"}
+                <ChevronUpDown
+                  className={clx("transition-rotate duration-200", {
+                    "transform rotate-180": open,
+                  })}
+                />
+              </span>
             </>
           )}
         </Listbox.Button>

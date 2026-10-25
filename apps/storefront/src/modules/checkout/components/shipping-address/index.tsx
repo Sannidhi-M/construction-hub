@@ -1,11 +1,11 @@
 import { HttpTypes } from "@medusajs/types"
-import { Container, Text } from "@modules/common/components/ui"
+import { Text } from "@modules/common/components/ui"
 import Checkbox from "@modules/common/components/checkbox"
 import Input from "@modules/common/components/input"
 import { checkPincodeServiceable } from "@lib/data/delivery-area"
 import { mapKeys } from "lodash"
 import React, { useEffect, useMemo, useRef, useState } from "react"
-import AddressSelect from "../address-select"
+import SavedAddressPicker from "../saved-address-picker"
 import CountrySelect from "../country-select"
 
 const ShippingAddress = ({
@@ -195,20 +195,16 @@ const ShippingAddress = ({
   return (
     <>
       {customer && (addressesInRegion?.length || 0) > 0 && (
-        <Container className="mb-6 flex flex-col gap-y-4 p-5">
-          <p className="text-small-regular">
-            {`Hi ${customer.first_name}, do you want to use one of your saved addresses?`}
-          </p>
-          <AddressSelect
-            addresses={customer.addresses}
-            addressInput={
-              mapKeys(formData, (_, key) =>
-                key.replace("shipping_address.", "")
-              ) as unknown as HttpTypes.StoreCartAddress
-            }
-            onSelect={setFormAddress}
-          />
-        </Container>
+        <SavedAddressPicker
+          heading={`Hi ${customer.first_name}, do you want to use one of your saved addresses?`}
+          addresses={customer.addresses}
+          addressInput={
+            mapKeys(formData, (_, key) =>
+              key.replace("shipping_address.", "")
+            ) as unknown as HttpTypes.StoreCartAddress
+          }
+          onSelect={setFormAddress}
+        />
       )}
       <div className="grid grid-cols-2 gap-4">
         <Input

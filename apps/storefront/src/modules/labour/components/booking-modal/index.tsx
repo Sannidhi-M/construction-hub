@@ -15,7 +15,7 @@ import { checkPincodeServiceable } from "@lib/data/delivery-area"
 import { splitFullName } from "@lib/util/split-full-name"
 import { isValidEmail } from "@lib/util/email"
 import { convertToLocale } from "@lib/util/money"
-import AddressSelect from "@modules/checkout/components/address-select"
+import SavedAddressPicker from "@modules/checkout/components/saved-address-picker"
 
 type RateType = "day" | "hour"
 type PaymentChoice = "upi" | "cod"
@@ -543,24 +543,24 @@ const BookingModal = ({
               data-testid="booking-phone-input"
             />
             {customer && (customer.addresses?.length || 0) > 0 && (
-              <div className="flex flex-col gap-y-2">
-                <Text className="txt-small text-ui-fg-subtle">
-                  Use a saved address?
-                </Text>
-                <AddressSelect
-                  addresses={customer.addresses}
-                  addressInput={
-                    {
-                      address_1: addressLine,
-                      company: landmark,
-                      city,
-                      postal_code: postalCode,
-                      phone,
-                    } as unknown as HttpTypes.StoreCartAddress
-                  }
-                  onSelect={handleAddressSelect}
-                />
-              </div>
+              <SavedAddressPicker
+                heading={
+                  customer.first_name
+                    ? `Hi ${customer.first_name}, do you want to use one of your saved addresses?`
+                    : "Do you want to use one of your saved addresses?"
+                }
+                addresses={customer.addresses}
+                addressInput={
+                  {
+                    address_1: addressLine,
+                    company: landmark,
+                    city,
+                    postal_code: postalCode,
+                    phone,
+                  } as unknown as HttpTypes.StoreCartAddress
+                }
+                onSelect={handleAddressSelect}
+              />
             )}
             <Input
               label="Address"

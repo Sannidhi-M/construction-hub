@@ -3,6 +3,7 @@
 import { sdk } from "@lib/config"
 import medusaError from "@lib/util/medusa-error"
 import { getAuthHeaders } from "./cookies"
+import { saveAddressIfNew } from "./address-book"
 
 export type LabourBooking = {
   id: string
@@ -59,7 +60,7 @@ export const createLabourBooking = async (
     ...(await getAuthHeaders()),
   }
 
-  return sdk.client
+  const booking = await sdk.client
     .fetch<{ booking: LabourBooking }>("/store/labour-bookings", {
       method: "POST",
       body: input,
@@ -67,6 +68,20 @@ export const createLabourBooking = async (
     })
     .then(({ booking }) => booking)
     .catch((err) => medusaError(err))
+
+  // Remember the site address in the customer's address book (if it's new),
+  // so they can pick it next time instead of retyping it. A booking has no
+  // separate recipient name, so the saved address takes the customer's own.
+  await saveAddressIfNew({
+    company: input.landmark,
+    address_1: input.address_1,
+    city: input.city,
+    postal_code: input.postal_code,
+    country_code: "in",
+    phone: input.phone,
+  })
+
+  return booking
 }
 
 /**

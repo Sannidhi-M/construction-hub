@@ -16,6 +16,7 @@ import {
 import { getRegion } from "./regions"
 import { getLocale } from "./locale-actions"
 import { checkPincodeServiceable } from "./delivery-area"
+import { saveAddressIfNew } from "./address-book"
 import { listCartShippingMethods } from "./fulfillment"
 import { attachProductImages } from "./products"
 
@@ -448,6 +449,25 @@ export async function placeOrder(cartId?: string) {
   if (cartRes?.type === "order") {
     const orderCacheTag = await getCacheTag("orders")
     revalidateTag(orderCacheTag)
+
+    // Remember the delivery address in the customer's address book (if it's
+    // new), so they can pick it next time instead of retyping it. Must happen
+    // before the redirect below, which ends this action by throwing.
+    const shippingAddress = cartRes.order.shipping_address
+    if (shippingAddress) {
+      await saveAddressIfNew({
+        first_name: shippingAddress.first_name,
+        last_name: shippingAddress.last_name,
+        company: shippingAddress.company,
+        address_1: shippingAddress.address_1 ?? "",
+        address_2: shippingAddress.address_2,
+        city: shippingAddress.city ?? "",
+        province: shippingAddress.province,
+        postal_code: shippingAddress.postal_code ?? "",
+        country_code: shippingAddress.country_code ?? "in",
+        phone: shippingAddress.phone,
+      })
+    }
 
     removeCartId()
     redirect(`/order/${cartRes?.order.id}/confirmed`)
