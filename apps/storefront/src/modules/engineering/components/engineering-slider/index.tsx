@@ -9,7 +9,7 @@ export type Slide = {
   alt: string
 }
 
-const AUTOPLAY_MS = 5000
+const DEFAULT_AUTOPLAY_MS = 5000
 // Minimum horizontal travel (px) for a touch drag to count as a swipe,
 // so a slightly shaky tap on a slide doesn't change it.
 const SWIPE_THRESHOLD_PX = 40
@@ -20,7 +20,18 @@ const SWIPE_THRESHOLD_PX = 40
  * Autoplay is skipped entirely when the visitor has asked their OS for
  * reduced motion.
  */
-const EngineeringSlider = ({ slides }: { slides: Slide[] }) => {
+const EngineeringSlider = ({
+  slides,
+  autoplayMs = DEFAULT_AUTOPLAY_MS,
+  aspectClassName = "aspect-[16/9]",
+}: {
+  slides: Slide[]
+  // Two sliders shown side by side can be given different intervals so
+  // they don't flip in lockstep.
+  autoplayMs?: number
+  // Tailwind aspect-ratio class: a wider ratio makes a shorter picture.
+  aspectClassName?: string
+}) => {
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
   const [reducedMotion, setReducedMotion] = useState(false)
@@ -48,9 +59,9 @@ const EngineeringSlider = ({ slides }: { slides: Slide[] }) => {
     // Keyed on `index`, so every manual change (arrow, dot, swipe) also
     // restarts the countdown instead of the next auto-advance landing a
     // fraction of a second later.
-    const timer = setTimeout(() => goTo(index + 1), AUTOPLAY_MS)
+    const timer = setTimeout(() => goTo(index + 1), autoplayMs)
     return () => clearTimeout(timer)
-  }, [index, paused, reducedMotion, count, goTo])
+  }, [index, paused, reducedMotion, count, goTo, autoplayMs])
 
   const handleTouchEnd = (event: React.TouchEvent) => {
     if (touchStartX.current === null) {
@@ -65,7 +76,7 @@ const EngineeringSlider = ({ slides }: { slides: Slide[] }) => {
 
   return (
     <div
-      className="relative aspect-[16/9] w-full overflow-hidden rounded-large bg-gray-100"
+      className={`relative ${aspectClassName} w-full overflow-hidden rounded-large bg-gray-100`}
       role="region"
       aria-roledescription="carousel"
       aria-label="Engineering projects"

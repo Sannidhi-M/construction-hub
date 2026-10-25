@@ -28,3 +28,11 @@ export const engineeringSlides: EngineeringSlide[] = [
     alt: "A construction site with a tower crane and concrete formwork",
   },
 ]
+
+// The "Other Services" slider: the same placeholder photos, started from a
+// different one so the two sliders never open on the identical picture.
+// Swap for its own photos once real ones exist.
+export const otherServicesSlides: EngineeringSlide[] = [
+  ...engineeringSlides.slice(2),
+  ...engineeringSlides.slice(0, 2),
+]
