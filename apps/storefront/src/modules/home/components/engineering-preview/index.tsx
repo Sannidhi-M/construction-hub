@@ -1,6 +1,8 @@
 import EngineeringServiceCard from "@modules/engineering/components/engineering-service-card"
+import EngineeringServicesSlider from "@modules/engineering/components/engineering-services-slider"
+import EngineeringSlider from "@modules/engineering/components/engineering-slider"
 import SectionHeading from "@modules/home/components/section-heading"
-import { engineeringSlides, otherServicesSlides } from "@lib/data/engineering-slides"
+import { otherServicesSlides } from "@lib/data/engineering-slides"
 import { engineeringPitch, otherServicesPitch } from "@lib/data/engineering-copy"
 
 // Each button goes straight to its own quote form — the /engineering page
@@ -16,16 +18,25 @@ const EngineeringPreview = () => {
             title="Engineering Services"
             description={engineeringPitch}
             ctaHref="/engineering/quote"
-            slides={engineeringSlides}
+            // The slider only — the card is half a page wide, so the detail
+            // panel that sits beside it on /engineering has no room here.
+            media={<EngineeringServicesSlider />}
           />
           <EngineeringServiceCard
             title="Other Services"
             description={otherServicesPitch}
             ctaHref="/engineering/other-services/quote"
-            slides={otherServicesSlides}
-            // Slightly different interval, so the two sliders don't flip
-            // in lockstep.
-            autoplayMs={6500}
+            // Placeholder photos until this section has its own. A frame of
+            // roughly the Engineering slider's height, so the two cards'
+            // text and buttons sit at about the same level; a slightly
+            // different interval, so the sliders don't flip in lockstep.
+            media={
+              <EngineeringSlider
+                slides={otherServicesSlides}
+                aspectClassName="aspect-[11/10]"
+                autoplayMs={6500}
+              />
+            }
           />
         </div>
       </div>

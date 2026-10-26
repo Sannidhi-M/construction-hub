@@ -11,12 +11,15 @@
 #      Next's build has TypeScript type-checking disabled via
 #      `typescript.ignoreBuildErrors`, so step 2 is what catches type
 #      regressions, this step catches parse/syntax-level breakage)
+#   4. lists that must be identical in both apps (the quote services and the
+#      contact subjects, each written out in the storefront AND the backend)
+#      haven't drifted apart — see scripts/check-synced-lists.js
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 fail=0
 
-echo "== 1/3: backend type-check =="
+echo "== 1/4: backend type-check =="
 if ! (cd apps/backend && npx tsc --noEmit); then
   echo "FAIL: backend has type errors"
   fail=1
@@ -25,7 +28,7 @@ else
 fi
 
 echo
-echo "== 2/3: storefront type-check (against known-issues allowlist) =="
+echo "== 2/4: storefront type-check (against known-issues allowlist) =="
 storefront_out=$(cd apps/storefront && npx tsc --noEmit 2>&1 || true)
 current_errors=$(echo "$storefront_out" \
   | grep -E "^\S+\([0-9]+,[0-9]+\): error TS[0-9]+:" \
@@ -45,7 +48,7 @@ else
 fi
 
 echo
-echo "== 3/3: storefront build (syntax/compile check) =="
+echo "== 3/4: storefront build (syntax/compile check) =="
 # `next build` also does static-export prerendering after compiling, which
 # currently fails on a pre-existing bug (React error #31 on /404 — confirmed
 # present before any of this session's changes, same dual-React-instance
@@ -63,6 +66,12 @@ elif echo "$build_log" | grep -q "Export encountered an error\|Generating static
   echo "WARN: compiled successfully, but static export failed (known pre-existing issue, see docs/PROGRESS.md) — not blocking push"
 else
   echo "OK"
+fi
+
+echo
+echo "== 4/4: lists duplicated across the two apps stay in sync =="
+if ! node scripts/check-synced-lists.js; then
+  fail=1
 fi
 
 echo

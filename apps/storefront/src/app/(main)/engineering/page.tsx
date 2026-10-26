@@ -1,7 +1,9 @@
 import { Metadata } from "next"
 import PlatformBanner from "@modules/common/components/platform-banner"
+import EngineeringServicesShowcase from "@modules/engineering/components/engineering-services-showcase"
 import EngineeringShowcase from "@modules/engineering/components/engineering-showcase"
-import { engineeringSlides, otherServicesSlides } from "@lib/data/engineering-slides"
+import SectionHeading from "@modules/home/components/section-heading"
+import { otherServicesSlides } from "@lib/data/engineering-slides"
 import { engineeringPitch, otherServicesPitch } from "@lib/data/engineering-copy"
 import { SITE_NAME } from "@lib/constants"
 
@@ -18,12 +20,12 @@ export default function EngineeringPage() {
         title="Engineering Services"
         description="Request a free quote online and our engineers will call you back shortly."
       />
-      <EngineeringShowcase
-        title="Engineering Services"
-        description={engineeringPitch}
-        ctaHref="/engineering/quote"
-        slides={engineeringSlides}
-      />
+      <div className="w-full bg-white">
+        <div className="content-container py-16">
+          <SectionHeading title="Engineering Services" />
+          <EngineeringServicesShowcase />
+        </div>
+      </div>
       <EngineeringShowcase
         title="Other Services"
         description={otherServicesPitch}

@@ -14,12 +14,9 @@ export const QUOTE_SERVICES = [
   { slug: "structural-design-drawings", name: "Structural Design & Drawings" },
   { slug: "interior-design-space-planning", name: "Interior Design & Space Planning" },
   { slug: "boq-quantity-estimation", name: "BOQ & Quantity Estimation" },
-  { slug: "cost-estimation", name: "Cost Estimation" },
+  { slug: "cost-estimation", name: "Construction Cost Estimation" },
   { slug: "property-valuation-assessment", name: "Property Valuation & Assessment" },
-  {
-    slug: "turnkey-construction",
-    name: "Complete Turnkey Construction – Foundation to Finishing",
-  },
+  { slug: "turnkey-construction", name: "Turnkey Construction & Renovation" },
   { slug: "other", name: "Other" },
   // "Other Services" form's picklist (a separate section on the storefront).
   { slug: "precast-compound-walls", name: "Precast Compound Walls" },

@@ -1,8 +1,8 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight } from "@medusajs/icons"
+import { useCarousel } from "@lib/hooks/use-carousel"
 
 export type Slide = {
   src: string
@@ -10,9 +10,6 @@ export type Slide = {
 }
 
 const DEFAULT_AUTOPLAY_MS = 5000
-// Minimum horizontal travel (px) for a touch drag to count as a swipe,
-// so a slightly shaky tap on a slide doesn't change it.
-const SWIPE_THRESHOLD_PX = 40
 
 /**
  * Horizontal image slider: prev/next arrows, dots, touch swipe, and
@@ -32,47 +29,11 @@ const EngineeringSlider = ({
   // Tailwind aspect-ratio class: a wider ratio makes a shorter picture.
   aspectClassName?: string
 }) => {
-  const [index, setIndex] = useState(0)
-  const [paused, setPaused] = useState(false)
-  const [reducedMotion, setReducedMotion] = useState(false)
-  const touchStartX = useRef<number | null>(null)
-
   const count = slides.length
-  const goTo = useCallback(
-    (next: number) => setIndex(((next % count) + count) % count),
-    [count]
-  )
-
-  useEffect(() => {
-    const query = window.matchMedia("(prefers-reduced-motion: reduce)")
-    setReducedMotion(query.matches)
-    const onChange = (event: MediaQueryListEvent) =>
-      setReducedMotion(event.matches)
-    query.addEventListener("change", onChange)
-    return () => query.removeEventListener("change", onChange)
-  }, [])
-
-  useEffect(() => {
-    if (paused || reducedMotion || count < 2) {
-      return
-    }
-    // Keyed on `index`, so every manual change (arrow, dot, swipe) also
-    // restarts the countdown instead of the next auto-advance landing a
-    // fraction of a second later.
-    const timer = setTimeout(() => goTo(index + 1), autoplayMs)
-    return () => clearTimeout(timer)
-  }, [index, paused, reducedMotion, count, goTo, autoplayMs])
-
-  const handleTouchEnd = (event: React.TouchEvent) => {
-    if (touchStartX.current === null) {
-      return
-    }
-    const deltaX = event.changedTouches[0].clientX - touchStartX.current
-    touchStartX.current = null
-    if (Math.abs(deltaX) >= SWIPE_THRESHOLD_PX) {
-      goTo(index + (deltaX < 0 ? 1 : -1))
-    }
-  }
+  const { index, goTo, pauseHandlers, swipeHandlers } = useCarousel({
+    count,
+    autoplayMs,
+  })
 
   return (
     <div
@@ -80,14 +41,8 @@ const EngineeringSlider = ({
       role="region"
       aria-roledescription="carousel"
       aria-label="Engineering projects"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      onFocus={() => setPaused(true)}
-      onBlur={() => setPaused(false)}
-      onTouchStart={(event) => {
-        touchStartX.current = event.touches[0].clientX
-      }}
-      onTouchEnd={handleTouchEnd}
+      {...pauseHandlers}
+      {...swipeHandlers}
       data-testid="engineering-slider"
     >
       <div
