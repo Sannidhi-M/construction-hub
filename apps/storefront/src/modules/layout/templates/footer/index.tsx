@@ -163,20 +163,6 @@ export default async function Footer() {
             </a>{" "}
             (CC BY, via Wikimedia Commons).
           </Text>
-          {/* Engineering slider placeholders — only the site plan needs
-              credit (CC BY 4.0); the other three are CC0/public domain. */}
-          <Text className="txt-compact-small text-gray-600">
-            Engineering photos:{" "}
-            <a
-              href="https://commons.wikimedia.org/wiki/File:ESO_Headquarters_Extension_plans_(eso1215d).jpg"
-              className="hover:text-gray-400"
-              target="_blank"
-              rel="noreferrer"
-            >
-              ESO/Auer+Weber
-            </a>{" "}
-            (CC BY 4.0, via Wikimedia Commons).
-          </Text>
         </div>
       </div>
     </footer>

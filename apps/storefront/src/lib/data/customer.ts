@@ -2,6 +2,7 @@
 
 import { sdk } from "@lib/config"
 import medusaError from "@lib/util/medusa-error"
+import { EMAIL_TAKEN_MESSAGE } from "@lib/util/email"
 import { normalizeIndianPhone } from "@lib/util/phone"
 import { HttpTypes } from "@medusajs/types"
 import { FetchError } from "@medusajs/js-sdk"
@@ -252,8 +253,16 @@ export async function requestPhoneOtp(
 ): Promise<CustomerAuthState> {
   const phone = formData.get("phone") as string
   const requireExistingAccount = formData.get("require_existing") === "true"
+  // Set by flows that would create an account from this email if the phone
+  // turns out to be new (checkout, booking, quote, Create Account): refuse
+  // BEFORE sending an OTP when that email already belongs to another account.
+  const signupEmail = ((formData.get("signup_email") as string) ?? "").trim()
 
   try {
+    if (signupEmail && (await emailBlocksSignup(signupEmail, phone))) {
+      return { state: "error", error: EMAIL_TAKEN_MESSAGE }
+    }
+
     if (requireExistingAccount) {
       const exists = await sdk.client
         .fetch<{ exists: boolean }>("/store/customers/phone-exists", {
@@ -282,6 +291,23 @@ export async function requestPhoneOtp(
   } catch (error) {
     return { state: "error", error: String(error) }
   }
+}
+
+// Whether this email would stop a signed-out visitor creating an account
+// for `phone` — asked BEFORE an OTP is sent, so they can fix the email
+// instead of verifying a code and only then finding out. Fails open (false)
+// when the check itself can't be answered: the server still refuses the
+// duplicate at account creation, so this is a convenience, not the guard.
+export async function emailBlocksSignup(
+  email: string,
+  phone: string
+): Promise<boolean> {
+  return sdk.client
+    .fetch<{ conflict: boolean }>("/store/customers/email-conflict", {
+      query: { email, phone },
+    })
+    .then((res) => res.conflict)
+    .catch(() => false)
 }
 
 export async function verifyPhoneOtp(

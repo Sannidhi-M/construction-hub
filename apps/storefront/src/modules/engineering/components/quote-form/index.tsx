@@ -10,8 +10,8 @@ import LocalizedClientLink from "@modules/common/components/localized-client-lin
 import { Button, Heading, Text } from "@modules/common/components/ui"
 import { EngineeringService } from "@lib/data/engineering-services"
 import { createQuoteRequest } from "@lib/data/quote-requests"
-import { completePhoneSignup } from "@lib/data/customer"
-import { isValidEmail } from "@lib/util/email"
+import { completePhoneSignup, emailBlocksSignup } from "@lib/data/customer"
+import { EMAIL_TAKEN_MESSAGE, isValidEmail } from "@lib/util/email"
 import { splitFullName } from "@lib/util/split-full-name"
 
 type Step = "form" | "verify" | "done"
@@ -68,6 +68,7 @@ const QuoteForm = ({
   const [formError, setFormError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [creatingAccount, setCreatingAccount] = useState(false)
+  const [checkingEmail, setCheckingEmail] = useState(false)
   const [submitted, setSubmitted] = useState<Submitted | null>(null)
 
   // Signed in via email/password with no phone on file: there's no verified
@@ -121,17 +122,28 @@ const QuoteForm = ({
     }
   }
 
-  const handleFormSubmit = (event: FormEvent) => {
+  const handleFormSubmit = async (event: FormEvent) => {
     event.preventDefault()
     if (!validate()) {
       return
     }
     if (customer) {
       void submit()
-    } else {
-      setFormError(null)
-      setStep("verify")
+      return
     }
+
+    // A new phone number becomes an account using this email, which fails if
+    // another account already has it. Find that out now, before an OTP is
+    // sent, rather than after the visitor has entered one.
+    setFormError(null)
+    setCheckingEmail(true)
+    const emailTaken = await emailBlocksSignup(email.trim(), phone)
+    setCheckingEmail(false)
+    if (emailTaken) {
+      setErrors({ email: EMAIL_TAKEN_MESSAGE })
+      return
+    }
+    setStep("verify")
   }
 
   // A brand-new phone's OTP verified but there's no customer for it yet —
@@ -214,6 +226,7 @@ const QuoteForm = ({
             </Text>
             <PhoneLogin
               initialPhone={phone}
+              signupEmail={email.trim()}
               onVerified={submit}
               onNewPhone={handleNewPhone}
             />
@@ -375,7 +388,7 @@ const QuoteForm = ({
       <Button
         type="submit"
         size="large"
-        isLoading={submitting}
+        isLoading={submitting || checkingEmail}
         disabled={missingAccountPhone}
         className="w-full"
         data-testid="quote-submit-button"

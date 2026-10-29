@@ -23,6 +23,10 @@ type Props = {
   // Prefills the phone step, for callers that already collected the number
   // earlier in their own form (still editable).
   initialPhone?: string
+  // The email this flow would create an account with if the phone is new.
+  // When set, an OTP is NOT sent if that email already belongs to another
+  // account — the visitor is told so immediately, not after entering a code.
+  signupEmail?: string
 }
 
 /**
@@ -34,6 +38,7 @@ const PhoneLogin = ({
   requireExistingAccount,
   onPhoneNotFound,
   initialPhone,
+  signupEmail,
 }: Props = {}) => {
   const [step, setStep] = useState<"phone" | "otp">("phone")
   const [phone, setPhone] = useState("")
@@ -113,6 +118,9 @@ const PhoneLogin = ({
     <form className="w-full" action={requestAction}>
       {requireExistingAccount && (
         <input type="hidden" name="require_existing" value="true" />
+      )}
+      {signupEmail && (
+        <input type="hidden" name="signup_email" value={signupEmail} />
       )}
       <div className="flex flex-col w-full gap-y-2">
         <Input

@@ -141,6 +141,7 @@ const Review = ({
             Verify your phone number to place your order.
           </Text>
           <PhoneLogin
+            signupEmail={cart.email ?? undefined}
             onVerified={() => router.refresh()}
             onNewPhone={handleNewPhone}
           />

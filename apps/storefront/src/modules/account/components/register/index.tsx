@@ -31,6 +31,8 @@ const CreateAccount = ({ setCurrentView }: Props) => {
 
     const formData = new FormData()
     formData.set("phone", phone)
+    // Refuses before sending the OTP if this email already has an account.
+    formData.set("signup_email", email)
     const result = await requestPhoneOtp(null, formData)
 
     setSubmitting(false)

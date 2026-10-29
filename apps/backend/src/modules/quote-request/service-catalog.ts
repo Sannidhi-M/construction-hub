@@ -22,11 +22,11 @@ export const QUOTE_SERVICES = [
   { slug: "precast-compound-walls", name: "Precast Compound Walls" },
   { slug: "steel-fabrication", name: "Steel Fabrication" },
   { slug: "ms-steel-gates-grills", name: "MS/Steel Gates & Grills" },
-  { slug: "aluminium-works", name: "Aluminium Works" },
-  { slug: "upvc-doors-windows", name: "UPVC Doors & Windows" },
+  { slug: "upvc-aluminium-doors-windows", name: "UPVC & Aluminium Doors, Windows & Partitions" },
   { slug: "glass-glazing-works", name: "Glass & Glazing Works" },
   { slug: "waterproofing", name: "Waterproofing" },
   { slug: "roofing-works", name: "Roofing Works" },
+  { slug: "solar-water-heaters", name: "Solar Water Heaters" },
 ] as const
 
 export type QuoteServiceSlug = (typeof QUOTE_SERVICES)[number]["slug"]

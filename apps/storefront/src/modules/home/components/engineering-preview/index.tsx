@@ -1,8 +1,7 @@
 import EngineeringServiceCard from "@modules/engineering/components/engineering-service-card"
 import EngineeringServicesSlider from "@modules/engineering/components/engineering-services-slider"
-import EngineeringSlider from "@modules/engineering/components/engineering-slider"
+import OtherServicesSlider from "@modules/engineering/components/other-services-slider"
 import SectionHeading from "@modules/home/components/section-heading"
-import { otherServicesSlides } from "@lib/data/engineering-slides"
 import { engineeringPitch, otherServicesPitch } from "@lib/data/engineering-copy"
 
 // Each button goes straight to its own quote form — the /engineering page
@@ -13,7 +12,7 @@ const EngineeringPreview = () => {
     <div className="w-full bg-white">
       <div className="content-container py-16">
         <SectionHeading eyebrow="Platform 3" title="Engineering Services" />
-        <div className="grid grid-cols-1 medium:grid-cols-2 gap-10 medium:gap-12">
+        <div className="grid grid-cols-1 medium:grid-cols-2 gap-10 medium:gap-x-12 medium:gap-y-0">
           <EngineeringServiceCard
             title="Engineering Services"
             description={engineeringPitch}
@@ -26,17 +25,9 @@ const EngineeringPreview = () => {
             title="Other Services"
             description={otherServicesPitch}
             ctaHref="/engineering/other-services/quote"
-            // Placeholder photos until this section has its own. A frame of
-            // roughly the Engineering slider's height, so the two cards'
-            // text and buttons sit at about the same level; a slightly
-            // different interval, so the sliders don't flip in lockstep.
-            media={
-              <EngineeringSlider
-                slides={otherServicesSlides}
-                aspectClassName="aspect-[11/10]"
-                autoplayMs={6500}
-              />
-            }
+            // A slightly different interval from the Engineering slider, so
+            // the two don't flip in lockstep.
+            media={<OtherServicesSlider autoplayMs={8500} />}
           />
         </div>
       </div>

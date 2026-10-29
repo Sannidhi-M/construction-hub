@@ -58,6 +58,16 @@ const contactMessageIpRateLimit = createIpRateLimit({
   message: "Too many messages sent from this network. Please try again later.",
 })
 
+// Called when a signed-out visitor submits a form that would create an
+// account (and again when they ask for the OTP), so it's capped separately
+// from the OTP endpoints rather than eating their budget — and higher, since
+// each attempt makes two calls.
+const emailConflictIpRateLimit = createIpRateLimit({
+  keyPrefix: "email-conflict:ip-ratelimit",
+  maxPerHour: 60,
+  message: "Too many requests from this network. Please try again later.",
+})
+
 export default defineMiddlewares({
   routes: [
     {
@@ -67,6 +77,10 @@ export default defineMiddlewares({
     {
       matcher: "/store/customers/phone-exists",
       middlewares: [phoneAuthIpRateLimit],
+    },
+    {
+      matcher: "/store/customers/email-conflict",
+      middlewares: [emailConflictIpRateLimit],
     },
     {
       matcher: "/store/orders/:id/payment-submitted",

@@ -3,7 +3,15 @@
 import Image from "next/image"
 import { ChevronLeft, ChevronRight } from "@medusajs/icons"
 import { Heading, Text } from "@modules/common/components/ui"
-import { ServiceSlide } from "@lib/data/engineering-service-slides"
+
+// What a slide needs to be drawn. Structural, so both the Engineering Services
+// slides (with a headline and tagline per slide) and the Other Services
+// slides (pictures and names only) fit.
+export type SlideView = {
+  headline?: string
+  tagline?: string
+  services: { number: string; name: string; image: string; imageAlt: string }[]
+}
 
 /**
  * The slider itself — purely presentational: which slide shows, and what to
@@ -20,8 +28,14 @@ const ServiceSlides = ({
   index,
   onSelect,
   swipeHandlers,
+  eyebrow,
+  label = "Engineering services",
 }: {
-  slides: ServiceSlide[]
+  slides: SlideView[]
+  // Small caps line above each slide's headline; unused without headlines.
+  eyebrow?: string
+  // Accessible name of the carousel region.
+  label?: string
   index: number
   onSelect: (index: number) => void
   swipeHandlers: Pick<React.HTMLAttributes<HTMLDivElement>, "onTouchStart" | "onTouchEnd">
@@ -29,43 +43,49 @@ const ServiceSlides = ({
   const count = slides.length
 
   return (
-    <div data-testid="engineering-services-slider">
+    <div className="flex h-full flex-col" data-testid="engineering-services-slider">
       <div
-        className="relative overflow-hidden rounded-large border border-gray-200 bg-gradient-to-br from-brand-50 via-white to-brand-50"
+        className="relative flex flex-1 flex-col overflow-hidden rounded-large border border-gray-200 bg-gradient-to-br from-brand-50 via-white to-brand-50"
         role="region"
         aria-roledescription="carousel"
-        aria-label="Engineering services"
+        aria-label={label}
         {...swipeHandlers}
       >
         <div
-          className="flex transition-transform duration-500 ease-out motion-reduce:transition-none"
+          className="flex flex-1 transition-transform duration-500 ease-out motion-reduce:transition-none"
           style={{ transform: `translateX(-${index * 100}%)` }}
         >
           {slides.map((slide, slideIndex) => (
             <div
-              key={slide.headline}
-              className="w-full shrink-0 p-4 small:p-6"
+              key={slideIndex}
+              className="flex w-full shrink-0 flex-col p-4 small:p-6"
               role="group"
               aria-roledescription="slide"
               aria-label={`${slideIndex + 1} of ${count}`}
               aria-hidden={slideIndex !== index}
             >
-              <Text className="text-xs font-semibold uppercase tracking-widest text-brand-600">
-                Engineering Services
-              </Text>
-              <Heading
-                level="h3"
-                className="mt-1 text-2xl small:text-3xl font-extrabold leading-tight text-gray-900"
-              >
-                {slide.headline}
-              </Heading>
-              <Text className="mt-1 text-sm text-gray-500">{slide.tagline}</Text>
+              {slide.headline && (
+                <div className="mb-4">
+                  {eyebrow && (
+                    <Text className="text-xs font-semibold uppercase tracking-widest text-brand-600">
+                      {eyebrow}
+                    </Text>
+                  )}
+                  <Heading
+                    level="h3"
+                    className="mt-1 text-2xl small:text-3xl font-extrabold leading-tight text-gray-900"
+                  >
+                    {slide.headline}
+                  </Heading>
+                  <Text className="mt-1 text-sm text-gray-500">{slide.tagline}</Text>
+                </div>
+              )}
 
-              <div className="mt-4 grid grid-cols-2 gap-3">
+              <div className="grid flex-1 grid-cols-2 gap-3">
                 {slide.services.map((service) => (
                   <div
                     key={service.number}
-                    className="relative aspect-[4/5] overflow-hidden rounded-lg"
+                    className="relative aspect-[4/5] self-stretch overflow-hidden rounded-lg"
                   >
                     <Image
                       src={service.image}
@@ -115,7 +135,7 @@ const ServiceSlides = ({
       <div className="mt-4 flex items-center justify-center gap-x-2">
         {slides.map((slide, slideIndex) => (
           <button
-            key={slide.headline}
+            key={slideIndex}
             type="button"
             onClick={() => onSelect(slideIndex)}
             aria-label={`Go to slide ${slideIndex + 1}`}

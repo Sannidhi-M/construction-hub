@@ -8,4 +8,4 @@ export const engineeringPitch =
   "From architectural drawings to complete home construction — our engineers handle every stage of your project in Davangere."
 
 export const otherServicesPitch =
-  "Precast compound walls, steel fabrication, gates and grills, aluminium and UPVC works, glazing, waterproofing and roofing — get a free quote for the work your project needs."
+  "Precast compound walls, steel fabrication, gates and grills, UPVC and aluminium doors and windows, glazing, waterproofing, roofing and solar water heaters — get a free quote for the work your project needs."

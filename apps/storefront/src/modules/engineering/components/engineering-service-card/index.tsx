@@ -18,6 +18,15 @@ type EngineeringServiceCardProps = {
  * pitch, and the call-to-action below. Two of these sit side by side on the
  * homepage (Engineering Services / Other Services); the box keeps each
  * offering's media, text and button visibly grouped.
+ *
+ * On wide screens each card is a subgrid spanning the four rows of its
+ * parent grid (media / title / description / button — the parent must declare
+ * `medium:gap-y-0`), so the two cards share row lines: their sliders, titles,
+ * descriptions and buttons line up even though the sliders and the text are
+ * different heights. Below that width the cards stack and are plain columns.
+ * `grid-cols-1` matters: it is `minmax(0, 1fr)`, so the column is exactly as
+ * wide as the card. Without it the implicit `auto` column sizes itself to the
+ * slider's full row of slides, and the card's contents overflow its box.
  */
 const EngineeringServiceCard = ({
   title,
@@ -28,7 +37,7 @@ const EngineeringServiceCard = ({
 }: EngineeringServiceCardProps) => {
   return (
     <div
-      className="flex flex-col h-full bg-gray-50 border border-gray-200 rounded-large p-5 small:p-6"
+      className="flex flex-col medium:grid medium:grid-cols-1 medium:row-span-4 medium:[grid-template-rows:subgrid] medium:gap-y-0 bg-gray-50 border border-gray-200 rounded-large p-5 small:p-6"
       data-testid="engineering-service-card"
     >
       {media}

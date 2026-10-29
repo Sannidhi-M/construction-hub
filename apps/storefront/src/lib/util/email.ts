@@ -6,4 +6,9 @@
 // signup.
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+// Shown when an email would stop a new phone number becoming an account —
+// the same wording wherever the pre-OTP check (emailBlocksSignup) trips.
+export const EMAIL_TAKEN_MESSAGE =
+  "This email is already registered to another account. Please use a different email, or enter the phone number linked to that account."
+
 export const isValidEmail = (value: string) => EMAIL_PATTERN.test(value.trim())

@@ -32,6 +32,7 @@ const EngineeringServicesShowcase = () => {
       data-testid="engineering-services-showcase"
     >
       <ServiceSlides
+        eyebrow="Engineering Services"
         slides={engineeringServiceSlides}
         index={index}
         onSelect={goTo}

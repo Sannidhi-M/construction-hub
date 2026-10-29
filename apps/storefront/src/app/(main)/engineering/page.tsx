@@ -1,9 +1,9 @@
 import { Metadata } from "next"
 import PlatformBanner from "@modules/common/components/platform-banner"
 import EngineeringServicesShowcase from "@modules/engineering/components/engineering-services-showcase"
+import OtherServicesSlider from "@modules/engineering/components/other-services-slider"
 import EngineeringShowcase from "@modules/engineering/components/engineering-showcase"
 import SectionHeading from "@modules/home/components/section-heading"
-import { otherServicesSlides } from "@lib/data/engineering-slides"
 import { engineeringPitch, otherServicesPitch } from "@lib/data/engineering-copy"
 import { SITE_NAME } from "@lib/constants"
 
@@ -30,7 +30,7 @@ export default function EngineeringPage() {
         title="Other Services"
         description={otherServicesPitch}
         ctaHref="/engineering/other-services/quote"
-        slides={otherServicesSlides}
+        media={<OtherServicesSlider />}
         backgroundClassName="bg-[#F3F4F6]"
       />
     </>

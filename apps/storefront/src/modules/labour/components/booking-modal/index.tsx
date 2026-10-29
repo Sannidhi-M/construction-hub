@@ -10,10 +10,10 @@ import Input from "@modules/common/components/input"
 import { Button, Heading, Text } from "@modules/common/components/ui"
 import { LabourService } from "@lib/data/labour-services"
 import { createLabourBooking } from "@lib/data/labour-bookings"
-import { completePhoneSignup } from "@lib/data/customer"
+import { completePhoneSignup, emailBlocksSignup } from "@lib/data/customer"
 import { checkPincodeServiceable } from "@lib/data/delivery-area"
 import { splitFullName } from "@lib/util/split-full-name"
-import { isValidEmail } from "@lib/util/email"
+import { EMAIL_TAKEN_MESSAGE, isValidEmail } from "@lib/util/email"
 import { convertToLocale } from "@lib/util/money"
 import SavedAddressPicker from "@modules/checkout/components/saved-address-picker"
 
@@ -148,6 +148,7 @@ const BookingModal = ({
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [creatingAccount, setCreatingAccount] = useState(false)
+  const [checkingEmail, setCheckingEmail] = useState(false)
   // Drives the "Number of people" field's error highlight — only shown
   // after the first attempt to continue, not on first render.
   const [attemptedContinue, setAttemptedContinue] = useState(false)
@@ -259,7 +260,7 @@ const BookingModal = ({
     return null
   }
 
-  const goToPaymentOrVerify = () => {
+  const goToPaymentOrVerify = async () => {
     setAttemptedContinue(true)
     const validationError = validateDetails()
     if (validationError) {
@@ -267,7 +268,21 @@ const BookingModal = ({
       return
     }
     setError(null)
-    setStep(customer ? "payment" : "verify")
+    if (customer) {
+      setStep("payment")
+      return
+    }
+
+    // A new phone number becomes an account using this email, which fails if
+    // another account already has it. Say so now, before an OTP is sent.
+    setCheckingEmail(true)
+    const emailTaken = await emailBlocksSignup(email.trim(), phone)
+    setCheckingEmail(false)
+    if (emailTaken) {
+      setError(EMAIL_TAKEN_MESSAGE)
+      return
+    }
+    setStep("verify")
   }
 
   const numWorkersInvalid =
@@ -618,7 +633,11 @@ const BookingModal = ({
             </Text>
 
             <ErrorMessage error={error} data-testid="booking-details-error" />
-            <Button onClick={goToPaymentOrVerify} data-testid="booking-continue-button">
+            <Button
+              onClick={goToPaymentOrVerify}
+              isLoading={checkingEmail}
+              data-testid="booking-continue-button"
+            >
               Continue
             </Button>
           </div>
@@ -628,6 +647,7 @@ const BookingModal = ({
               Verify your phone number to continue.
             </Text>
             <PhoneLogin
+              signupEmail={email.trim() || undefined}
               onVerified={() => setStep("payment")}
               onNewPhone={handleNewPhone}
             />

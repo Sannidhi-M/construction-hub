@@ -179,6 +179,7 @@ src/modules/engineering/components/engineering-service-card/index.tsx: error TS2
 src/modules/engineering/components/engineering-service-card/index.tsx: error TS2786: 'Heading' cannot be used as a JSX component.
 src/modules/engineering/components/engineering-service-card/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
 src/modules/engineering/components/engineering-services-showcase/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
+src/modules/engineering/components/engineering-showcase/index.tsx: error TS2322: Type 'import("/Users/sannidihim/construction-hub/apps/storefront/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
 src/modules/engineering/components/engineering-showcase/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
 src/modules/engineering/components/engineering-showcase/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
 src/modules/engineering/components/quote-form/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.

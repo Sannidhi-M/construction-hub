@@ -25,8 +25,9 @@ const EngineeringServicesSlider = ({
 
   return (
     // Pause-on-hover/focus covers the whole slider, dots included.
-    <div {...pauseHandlers}>
+    <div className="h-full min-w-0" {...pauseHandlers}>
       <ServiceSlides
+        eyebrow="Engineering Services"
         slides={engineeringServiceSlides}
         index={index}
         onSelect={goTo}
