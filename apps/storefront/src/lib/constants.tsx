@@ -9,6 +9,12 @@ import React from "react"
 export const SITE_NAME = "ConstructHub"
 export const SITE_PHONE = "+91 7899692136"
 export const SITE_PHONE_INTL = "917899692136" // digits only, for wa.me/tel: links
+// The floating WhatsApp button's chat link: opens a chat with the business
+// number with this message already typed in (the visitor still presses send).
+export const WHATSAPP_MESSAGE = `Hi ${SITE_NAME}, I'd like help with my construction.`
+export const WHATSAPP_URL = `https://wa.me/${SITE_PHONE_INTL}?text=${encodeURIComponent(
+  WHATSAPP_MESSAGE
+)}`
 export const SITE_LOCATION = "Davangere, Karnataka"
 export const SITE_EMAIL = "info@constructhub.in"
 

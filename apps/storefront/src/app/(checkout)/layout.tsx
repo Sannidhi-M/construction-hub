@@ -1,6 +1,7 @@
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import ChevronDown from "@modules/common/icons/chevron-down"
 import LogoMark from "@modules/common/icons/logo-mark"
+import WhatsAppButton from "@modules/layout/components/whatsapp-button"
 import { SITE_NAME } from "@lib/constants"
 
 export default function CheckoutLayout({
@@ -35,6 +36,7 @@ export default function CheckoutLayout({
         </nav>
       </div>
       <div className="relative" data-testid="checkout-container">{children}</div>
+      <WhatsAppButton />
     </div>
   )
 }

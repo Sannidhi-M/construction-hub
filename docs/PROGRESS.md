@@ -345,3 +345,11 @@ Design in ARCHITECTURE.md §2.11/§4.4/§3.1.
 
 **Not yet verified / open**: none of the new layout (slider, headlines, card row alignment, narrow-screen stacking) has been seen after the last two fixes; the four email-check screens haven't been clicked through; the stash (`other-services tiles rework`) still holds the rejected tile/illustration work and can be dropped.
 
+## Floating WhatsApp button (done)
+
+Design in ARCHITECTURE.md §4.6. A round WhatsApp button at the bottom right of every page including checkout, linking to a chat with the business number with a prefilled message ("Hi ConstructHub, I'd like help with my construction."), growing on hover, with four attention hops two seconds after load. Built as a plain `wa.me` link in a server component — no script, no WhatsApp API. The free-shipping popup that shared the corner was moved up. The logo glyph was typed from memory, so it was rendered to an image and looked at before use.
+
+**Mistakes made and caught.** (1) Misread "pop" as a pop-in entrance when the user meant hops; replaced. (2) The four hops showed as **one blink**: `duration-200 ease-out` (needed on the same element for the hover grow) also set the animation's duration and timing, squashing 2.4 s into 0.2 s. Found only when the user said they saw one hop and was checked in a real browser (Playwright, at the user's request) — computed `animation-duration` read `0.2s`; fixed by moving the hops to a wrapper. (3) My first measurement caught nothing because the animation (which starts 2 s after load) had finished before the call ran; the animation was restarted inside the measuring call instead (same CSS, so valid, but not a fresh page load). (4) A shell command with nested quotes was rejected whole before running — nothing ran, so the state was checked before redoing it in smaller steps.
+
+**Verified**: the link text and encoding; the logo rendered; in a browser, the hop animation reports 2.4 s / ease-in-out and makes four hops of 28, 20, 12 and 6 px, ending at rest. **Not verified by eye**: hover grow after the wrapper change (separate elements, so expected unaffected); overlap with the free-shipping popup, the mobile product bar and checkout's "Place order" on a phone; the page-load timing on a truly fresh load.
+

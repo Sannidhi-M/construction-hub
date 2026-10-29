@@ -91,6 +91,21 @@ module.exports = {
           "0%": { transform: "rotate(0deg)" },
           "100%": { transform: "rotate(360deg)" },
         },
+        // The floating WhatsApp button's attention hops: four bounces
+        // (28px, 20px, 12px, 6px), each lower than the last, then at rest.
+        // Starts and ends at translateY(0), so the button's own transform
+        // (hover/focus grow) is untouched outside the hops.
+        "whatsapp-hop": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "11%": { transform: "translateY(-28px)" },
+          "22%": { transform: "translateY(0)" },
+          "33%": { transform: "translateY(-20px)" },
+          "44%": { transform: "translateY(0)" },
+          "55%": { transform: "translateY(-12px)" },
+          "66%": { transform: "translateY(0)" },
+          "77%": { transform: "translateY(-6px)" },
+          "88%": { transform: "translateY(0)" },
+        },
         "fade-in-right": {
           "0%": {
             opacity: "0",
@@ -159,6 +174,9 @@ module.exports = {
       },
       animation: {
         ring: "ring 2.2s cubic-bezier(0.5, 0, 0.5, 1) infinite",
+        // Hops once, 2s after load — long enough for the page to settle and
+        // for the visitor's eye to be on it.
+        "whatsapp-hop": "whatsapp-hop 2.4s ease-in-out 2s 1",
         "fade-in-right":
           "fade-in-right 0.3s cubic-bezier(0.5, 0, 0.5, 1) forwards",
         "fade-in-top": "fade-in-top 0.2s cubic-bezier(0.5, 0, 0.5, 1) forwards",
