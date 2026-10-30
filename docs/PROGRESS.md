@@ -353,3 +353,11 @@ Design in ARCHITECTURE.md §4.6. A round WhatsApp button at the bottom right of 
 
 **Verified**: the link text and encoding; the logo rendered; in a browser, the hop animation reports 2.4 s / ease-in-out and makes four hops of 28, 20, 12 and 6 px, ending at rest. **Not verified by eye**: hover grow after the wrapper change (separate elements, so expected unaffected); overlap with the free-shipping popup, the mobile product bar and checkout's "Place order" on a phone; the page-load timing on a truly fresh load.
 
+## Contact page polish, logout confirmation, small fixes (done)
+
+Design in ARCHITECTURE.md §4.5/§4.7. Contact page: WhatsApp added beside Call and Email; "Open in Google Maps" moved into Visit Us (separate map card removed); the two columns made equal-height cards with aligned headings, then tightened after the user pointed out a large gap under "Send Message". Logout now asks for confirmation. Billing address (and every other profile row) left-aligned under its label — the value had been right-aligned within the label's width. Homepage "Explore Services" now goes to `/engineering`. The WhatsApp logo became a shared icon (glyph moved from the floating button's file by script, not retyped).
+
+**Mistakes made.** (1) The equal-height layout I built for "align the sections" produced the very gap the user then complained about: stretching the form to a taller info column left empty space under its button; fixed by tightening the info rows and the form instead of just trimming one side. (2) A type-check comparison run from the wrong directory prefixed every path and reported dozens of "new" errors that were really the known allowlist; re-run from `apps/storefront` it showed only 7 genuinely new entries of the known React-types noise (the new icon and modal usage), added to the allowlist.
+
+**Not verified by eye**: none of this has been looked at after the final tightening — the contact page proportions, the logout dialog, and the billing-address alignment were type-checked only; the user was asked to review.
+

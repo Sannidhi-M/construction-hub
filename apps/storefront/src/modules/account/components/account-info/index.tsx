@@ -59,7 +59,10 @@ const AccountInfo = ({
       <div className="flex items-end justify-between">
         <div className="flex flex-col">
           <span className="uppercase text-ui-fg-base">{label}</span>
-          <div className="flex items-center flex-1 basis-0 justify-end gap-x-4">
+          {/* Left-aligned under the label. This used to be `justify-end`, which
+              pushed any value narrower than the label (e.g. a short address)
+              to the right, so it sat indented from the heading above it. */}
+          <div className="flex items-center gap-x-4">
             {typeof currentInfo === "string" ? (
               <span className="font-semibold" data-testid="current-info">{currentInfo}</span>
             ) : (

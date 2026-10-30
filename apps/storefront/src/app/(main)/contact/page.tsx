@@ -22,7 +22,9 @@ export default async function ContactPage() {
         description="Questions about an order, a booking or a quote? Send us a message or reach us directly."
       />
       <div className="content-container py-10">
-        <div className="grid grid-cols-1 medium:grid-cols-5 gap-8 items-start">
+        {/* Both columns stretch to the same height, so the two cards line up
+            top and bottom (their headings sit at the same level). */}
+        <div className="grid grid-cols-1 medium:grid-cols-5 gap-8 items-stretch">
           <div className="medium:col-span-3">
             <ContactForm customer={customer} />
           </div>

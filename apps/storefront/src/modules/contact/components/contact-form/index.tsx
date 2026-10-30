@@ -115,7 +115,7 @@ const ContactForm = ({ customer }: { customer: HttpTypes.StoreCustomer | null })
   if (sent) {
     return (
       <div
-        className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 small:p-10 flex flex-col items-center text-center"
+        className="h-full bg-white border border-gray-200 rounded-lg shadow-sm p-6 small:p-10 flex flex-col items-center justify-center text-center"
         data-testid="contact-success"
       >
         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-500 text-white mb-4">
@@ -144,7 +144,7 @@ const ContactForm = ({ customer }: { customer: HttpTypes.StoreCustomer | null })
     <form
       onSubmit={handleSubmit}
       noValidate
-      className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 small:p-10"
+      className="h-full bg-white border border-gray-200 rounded-lg shadow-sm p-6 small:p-8"
       data-testid="contact-form"
     >
       <Heading level="h2" className="text-2xl font-bold text-gray-900">
@@ -233,7 +233,7 @@ const ContactForm = ({ customer }: { customer: HttpTypes.StoreCustomer | null })
         <textarea
           id="contact-message"
           name="message"
-          rows={5}
+          rows={4}
           maxLength={MAX_MESSAGE_LENGTH}
           value={message}
           onChange={(e) => setMessage(e.target.value)}

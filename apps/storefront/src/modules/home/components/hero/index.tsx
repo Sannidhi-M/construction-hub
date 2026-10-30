@@ -48,7 +48,7 @@ const Hero = () => {
               Shop Materials
             </Button>
           </LocalizedClientLink>
-          <LocalizedClientLink href="/labour">
+          <LocalizedClientLink href="/engineering">
             <Button variant="outline-light" size="large">
               Explore Services
             </Button>
