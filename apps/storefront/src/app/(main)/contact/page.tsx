@@ -2,6 +2,7 @@ import { Metadata } from "next"
 import PlatformBanner from "@modules/common/components/platform-banner"
 import ContactForm from "@modules/contact/components/contact-form"
 import ContactInfo from "@modules/contact/components/contact-info"
+import CommonQuestions from "@modules/contact/components/common-questions"
 import { retrieveCustomer } from "@lib/data/customer"
 import { SITE_NAME } from "@lib/constants"
 
@@ -31,6 +32,9 @@ export default async function ContactPage() {
           <div className="medium:col-span-2">
             <ContactInfo />
           </div>
+        </div>
+        <div className="mt-8">
+          <CommonQuestions />
         </div>
       </div>
     </div>

@@ -19,6 +19,14 @@ export const SITE_LOCATION = "Davangere, Karnataka"
 export const SITE_EMAIL = "info@constructhub.in"
 
 /*
+ * Grievance Officer — required on the site by the Consumer Protection
+ * (E-Commerce) Rules, 2020. Uses the business name as the officer's name
+ * (the owner's choice) and the site's own phone/email.
+ */
+export const GRIEVANCE_OFFICER_NAME = `Grievance Officer, ${SITE_NAME}`
+export const GRIEVANCE_HOURS = "Monday to Saturday, 9:00 AM - 5:00 PM"
+
+/*
  * Optional contact details not yet supplied. Read from env (unset = ""), and
  * the /contact page shows each one's card only when it's set — so the page
  * never displays an invented address or opening hours. Set these in
@@ -26,6 +34,14 @@ export const SITE_EMAIL = "info@constructhub.in"
  */
 export const SITE_ADDRESS = process.env.NEXT_PUBLIC_SITE_ADDRESS ?? "" // full street address
 export const SITE_HOURS = process.env.NEXT_PUBLIC_SITE_HOURS ?? "" // e.g. "Mon - Sat: 9:00 AM - 6:00 PM"
+
+/*
+ * Business registration details shown in the footer (required disclosures
+ * for an e-commerce seller). Same rule as above: unset = hidden, never
+ * invented. Set in apps/storefront/.env.local and the deployed env.
+ */
+export const SITE_LEGAL_NAME = process.env.NEXT_PUBLIC_SITE_LEGAL_NAME ?? "" // registered business name
+export const SITE_GSTIN = process.env.NEXT_PUBLIC_SITE_GSTIN ?? ""
 
 /*
  * Map of payment provider_id to their title and icon. v1 only uses Medusa's
