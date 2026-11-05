@@ -5,9 +5,7 @@ import LabourBookingModuleService from "../../../modules/labour-booking/service"
 
 type CreateLabourBookingBody = {
   service_slug: string
-  service_name: string
   rate_type: "day" | "hour"
-  rate_amount: number
   start_date?: string
   end_date?: string
   scheduled_time?: string
@@ -51,9 +49,28 @@ export async function POST(
   req: AuthenticatedMedusaRequest<CreateLabourBookingBody>,
   res: MedusaResponse
 ) {
+  const body = req.body
+
+  // Pick the fields a customer may set, rather than passing the body on
+  // whole: the booking record also has admin-only fields (status,
+  // payment_received, …) that a tampered request must not be able to set.
+  // The service's name and rate are looked up server-side, not taken from here.
   const { result: booking } = await createLabourBookingWorkflow(req.scope).run({
     input: {
-      ...req.body,
+      service_slug: body.service_slug,
+      rate_type: body.rate_type,
+      start_date: body.start_date,
+      end_date: body.end_date,
+      scheduled_time: body.scheduled_time,
+      duration_hours: body.duration_hours,
+      num_workers: body.num_workers,
+      address_1: body.address_1,
+      landmark: body.landmark,
+      city: body.city,
+      postal_code: body.postal_code,
+      phone: body.phone,
+      email: body.email,
+      payment_method: body.payment_method,
       customer_id: req.auth_context.actor_id,
     },
   })

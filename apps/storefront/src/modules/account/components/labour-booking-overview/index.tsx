@@ -3,12 +3,23 @@ import LocalizedClientLink from "@modules/common/components/localized-client-lin
 import { LabourBooking } from "@lib/data/labour-bookings"
 import LabourBookingCard from "../labour-booking-card"
 
-const LabourBookingOverview = ({ bookings }: { bookings: LabourBooking[] }) => {
+const LabourBookingOverview = ({
+  bookings,
+  serviceImages,
+}: {
+  bookings: LabourBooking[]
+  // slug -> photo URL of the service as it is now
+  serviceImages: Record<string, string | null>
+}) => {
   if (bookings.length) {
     return (
       <div className="flex flex-col gap-y-3 w-full">
         {bookings.map((booking) => (
-          <LabourBookingCard key={booking.id} booking={booking} />
+          <LabourBookingCard
+            key={booking.id}
+            booking={booking}
+            imageUrl={serviceImages[booking.service_slug]}
+          />
         ))}
       </div>
     )

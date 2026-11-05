@@ -31,11 +31,11 @@ export type LabourBooking = {
   created_at: string
 }
 
+// The service's name and rate are NOT sent: the server looks them up from
+// the service record by slug and stores them on the booking.
 export type CreateLabourBookingInput = {
   service_slug: string
-  service_name: string
   rate_type: "day" | "hour"
-  rate_amount: number
   start_date?: string
   end_date?: string
   scheduled_time?: string

@@ -155,7 +155,7 @@ const LabourBookingsPage = () => {
                 )}
               </Table.Cell>
               <Table.Cell>
-                <Text>{booking.payment_method === "cod" ? "Cash on Delivery" : "UPI"}</Text>
+                <Text>{booking.payment_method === "cod" ? "Cash (after the work)" : "UPI"}</Text>
                 {booking.payment_received ? (
                   <Badge color="green">Received</Badge>
                 ) : (

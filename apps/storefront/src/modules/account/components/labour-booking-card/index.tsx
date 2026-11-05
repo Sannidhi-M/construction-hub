@@ -1,6 +1,6 @@
 import Image from "next/image"
 import { Badge } from "@modules/common/components/ui"
-import { ChevronRight } from "@medusajs/icons"
+import { ChevronRight, Photo } from "@medusajs/icons"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import { convertToLocale } from "@lib/util/money"
 import { LabourBooking } from "@lib/data/labour-bookings"
@@ -14,7 +14,15 @@ import {
 
 // Same compact row as the Materials OrderCard (thumbnail · title · price /
 // status, whole row is the link) so both tabs read as one consistent list.
-const LabourBookingCard = ({ booking }: { booking: LabourBooking }) => {
+const LabourBookingCard = ({
+  booking,
+  imageUrl,
+}: {
+  booking: LabourBooking
+  // The service's current photo, if it still exists and has one; a booking
+  // keeps working (with a placeholder) after its service is deleted.
+  imageUrl?: string | null
+}) => {
   return (
     <LocalizedClientLink
       href={`/account/orders/labour/${booking.id}`}
@@ -22,14 +30,20 @@ const LabourBookingCard = ({ booking }: { booking: LabourBooking }) => {
       data-testid="labour-booking-card"
     >
       <div className="relative w-16 small:w-20 aspect-square shrink-0 overflow-hidden rounded-large bg-ui-bg-subtle">
-        <Image
-          src={`/images/labour/${booking.service_slug}.jpg`}
-          alt={booking.service_name}
-          fill
-          sizes="80px"
-          className="object-cover object-center"
-          draggable={false}
-        />
+        {imageUrl ? (
+          <Image
+            src={imageUrl}
+            alt={booking.service_name}
+            fill
+            sizes="80px"
+            className="object-cover object-center"
+            draggable={false}
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-ui-fg-muted">
+            <Photo />
+          </div>
+        )}
       </div>
 
       <div className="flex flex-1 min-w-0 flex-col gap-y-1">

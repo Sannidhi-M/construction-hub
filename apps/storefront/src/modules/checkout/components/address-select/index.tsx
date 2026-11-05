@@ -10,6 +10,12 @@ import Radio from "@modules/common/components/radio"
 type AddressSelectProps = {
   addresses: HttpTypes.StoreCustomerAddress[]
   addressInput: HttpTypes.StoreCartAddress | null
+  // Which saved address is chosen, when the caller tracks that itself
+  // (null = none). Left undefined, it is inferred by comparing `addressInput`
+  // with each saved address — fine for a form that holds every address
+  // field (checkout), but a form with only some of them never matches, so it
+  // would always read "Choose an address" even right after picking one.
+  selectedId?: string | null
   onSelect: (
     address: HttpTypes.StoreCartAddress | undefined,
     email?: string
@@ -19,6 +25,7 @@ type AddressSelectProps = {
 const AddressSelect = ({
   addresses,
   addressInput,
+  selectedId,
   onSelect,
 }: AddressSelectProps) => {
   const handleSelect = (id: string) => {
@@ -29,8 +36,11 @@ const AddressSelect = ({
   }
 
   const selectedAddress = useMemo(() => {
+    if (selectedId !== undefined) {
+      return addresses.find((a) => a.id === selectedId)
+    }
     return addresses.find((a) => addressInput && compareAddresses(a, addressInput))
-  }, [addresses, addressInput])
+  }, [addresses, addressInput, selectedId])
 
   return (
     <Listbox onChange={handleSelect} value={selectedAddress?.id ?? ""}>
@@ -41,10 +51,23 @@ const AddressSelect = ({
         >
           {({ open }) => (
             <>
-              <span className="block truncate text-gray-900">
-                {selectedAddress
-                  ? selectedAddress.address_1
-                  : "Choose an address"}
+              {/* Once one is chosen, say which: the start of the address and,
+                  smaller, where it is — like the address picker on
+                  Flipkart/Amazon — so the box no longer reads as if nothing
+                  has been picked. */}
+              <span className="flex min-w-0 flex-col">
+                <span className="block truncate text-gray-900">
+                  {selectedAddress
+                    ? selectedAddress.address_1
+                    : "Choose an address"}
+                </span>
+                {selectedAddress && (
+                  <span className="block truncate text-small-regular font-normal text-ui-fg-subtle">
+                    {[selectedAddress.city, selectedAddress.postal_code]
+                      .filter(Boolean)
+                      .join(" - ")}
+                  </span>
+                )}
               </span>
               {/* Spelled out, so the control reads as "you can change this"
                   rather than as a pre-filled form field. */}

@@ -16,11 +16,13 @@ const SavedAddressPicker = ({
   heading,
   addresses,
   addressInput,
+  selectedId,
   onSelect,
 }: {
   heading: string
   addresses: HttpTypes.StoreCustomerAddress[]
   addressInput: HttpTypes.StoreCartAddress | null
+  selectedId?: string | null
   onSelect: (
     address: HttpTypes.StoreCartAddress | undefined,
     email?: string
@@ -37,6 +39,7 @@ const SavedAddressPicker = ({
     <AddressSelect
       addresses={addresses}
       addressInput={addressInput}
+      selectedId={selectedId}
       onSelect={onSelect}
     />
   </div>

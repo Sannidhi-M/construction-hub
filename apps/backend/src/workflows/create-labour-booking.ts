@@ -11,10 +11,11 @@ import { DELIVERY_AREA_MODULE } from "../modules/delivery-area"
 import DeliveryAreaModuleService from "../modules/delivery-area/service"
 
 type CreateLabourBookingInput = {
+  // Only the slug identifies the service. Its name and rate come from the
+  // labour_service record, never from the request — a browser could send
+  // anything — and are then stored on the booking as a snapshot.
   service_slug: string
-  service_name: string
   rate_type: "day" | "hour"
-  rate_amount: number
   start_date?: string
   end_date?: string
   scheduled_time?: string
@@ -155,8 +156,25 @@ const createLabourBookingStep = createStep(
     const labourBookingModuleService: LabourBookingModuleService =
       container.resolve(LABOUR_BOOKING_MODULE)
 
+    const [labourService] = await labourBookingModuleService.listLabourServices({
+      slug: input.service_slug,
+      is_active: true,
+    })
+
+    if (!labourService) {
+      throw new MedusaError(
+        MedusaError.Types.INVALID_DATA,
+        "This service is not available for booking."
+      )
+    }
+
     const booking = await labourBookingModuleService.createLabourBookings({
       ...input,
+      service_name: labourService.name,
+      rate_amount:
+        input.rate_type === "day"
+          ? labourService.per_day_rate
+          : labourService.per_hour_rate,
       end_date: input.rate_type === "day" ? input.end_date : null,
       scheduled_time: input.rate_type === "hour" ? input.scheduled_time : null,
       duration_hours: input.rate_type === "hour" ? input.duration_hours : null,

@@ -108,9 +108,8 @@ export default async function LabourBookingConfirmedPage(props: Props) {
                 data-testid="booking-cod-note"
               >
                 <Text className="text-brand-700 txt-medium">
-                  Cash on Delivery — pay an estimated{" "}
-                  <span className="font-semibold">₹{estimatedTotal}</span> when the work is
-                  done.
+                  Pay in cash when the work is done — estimated{" "}
+                  <span className="font-semibold">₹{estimatedTotal}</span>.
                 </Text>
               </div>
             )}

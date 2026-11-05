@@ -4,8 +4,8 @@ import { model } from "@medusajs/framework/utils"
  * A labour-booking request, not a Medusa order — no inventory, shipping, or
  * fulfillment involved, so this is its own small module rather than a
  * strained fit onto Cart/Order. `service_slug`/`service_name`/`rate_amount`
- * are a snapshot taken at submission time (the service catalog is still a
- * static file, not its own DB model, per the docs' v1 scope) — a later rate
+ * are a snapshot taken at submission time from the labour_service record (the
+ * server looks them up; the browser's values are not trusted) — a later rate
  * change shouldn't retroactively alter an existing booking's record, same
  * principle as an order line item snapshotting a product's price.
  */

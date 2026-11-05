@@ -144,6 +144,13 @@ const BookingModal = ({
   const [landmark, setLandmark] = useState(defaultAddress?.company ?? "")
   const [city, setCity] = useState(defaultAddress?.city ?? "")
   const [postalCode, setPostalCode] = useState(defaultAddress?.postal_code ?? "")
+  // The saved address the fields currently hold (the default one pre-fills
+  // them), or null once the customer types over it or has none. Tracked
+  // explicitly because this form doesn't hold every field a saved address has,
+  // so the picker can't tell by comparing.
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
+    defaultAddress?.id ?? null
+  )
   const [paymentMethod, setPaymentMethod] = useState<PaymentChoice>("upi")
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -161,7 +168,7 @@ const BookingModal = ({
 
   const handlePincodeBlur = async () => {
     const pincode = postalCode.trim()
-    if (!pincode) {
+    if (pincode.length !== 6) {
       setPincodeNotice(null)
       return
     }
@@ -181,6 +188,7 @@ const BookingModal = ({
 
   const handleAddressSelect = (address?: HttpTypes.StoreCartAddress) => {
     if (!address) return
+    setSelectedAddressId((address as { id?: string }).id ?? null)
     setAddressLine(address.address_1 ?? "")
     setLandmark(address.company ?? "")
     setCity(address.city ?? "")
@@ -235,6 +243,9 @@ const BookingModal = ({
     if (!addressLine.trim() || !city.trim() || !postalCode.trim()) {
       return "Please fill in the address, city, and postal code."
     }
+    if (!/^\d{6}$/.test(postalCode.trim())) {
+      return "Please enter a valid 6-digit postal code."
+    }
     if (!name.trim()) {
       return "Please enter a name."
     }
@@ -268,6 +279,29 @@ const BookingModal = ({
       return
     }
     setError(null)
+
+    // The area is checked HERE, not only when the field is left: the on-blur
+    // note is advisory (and never runs for a saved or prefilled address), so
+    // an unserved pincode used to get all the way to "Confirm Booking" before
+    // being refused. The server still checks it again on submit. If the check
+    // itself can't be answered, carry on and let that server check decide.
+    setCheckingPincode(true)
+    let serviceable = true
+    try {
+      serviceable = await checkPincodeServiceable(postalCode.trim())
+    } catch {
+      // not answerable now — the server enforces it at submit
+    } finally {
+      setCheckingPincode(false)
+    }
+    if (!serviceable) {
+      const notice = `We don't currently serve pincode ${postalCode.trim()}.`
+      setPincodeNotice(notice)
+      setError(notice)
+      return
+    }
+    setPincodeNotice(null)
+
     if (customer) {
       setStep("payment")
       return
@@ -317,9 +351,7 @@ const BookingModal = ({
     try {
       const booking = await createLabourBooking({
         service_slug: service.slug,
-        service_name: service.name,
         rate_type: rateType,
-        rate_amount: rateType === "day" ? service.perDayRate : service.perHourRate,
         start_date: startDate,
         end_date: rateType === "day" ? endDate : undefined,
         scheduled_time: rateType === "hour" ? scheduledTime : undefined,
@@ -574,6 +606,7 @@ const BookingModal = ({
                     phone,
                   } as unknown as HttpTypes.StoreCartAddress
                 }
+                selectedId={selectedAddressId}
                 onSelect={handleAddressSelect}
               />
             )}
@@ -581,14 +614,20 @@ const BookingModal = ({
               label="Address"
               name="address"
               value={addressLine}
-              onChange={(e) => setAddressLine(e.target.value)}
+              onChange={(e) => {
+                setAddressLine(e.target.value)
+                setSelectedAddressId(null)
+              }}
               data-testid="booking-address-input"
             />
             <Input
               label="Landmark"
               name="landmark"
               value={landmark}
-              onChange={(e) => setLandmark(e.target.value)}
+              onChange={(e) => {
+                setLandmark(e.target.value)
+                setSelectedAddressId(null)
+              }}
               data-testid="booking-landmark-input"
             />
             <div className="grid grid-cols-2 gap-4">
@@ -596,7 +635,10 @@ const BookingModal = ({
                 label="City"
                 name="city"
                 value={city}
-                onChange={(e) => setCity(e.target.value)}
+                onChange={(e) => {
+                  setCity(e.target.value)
+                  setSelectedAddressId(null)
+                }}
                 data-testid="booking-city-input"
               />
               <div>
@@ -605,7 +647,10 @@ const BookingModal = ({
                   name="postal_code"
                   inputMode="numeric"
                   value={postalCode}
-                  onChange={(e) => setPostalCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  onChange={(e) => {
+                    setPostalCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                    setSelectedAddressId(null)
+                  }}
                   onBlur={handlePincodeBlur}
                   data-testid="booking-postal-code-input"
                 />
@@ -614,7 +659,7 @@ const BookingModal = ({
                     className="text-ui-fg-subtle txt-small mt-1"
                     data-testid="booking-pincode-checking-message"
                   >
-                    Checking delivery availability...
+                    Checking service availability...
                   </Text>
                 )}
                 {!checkingPincode && pincodeNotice && (
@@ -635,7 +680,7 @@ const BookingModal = ({
             <ErrorMessage error={error} variant="banner" data-testid="booking-details-error" />
             <Button
               onClick={goToPaymentOrVerify}
-              isLoading={checkingEmail}
+              isLoading={checkingEmail || checkingPincode}
               data-testid="booking-continue-button"
             >
               Continue
@@ -661,7 +706,7 @@ const BookingModal = ({
               {(
                 [
                   { value: "upi" as PaymentChoice, label: "Pay online with UPI", description: "Scan a QR code or pay in your UPI app after booking." },
-                  { value: "cod" as PaymentChoice, label: "Cash on Delivery", description: "Pay in cash when the work is done." },
+                  { value: "cod" as PaymentChoice, label: "Pay in cash", description: "Pay in cash once the work is done." },
                 ]
               ).map((option) => (
                 <label

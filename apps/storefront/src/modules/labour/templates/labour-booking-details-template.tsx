@@ -80,11 +80,11 @@ const LabourBookingDetailsTemplate = ({ booking }: { booking: LabourBooking }) =
             data-testid="booking-cod-note"
           >
             <Text className="text-brand-700 txt-medium">
-              Cash on Delivery — pay an estimated{" "}
+              Pay in cash when the work is done — estimated{" "}
               <span className="font-semibold">
                 {convertToLocale({ amount: estimatedTotal, currency_code: "inr" })}
-              </span>{" "}
-              when the work is done.
+              </span>
+              .
             </Text>
           </div>
         )}

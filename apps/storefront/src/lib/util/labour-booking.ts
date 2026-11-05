@@ -136,7 +136,7 @@ export const getBookingPaymentLabel = (
     return "Paid"
   }
   if (booking.payment_method === "cod") {
-    return "Cash on Delivery"
+    return "Pay in cash"
   }
   return booking.payment_customer_confirmed
     ? "Payment verification pending"

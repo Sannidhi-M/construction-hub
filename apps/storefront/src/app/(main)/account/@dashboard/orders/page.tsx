@@ -7,6 +7,7 @@ import OrdersTabs, { OrdersTab } from "@modules/account/components/orders-tabs"
 import { notFound } from "next/navigation"
 import { listOrders } from "@lib/data/orders"
 import { listLabourBookings } from "@lib/data/labour-bookings"
+import { listLabourServices } from "@lib/data/labour-services"
 import { listQuoteRequests } from "@lib/data/quote-requests"
 
 export const metadata: Metadata = {
@@ -56,13 +57,20 @@ async function renderMaterialOrders() {
 }
 
 async function renderLabourBookings() {
-  const bookings = await listLabourBookings()
+  const [bookings, services] = await Promise.all([
+    listLabourBookings(),
+    listLabourServices(),
+  ])
 
   if (!bookings) {
     notFound()
   }
 
-  return <LabourBookingOverview bookings={bookings} />
+  const serviceImages = Object.fromEntries(
+    services.map((service) => [service.slug, service.imageUrl])
+  )
+
+  return <LabourBookingOverview bookings={bookings} serviceImages={serviceImages} />
 }
 
 async function renderQuoteRequests() {

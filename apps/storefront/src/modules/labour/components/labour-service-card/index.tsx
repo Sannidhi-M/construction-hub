@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { Calendar } from "@medusajs/icons"
+import { Calendar, Photo } from "@medusajs/icons"
 import { Heading, Text, Button } from "@modules/common/components/ui"
 import { LabourService } from "@lib/data/labour-services"
 
@@ -20,13 +20,19 @@ const LabourServiceCard = ({
   return (
     <div className="bg-white border border-ui-border-base rounded-large overflow-hidden flex flex-col">
       <div className="relative aspect-[4/3] bg-ui-bg-subtle">
-        <Image
-          src={`/images/labour/${service.slug}.jpg`}
-          alt={service.name}
-          fill
-          className="object-cover"
-          sizes="(max-width: 768px) 50vw, 25vw"
-        />
+        {service.imageUrl ? (
+          <Image
+            src={service.imageUrl}
+            alt={service.name}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 50vw, 25vw"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-ui-fg-muted">
+            <Photo />
+          </div>
+        )}
       </div>
       <div className="p-5 flex flex-col gap-2 flex-1">
         <Heading level="h3" className="text-lg">
