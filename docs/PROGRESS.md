@@ -361,3 +361,11 @@ Design in ARCHITECTURE.md §4.5/§4.7. Contact page: WhatsApp added beside Call 
 
 **Not verified by eye**: none of this has been looked at after the final tightening — the contact page proportions, the logout dialog, and the billing-address alignment were type-checked only; the user was asked to review.
 
+## Labour: "Complete Work Contracts" section (done)
+
+Design in ARCHITECTURE.md §4.3. A section at the bottom of `/labour` offering whole-job contracts as an alternative to day/hour booking: the supplied description, a three-step "How it works", and one "Contact us" button to `/contact?subject=labour` (the Contact form now accepts a validated `?subject=` to start with a subject chosen). No booking flow or prices, by design. The user asked how to show it; first version was a dark panel with a row of trade chips — changed to a light orange tint on request, and the chips removed on request (the trades are already named in the description). Placement: bottom (the page's main action is booking; a visitor scrolling past the cards is the one who needs this).
+
+**Mistakes / notes.** Type-check listed entries for files I hadn't touched (`about`, `status-page`, `legal-page`, `common-questions`): they came from a commit made after my last push, whose files use the same known React-types pattern but were never added to the allowlist; regenerated the allowlist at commit time (those entries plus three for the new section), so `check.sh` passes again.
+
+**Verified**: the section renders in the server HTML with the light tint, the three steps and the contact link; `/contact?subject=labour` pre-selects "Labour & Manpower", an unknown subject selects nothing. **Not verified by eye**: the final look (light panel without chips — the left side is now shorter than the steps beside it) and the phone stacking.
+

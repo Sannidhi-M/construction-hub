@@ -1,6 +1,7 @@
 import { Metadata } from "next"
 import PlatformBanner from "@modules/common/components/platform-banner"
 import LabourBookingGrid from "@modules/labour/components/labour-booking-grid"
+import WorkContractsSection from "@modules/labour/components/work-contracts-section"
 import { labourServices } from "@lib/data/labour-services"
 import { retrieveCustomer } from "@lib/data/customer"
 import { SITE_NAME } from "@lib/constants"
@@ -26,6 +27,7 @@ export default async function LabourPage() {
           customer={customer}
           gridClassName="grid grid-cols-1 xsmall:grid-cols-2 medium:grid-cols-4 gap-6"
         />
+        <WorkContractsSection />
       </div>
     </div>
   )

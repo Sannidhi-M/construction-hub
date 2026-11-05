@@ -37,7 +37,15 @@ const FieldError = ({ message }: { message?: string }) =>
  * prefills from the account when there is one. Abuse is handled server-side
  * (per-IP rate limit, validation) plus the hidden honeypot field below.
  */
-const ContactForm = ({ customer }: { customer: HttpTypes.StoreCustomer | null }) => {
+const ContactForm = ({
+  customer,
+  initialTopic,
+}: {
+  customer: HttpTypes.StoreCustomer | null
+  // A subject slug to start with selected — e.g. the Labour page's contract
+  // enquiry button opens Contact with "Labour & Manpower" already chosen.
+  initialTopic?: string
+}) => {
   const [name, setName] = useState(
     customer ? `${customer.first_name ?? ""} ${customer.last_name ?? ""}`.trim() : ""
   )
@@ -46,7 +54,7 @@ const ContactForm = ({ customer }: { customer: HttpTypes.StoreCustomer | null })
   const [phone, setPhone] = useState(
     customer?.phone ? customer.phone.replace(/\D/g, "").slice(-10) : ""
   )
-  const [topicSlug, setTopicSlug] = useState("")
+  const [topicSlug, setTopicSlug] = useState(initialTopic ?? "")
   const [message, setMessage] = useState("")
   const [honeypot, setHoneypot] = useState("")
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({})
