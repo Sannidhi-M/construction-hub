@@ -369,3 +369,9 @@ Design in ARCHITECTURE.md §4.3. A section at the bottom of `/labour` offering w
 
 **Verified**: the section renders in the server HTML with the light tint, the three steps and the contact link; `/contact?subject=labour` pre-selects "Labour & Manpower", an unknown subject selects nothing. **Not verified by eye**: the final look (light panel without chips — the left side is now shorter than the steps beside it) and the phone stacking.
 
+## Booking form: errors that look like errors (done)
+
+Design in ARCHITECTURE.md §4.3. The user said a booking-form message ("Per-hour bookings must be made at least 1 hour before the start time.") didn't read as an error — it was small red text. Added a `banner` variant to the shared `ErrorMessage` (larger text, pale red box, circled-exclamation icon, `role="alert"`) and used it for the booking modal's details and payment error slots only; the default small style is unchanged everywhere else, to avoid restyling checkout/sign-in/account unasked. Two rounds: first bigger text in a box, then the icon from the user's reference image. Offered, not done: switching the default for every screen.
+
+**Not verified by eye**: the banner's final look; type-checked only.
+

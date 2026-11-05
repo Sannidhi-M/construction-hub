@@ -632,7 +632,7 @@ const BookingModal = ({
               Estimated total: ₹{estimatedTotal}
             </Text>
 
-            <ErrorMessage error={error} data-testid="booking-details-error" />
+            <ErrorMessage error={error} variant="banner" data-testid="booking-details-error" />
             <Button
               onClick={goToPaymentOrVerify}
               isLoading={checkingEmail}
@@ -691,7 +691,7 @@ const BookingModal = ({
               Estimated total:{" "}
               {convertToLocale({ amount: estimatedTotal, currency_code: "inr" })}
             </Text>
-            <ErrorMessage error={error} data-testid="booking-payment-error" />
+            <ErrorMessage error={error} variant="banner" data-testid="booking-payment-error" />
             <Button
               onClick={handleSubmit}
               isLoading={submitting}
