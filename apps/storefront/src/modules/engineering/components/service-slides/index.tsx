@@ -85,7 +85,11 @@ const ServiceSlides = ({
                 {slide.services.map((service) => (
                   <div
                     key={service.number}
-                    className="relative aspect-[4/5] self-stretch overflow-hidden rounded-lg"
+                    // w-full: a grid item with an aspect ratio doesn't stretch to its column
+                    // width, it takes it from the stretched HEIGHT — on a tall slide that
+                    // made the tiles wider than the slide and the previous slide's edge
+                    // showed inside the card.
+                    className="relative aspect-[4/5] w-full min-w-0 self-stretch overflow-hidden rounded-lg"
                   >
                     <Image
                       src={service.image}

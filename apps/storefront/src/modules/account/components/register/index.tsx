@@ -8,7 +8,6 @@ import { LOGIN_VIEW } from "@modules/account/templates/login-template"
 import ErrorMessage from "@modules/checkout/components/error-message"
 import Input from "@modules/common/components/input"
 import { Button, Text } from "@modules/common/components/ui"
-import { SITE_NAME } from "@lib/constants"
 import { splitFullName } from "@lib/util/split-full-name"
 
 type Props = {
@@ -134,16 +133,10 @@ const CreateAccount = ({ setCurrentView }: Props) => {
 
   return (
     <div
-      className="max-w-sm flex flex-col items-center"
+      className="max-w-sm w-full flex flex-col items-center"
       data-testid="register-page"
     >
-      <h1 className="text-large-semi uppercase mb-6">
-        Become a {SITE_NAME} Member
-      </h1>
-      <p className="text-center text-base-regular text-ui-fg-base mb-4">
-        Create your {SITE_NAME} Member profile, and get access to an enhanced
-        shopping experience.
-      </p>
+      <h1 className="text-large-semi uppercase mb-6">Create Account</h1>
       <form className="w-full flex flex-col" onSubmit={handleGetOtp}>
         <div className="flex flex-col w-full gap-y-2">
           <Input
