@@ -44,6 +44,12 @@ module.exports = defineConfig({
             resolve: './src/modules/phone-otp-auth',
             id: 'phone-auth',
             options: {
+              // "server" (default): we generate the OTP and text it via the
+              // Notification provider below (MSG91). "firebase": Firebase
+              // texts + checks the code in the browser. Must match the
+              // storefront's NEXT_PUBLIC_PHONE_OTP_PROVIDER.
+              mode: process.env.PHONE_OTP_PROVIDER,
+              firebaseProjectId: process.env.FIREBASE_PROJECT_ID,
               jwtSecret: process.env.JWT_SECRET,
             },
           },

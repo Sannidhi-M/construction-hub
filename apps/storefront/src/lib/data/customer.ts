@@ -242,24 +242,27 @@ async function completeLogin(
 // phone" screen; the backend creates the auth identity on the first
 // successful OTP verification (see phone-otp-auth's validateCallback).
 
+// Sending the code is done by the browser-side driver in lib/otp (which calls
+// precheckPhoneOtp below first); only verification ends up here.
+
 // Sign In (not checkout) can require the phone to already have an account
 // before sending an OTP for it, so a first-time visitor sees "no account"
 // immediately instead of verifying a code only to be told that afterwards.
 // Checkout's own phone step never sets this — it deliberately lets a
 // brand-new number sign up inline.
-export async function requestPhoneOtp(
-  _currentState: unknown,
-  formData: FormData
-): Promise<CustomerAuthState> {
-  const phone = formData.get("phone") as string
-  const requireExistingAccount = formData.get("require_existing") === "true"
-  // Set by flows that would create an account from this email if the phone
-  // turns out to be new (checkout, booking, quote, Create Account): refuse
-  // BEFORE sending an OTP when that email already belongs to another account.
-  const signupEmail = ((formData.get("signup_email") as string) ?? "").trim()
+export async function precheckPhoneOtp(
+  phone: string,
+  requireExistingAccount?: boolean,
+  signupEmail?: string
+): Promise<{ state: "ok" } | NonNullable<CustomerAuthState>> {
+  // `signupEmail` is set by flows that would create an account from it if the
+  // phone turns out to be new (checkout, booking, quote, Create Account):
+  // refuse BEFORE sending an OTP when that email already belongs to another
+  // account.
+  const email = (signupEmail ?? "").trim()
 
   try {
-    if (signupEmail && (await emailBlocksSignup(signupEmail, phone))) {
+    if (email && (await emailBlocksSignup(email, phone))) {
       return { state: "error", error: EMAIL_TAKEN_MESSAGE }
     }
 
@@ -276,6 +279,17 @@ export async function requestPhoneOtp(
       }
     }
 
+    return { state: "ok" }
+  } catch (error) {
+    return { state: "error", error: String(error) }
+  }
+}
+
+// "server" OTP mode only (see lib/otp): asks the backend to generate and text
+// a code. In "firebase" mode the browser asks Firebase instead and this is
+// never called.
+export async function sendServerOtp(phone: string): Promise<CustomerAuthState> {
+  try {
     const result = await sdk.auth.login("customer", "phone-auth", { phone })
 
     // phone-auth's authenticate() always returns `{ location: "otp" }` — it
@@ -315,7 +329,9 @@ export async function verifyPhoneOtp(
   formData: FormData
 ): Promise<CustomerAuthState> {
   const phone = formData.get("phone") as string
-  const otp = formData.get("otp") as string
+  // What the OTP driver produced: the typed code ("server" mode) or a
+  // Firebase ID token ("firebase" mode) — see lib/otp.
+  const credential = formData.get("credential") as string
 
   // sdk.auth.callback() is built for GET-with-query-params OAuth callbacks
   // (code/state in the URL) — unsuitable for a POST-body OTP submission,
@@ -326,7 +342,7 @@ export async function verifyPhoneOtp(
   try {
     const response = await sdk.client.fetch<{ token: string }>(
       "/auth/customer/phone-auth/callback",
-      { method: "POST", body: { phone, otp } }
+      { method: "POST", body: { phone, credential } }
     )
     token = response.token
   } catch (error) {

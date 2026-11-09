@@ -2,7 +2,8 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { completePhoneSignup, requestPhoneOtp, verifyPhoneOtp } from "@lib/data/customer"
+import { completePhoneSignup } from "@lib/data/customer"
+import { confirmPhoneOtp, sendPhoneOtp } from "@lib/otp"
 import { LOGIN_VIEW } from "@modules/account/templates/login-template"
 import ErrorMessage from "@modules/checkout/components/error-message"
 import Input from "@modules/common/components/input"
@@ -29,11 +30,8 @@ const CreateAccount = ({ setCurrentView }: Props) => {
     setError(null)
     setSubmitting(true)
 
-    const formData = new FormData()
-    formData.set("phone", phone)
     // Refuses before sending the OTP if this email already has an account.
-    formData.set("signup_email", email)
-    const result = await requestPhoneOtp(null, formData)
+    const result = await sendPhoneOtp(phone, { signupEmail: email })
 
     setSubmitting(false)
     if (result?.state === "otp_sent") {
@@ -52,10 +50,7 @@ const CreateAccount = ({ setCurrentView }: Props) => {
     setError(null)
     setSubmitting(true)
 
-    const verifyFormData = new FormData()
-    verifyFormData.set("phone", phone)
-    verifyFormData.set("otp", otp)
-    const verifyResult = await verifyPhoneOtp(null, verifyFormData)
+    const verifyResult = await confirmPhoneOtp(phone, otp)
 
     if (verifyResult?.state === "error") {
       setSubmitting(false)

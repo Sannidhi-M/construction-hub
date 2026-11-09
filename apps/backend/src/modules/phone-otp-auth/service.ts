@@ -14,8 +14,25 @@ import {
 import jwt from "jsonwebtoken"
 import { CountryCode, parsePhoneNumberFromString } from "libphonenumber-js"
 import { getRedisClient } from "../../lib/redis"
+import { verifyFirebasePhoneToken } from "./verifiers/firebase"
+
+/**
+ * Who checks the phone number belongs to the user:
+ *  - "server":   this provider generates the OTP itself and has it texted via
+ *                the Notification module (MSG91, etc.). Callback body:
+ *                `{ phone, credential: <the OTP the user typed> }`.
+ *  - "firebase": Firebase texts and checks the code in the browser; this
+ *                provider only verifies the ID token Firebase hands back.
+ *                Callback body: `{ phone, credential: <Firebase ID token> }`.
+ * The account/session side is identical for both; adding a mode means a new
+ * `case` in validateCallback and a matching driver in the storefront's
+ * src/lib/otp.
+ */
+export type PhoneOtpMode = "server" | "firebase"
 
 type Options = {
+  mode?: PhoneOtpMode
+  firebaseProjectId?: string
   jwtSecret?: string
   otpTtlSeconds?: number
   cooldownSeconds?: number
@@ -37,7 +54,10 @@ type InjectedDependencies = {
   event_bus: IEventBusModuleService
 }
 
-const DEFAULT_OPTIONS: Required<Omit<Options, "jwtSecret">> = {
+const DEFAULT_OPTIONS: Required<
+  Omit<Options, "jwtSecret" | "firebaseProjectId">
+> = {
+  mode: "server",
   otpTtlSeconds: 5 * 60,
   cooldownSeconds: 60,
   maxAttempts: 5,
@@ -82,9 +102,21 @@ class PhoneOtpAuthService extends AbstractAuthModuleProvider {
   protected readonly eventBus_: IEventBusModuleService
   protected readonly logger_: Logger
   protected readonly jwtSecret_: string
-  protected readonly options_: Required<Omit<Options, "jwtSecret">>
+  protected readonly firebaseProjectId_: string | undefined
+  protected readonly options_: Required<
+    Omit<Options, "jwtSecret" | "firebaseProjectId">
+  >
 
   static validateOptions(options: Record<string, unknown>) {
+    if (options.mode === "firebase") {
+      if (!options.firebaseProjectId) {
+        throw new MedusaError(
+          MedusaError.Types.INVALID_DATA,
+          "phone-otp-auth in firebase mode requires the firebaseProjectId option (FIREBASE_PROJECT_ID)."
+        )
+      }
+      return
+    }
     if (!options.jwtSecret && !process.env.JWT_SECRET) {
       throw new MedusaError(
         MedusaError.Types.INVALID_DATA,
@@ -103,13 +135,28 @@ class PhoneOtpAuthService extends AbstractAuthModuleProvider {
     this.logger_ = logger
     this.eventBus_ = event_bus
     this.jwtSecret_ = options?.jwtSecret ?? process.env.JWT_SECRET!
-    this.options_ = { ...DEFAULT_OPTIONS, ...options }
+    this.firebaseProjectId_ = options?.firebaseProjectId
+    // `||` not `??`: an env var left blank in .env arrives as "" and must
+    // fall back to the default mode rather than become an invalid one.
+    this.options_ = {
+      ...DEFAULT_OPTIONS,
+      ...options,
+      mode: options?.mode || DEFAULT_OPTIONS.mode,
+    }
   }
 
   async authenticate(
     data: AuthenticationInput,
     authIdentityProviderService: AuthIdentityProviderService
   ): Promise<AuthenticationResponse> {
+    if (this.options_.mode === "firebase") {
+      // The browser asks Firebase for the code directly; nothing to do here.
+      return {
+        success: false,
+        error: "OTPs are sent by Firebase in this mode, not by the server.",
+      }
+    }
+
     const rawPhone = data.body?.phone
     if (!rawPhone || !isString(rawPhone)) {
       return { success: false, error: "Phone number is required." }
@@ -207,7 +254,7 @@ class PhoneOtpAuthService extends AbstractAuthModuleProvider {
     authIdentityProviderService: AuthIdentityProviderService
   ): Promise<AuthenticationResponse> {
     const rawPhone = data.body?.phone
-    const submittedOtp = data.body?.otp
+    const submittedOtp = data.body?.credential
 
     if (!rawPhone || !isString(rawPhone)) {
       return { success: false, error: "Phone number is required." }
@@ -221,6 +268,10 @@ class PhoneOtpAuthService extends AbstractAuthModuleProvider {
       phone = this.normalizePhone_(rawPhone)
     } catch {
       return { success: false, error: "Invalid phone number." }
+    }
+
+    if (this.options_.mode === "firebase") {
+      return this.validateFirebase_(phone, submittedOtp, authIdentityProviderService)
     }
 
     let authIdentity: AuthIdentityDTO
@@ -298,6 +349,51 @@ class PhoneOtpAuthService extends AbstractAuthModuleProvider {
     await redis.del(attemptsKey)
 
     return { success: true, authIdentity: this.sanitizeAuthIdentity_(authIdentity) }
+  }
+
+  /**
+   * "firebase" mode: the credential is a Firebase ID token proving the
+   * browser completed a phone sign-in. It must be for the SAME number the
+   * caller claims, or someone could verify their own phone and log in as
+   * another. Creates the auth identity on first login, like the server mode.
+   */
+  private async validateFirebase_(
+    phone: string,
+    idToken: string,
+    authIdentityProviderService: AuthIdentityProviderService
+  ): Promise<AuthenticationResponse> {
+    let verifiedPhone: string
+    try {
+      verifiedPhone = await verifyFirebasePhoneToken(
+        idToken,
+        this.firebaseProjectId_!
+      )
+    } catch (error) {
+      this.logger_.warn(
+        `phone-otp-auth: firebase token rejected for ${phone}: ${error.message}`
+      )
+      return { success: false, error: "Could not verify the code. Please try again." }
+    }
+
+    if (verifiedPhone !== phone) {
+      return { success: false, error: "Phone number does not match the verified one." }
+    }
+
+    try {
+      const authIdentity = await authIdentityProviderService.retrieve({
+        entity_id: phone,
+      })
+      return { success: true, authIdentity }
+    } catch (error) {
+      if (error.type !== MedusaError.Types.NOT_FOUND) {
+        return { success: false, error: error.message }
+      }
+    }
+
+    const authIdentity = await authIdentityProviderService.create({
+      entity_id: phone,
+    })
+    return { success: true, authIdentity }
   }
 
   private normalizePhone_(raw: string): string {

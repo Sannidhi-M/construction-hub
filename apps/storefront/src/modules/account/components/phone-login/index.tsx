@@ -1,11 +1,12 @@
 "use client"
 
-import { requestPhoneOtp, verifyPhoneOtp } from "@lib/data/customer"
+import { confirmPhoneOtp, sendPhoneOtp } from "@lib/otp"
+import type { CustomerAuthState } from "@lib/data/customer"
 import ErrorMessage from "@modules/checkout/components/error-message"
 import { SubmitButton } from "@modules/checkout/components/submit-button"
 import Input from "@modules/common/components/input"
 import { Text } from "@modules/common/components/ui"
-import { useActionState, useEffect, useState } from "react"
+import { useEffect, useState, useTransition } from "react"
 
 type Props = {
   onVerified?: () => void
@@ -44,8 +45,31 @@ const PhoneLogin = ({
   const [phone, setPhone] = useState("")
   const [creatingAccount, setCreatingAccount] = useState(false)
 
-  const [requestState, requestAction] = useActionState(requestPhoneOtp, null)
-  const [verifyState, verifyAction] = useActionState(verifyPhoneOtp, null)
+  const [requestState, setRequestState] = useState<CustomerAuthState>(null)
+  const [verifyState, setVerifyState] = useState<CustomerAuthState>(null)
+  const [, startTransition] = useTransition()
+
+  // The OTP driver (lib/otp) talks to whichever service delivers the code
+  // (Firebase, MSG91…), so these are plain async handlers, not server actions.
+  const requestAction = (formData: FormData) =>
+    startTransition(async () => {
+      setRequestState(
+        await sendPhoneOtp(formData.get("phone") as string, {
+          requireExistingAccount: formData.get("require_existing") === "true",
+          signupEmail: (formData.get("signup_email") as string) || undefined,
+        })
+      )
+    })
+
+  const verifyAction = (formData: FormData) =>
+    startTransition(async () => {
+      setVerifyState(
+        await confirmPhoneOtp(
+          formData.get("phone") as string,
+          formData.get("otp") as string
+        )
+      )
+    })
 
   useEffect(() => {
     if (requestState?.state === "otp_sent") {
