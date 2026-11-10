@@ -12,6 +12,8 @@ export type QuoteRequest = {
   email: string
   phone: string
   notes: string | null
+  // This request used the customer's one free service.
+  is_free_claim: boolean
   status: "new" | "contacted" | "quoted" | "closed"
   created_at: string
 }
@@ -21,6 +23,8 @@ export type CreateQuoteRequestInput = {
   name: string
   email: string
   notes?: string
+  // Use the customer's one free service (the backend enforces the rules).
+  claim_free?: boolean
 }
 
 // Phone isn't part of the input on purpose: the backend takes it from the
@@ -83,4 +87,14 @@ export const retrieveQuoteRequest = async (
     })
     .then(({ quote_request }) => quote_request)
     .catch(() => null)
+}
+
+/**
+ * The signed-in customer's free-service claim, or null if they haven't made
+ * one (or can't be checked: signed out, or the list failed to load — the
+ * backend still refuses a second claim at submit).
+ */
+export const retrieveFreeClaim = async (): Promise<QuoteRequest | null> => {
+  const requests = await listQuoteRequests()
+  return requests?.find((request) => request.is_free_claim) ?? null
 }

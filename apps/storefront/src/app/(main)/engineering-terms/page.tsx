@@ -52,6 +52,17 @@ const sections: LegalSection[] = [
           obligation for either side.
         </li>
         <li>
+          <strong>Free service offer.</strong> Each customer can claim one free
+          service from: architectural floor plans, 3D elevations and
+          visualization, structural design and drawings, interior design and
+          space planning, BOQ and quantity estimation, and construction cost
+          estimation. It is limited to one per customer account (one verified
+          phone number), is not transferable and has no cash value. We may
+          decline or limit a claim that is abusive or outside the normal scope
+          of the service, and we may withdraw the offer at any time without
+          affecting a claim already accepted.
+        </li>
+        <li>
           Our team will contact you to understand the work and, where needed,
           visit or ask for details of the site. The quote we send states the
           scope, price, timeline, payment plan and anything excluded.

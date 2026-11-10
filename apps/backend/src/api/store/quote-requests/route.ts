@@ -8,6 +8,7 @@ type CreateQuoteRequestBody = {
   name: string
   email: string
   notes?: string
+  claim_free?: boolean
 }
 
 /**
@@ -41,7 +42,7 @@ export async function POST(
   req: AuthenticatedMedusaRequest<CreateQuoteRequestBody>,
   res: MedusaResponse
 ) {
-  const { service_slug, name, email, notes } = req.body
+  const { service_slug, name, email, notes, claim_free } = req.body
 
   const { result: quoteRequest } = await createQuoteRequestWorkflow(
     req.scope
@@ -51,6 +52,7 @@ export async function POST(
       name,
       email,
       notes,
+      claim_free: claim_free === true,
       customer_id: req.auth_context.actor_id,
     },
   })

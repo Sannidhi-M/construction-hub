@@ -47,7 +47,14 @@ const QuoteRequestDetailsTemplate = ({
                 label="Requested on"
                 value={new Date(quoteRequest.created_at).toDateString()}
               />
-              <DetailField label="Service" value={quoteRequest.service_name} />
+              <DetailField
+                label="Service"
+                value={
+                  quoteRequest.is_free_claim
+                    ? `${quoteRequest.service_name} (free service)`
+                    : quoteRequest.service_name
+                }
+              />
               <DetailField label="Name" value={quoteRequest.name} />
               <DetailField label="Email" value={quoteRequest.email} />
               <DetailField label="Phone" value={quoteRequest.phone} />

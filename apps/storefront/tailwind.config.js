@@ -95,6 +95,24 @@ module.exports = {
         // (28px, 20px, 12px, 6px), each lower than the last, then at rest.
         // Starts and ends at translateY(0), so the button's own transform
         // (hover/focus grow) is untouched outside the hops.
+        // A diagonal light streak crossing its (overflow-hidden) parent, then a
+        // pause before the next pass — the free-service banner and its button.
+        // Starts at the parent's left edge and travels past its right edge:
+        // `sheen` is for the full-width band (so it travels a viewport),
+        // `sheen-btn` for the button (percent of the streak's own width,
+        // enough to cross a ~260px button).
+        sheen: {
+          "0%": { transform: "translateX(-100%) skewX(-12deg)" },
+          "55%, 100%": { transform: "translateX(calc(100vw + 120px)) skewX(-12deg)" },
+        },
+        "sheen-btn": {
+          "0%": { transform: "translateX(-100%) skewX(-12deg)" },
+          "55%, 100%": { transform: "translateX(1100%) skewX(-12deg)" },
+        },
+        "cta-glow": {
+          "0%, 100%": { boxShadow: "0 0 0 0 rgba(249, 115, 22, 0.45)" },
+          "50%": { boxShadow: "0 0 0 10px rgba(249, 115, 22, 0)" },
+        },
         "whatsapp-hop": {
           "0%, 100%": { transform: "translateY(0)" },
           "11%": { transform: "translateY(-28px)" },
@@ -177,6 +195,9 @@ module.exports = {
         // Hops once, 2s after load — long enough for the page to settle and
         // for the visitor's eye to be on it.
         "whatsapp-hop": "whatsapp-hop 2.4s ease-in-out 2s 1",
+        sheen: "sheen 4.5s ease-in-out infinite",
+        "sheen-btn": "sheen-btn 3s ease-in-out 1s infinite",
+        "cta-glow": "cta-glow 2s ease-out infinite",
         "fade-in-right":
           "fade-in-right 0.3s cubic-bezier(0.5, 0, 0.5, 1) forwards",
         "fade-in-top": "fade-in-top 0.2s cubic-bezier(0.5, 0, 0.5, 1) forwards",

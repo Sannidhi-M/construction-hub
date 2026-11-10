@@ -25,8 +25,15 @@ const QuoteRequestCard = ({ quoteRequest }: { quoteRequest: QuoteRequest }) => {
       </div>
 
       <div className="flex flex-1 min-w-0 flex-col gap-y-1">
-        <span className="text-base-semi text-gray-900 truncate">
-          {quoteRequest.service_name}
+        <span className="flex items-center gap-x-2 min-w-0">
+          <span className="text-base-semi text-gray-900 truncate">
+            {quoteRequest.service_name}
+          </span>
+          {quoteRequest.is_free_claim && (
+            <Badge color="green" className="shrink-0" data-testid="quote-free-badge">
+              FREE
+            </Badge>
+          )}
         </span>
         <span className="text-small-regular text-ui-fg-subtle">
           Requested on {new Date(quoteRequest.created_at).toDateString()}

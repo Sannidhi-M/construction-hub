@@ -50,11 +50,15 @@ const FieldError = ({ message }: { message?: string }) =>
 const QuoteForm = ({
   customer,
   services,
+  freeClaim = false,
 }: {
   customer: HttpTypes.StoreCustomer | null
   // The picklist — differs between the Engineering Services and Other
   // Services forms (see lib/data/engineering-services.ts).
   services: EngineeringService[]
+  // Claiming the one free service: the picklist is the free services only and
+  // the request is flagged so the backend applies the one-per-customer rule.
+  freeClaim?: boolean
 }) => {
   const [step, setStep] = useState<Step>("form")
   const [name, setName] = useState(
@@ -75,6 +79,16 @@ const QuoteForm = ({
   // number to attach, and verifying one from here would sign them into a
   // different identity — so send them to add it to their profile instead.
   const missingAccountPhone = !!customer && !customer.phone
+
+  // A signed-in customer's request carries the name and email on their
+  // account (the server decides that, see create-quote-request.ts), so those
+  // fields are shown read-only rather than editable-but-ignored. Only a
+  // detail the account actually has is locked; a missing one stays typeable.
+  const accountName = customer
+    ? `${customer.first_name ?? ""} ${customer.last_name ?? ""}`.trim()
+    : ""
+  const nameLocked = !!accountName
+  const emailLocked = !!customer?.email
 
   const validate = () => {
     const next: Partial<Record<Field, string>> = {}
@@ -105,6 +119,7 @@ const QuoteForm = ({
         name,
         email,
         notes: notes.trim() || undefined,
+        claim_free: freeClaim || undefined,
       })
       setSubmitted({
         id: quoteRequest.id,
@@ -190,7 +205,7 @@ const QuoteForm = ({
           Thank you!
         </Heading>
         <Text className="text-gray-600 mt-2 max-w-md">
-          We&apos;ve received your quote request for{" "}
+          We&apos;ve received your {freeClaim ? "free service claim" : "quote request"} for{" "}
           <span className="font-semibold text-gray-900">{submitted.serviceName}</span>.
           Our team will call you back shortly on{" "}
           <span className="font-semibold text-gray-900">{submitted.phone}</span>.
@@ -257,6 +272,7 @@ const QuoteForm = ({
           name="name"
           autoComplete="name"
           required
+          readOnly={nameLocked}
           invalid={!!errors.name}
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -272,12 +288,21 @@ const QuoteForm = ({
           type="email"
           autoComplete="email"
           required
+          readOnly={emailLocked}
           invalid={!!errors.email}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           data-testid="quote-email-input"
         />
         <FieldError message={errors.email} />
+        {(nameLocked || emailLocked) && (
+          <Text className="text-ui-fg-subtle txt-small mt-1">
+            Taken from your account.{" "}
+            <LocalizedClientLink href="/account/profile" className="underline">
+              Update in your profile
+            </LocalizedClientLink>
+          </Text>
+        )}
       </div>
 
       <div>
@@ -393,7 +418,7 @@ const QuoteForm = ({
         className="w-full"
         data-testid="quote-submit-button"
       >
-        Submit
+        {freeClaim ? "Claim my free service" : "Submit"}
       </Button>
     </form>
   )

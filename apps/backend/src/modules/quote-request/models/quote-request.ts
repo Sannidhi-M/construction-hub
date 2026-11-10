@@ -10,6 +10,11 @@ import { model } from "@medusajs/framework/utils"
  * `phone` is always the *verified* phone of the authenticated customer who
  * submitted it (taken from their customer record, never from the request
  * body) — see create-quote-request.ts.
+ *
+ * `is_free_claim` marks the request that used the customer's one free
+ * service. A partial unique index allows at most one per customer, so two
+ * simultaneous claims can't both succeed whatever the code above does.
+ * Voiding a claim (Admin) sets it back to false, which frees the slot.
  */
 const QuoteRequest = model.define("quote_request", {
   id: model.id().primaryKey(),
@@ -22,6 +27,13 @@ const QuoteRequest = model.define("quote_request", {
   customer_id: model.text(),
   status: model.enum(["new", "contacted", "quoted", "closed"]).default("new"),
   admin_note: model.text().nullable(),
-})
+  is_free_claim: model.boolean().default(false),
+}).indexes([
+  {
+    on: ["customer_id"],
+    unique: true,
+    where: "is_free_claim = true AND deleted_at IS NULL",
+  },
+])
 
 export default QuoteRequest

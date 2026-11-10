@@ -77,4 +77,24 @@ for (const list of lists) {
   }
 }
 
+// The free-service offer's slugs: a plain string array in each app.
+const slugArray = (relativePath, constName) => {
+  const source = fs.readFileSync(path.join(root, relativePath), "utf8")
+  const block = source.match(new RegExp(`${constName}\\s*=\\s*\\[([^\\]]*)\\]`))
+  return block ? [...block[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]) : []
+}
+{
+  const storefrontFile = "apps/storefront/src/lib/data/free-service.ts"
+  const backendFile = "apps/backend/src/modules/quote-request/service-catalog.ts"
+  const storefront = slugArray(storefrontFile, "FREE_SERVICE_SLUGS")
+  const backend = slugArray(backendFile, "FREE_CLAIM_SERVICE_SLUGS")
+  if (storefront.length > 0 && storefront.join() === backend.join()) {
+    console.log(`  OK    free-service offer (${storefront.length} slugs identical in both apps)`)
+  } else {
+    problems += 1
+    console.log("  FAIL  free-service offer: slug lists differ (or none found)")
+    console.log(`      storefront: ${storefront.join(", ")}\n      backend:    ${backend.join(", ")}`)
+  }
+}
+
 process.exit(problems === 0 ? 0 : 1)

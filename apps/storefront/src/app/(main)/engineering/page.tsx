@@ -4,6 +4,7 @@ import EngineeringServicesShowcase from "@modules/engineering/components/enginee
 import OtherServicesSlider from "@modules/engineering/components/other-services-slider"
 import EngineeringShowcase from "@modules/engineering/components/engineering-showcase"
 import SectionHeading from "@modules/home/components/section-heading"
+import FreeServiceBanner from "@modules/engineering/components/free-service-banner"
 import { engineeringPitch, otherServicesPitch } from "@lib/data/engineering-copy"
 import { SITE_NAME } from "@lib/constants"
 
@@ -20,6 +21,7 @@ export default function EngineeringPage() {
         title="Engineering Services"
         description="Request a free quote online and our engineers will call you back shortly."
       />
+      <FreeServiceBanner />
       <div className="w-full bg-white">
         <div className="content-container py-16">
           <SectionHeading title="Engineering Services" />

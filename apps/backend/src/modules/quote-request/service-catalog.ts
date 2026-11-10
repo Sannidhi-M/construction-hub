@@ -30,3 +30,17 @@ export const QUOTE_SERVICES = [
 ] as const
 
 export type QuoteServiceSlug = (typeof QUOTE_SERVICES)[number]["slug"]
+
+/**
+ * The "one free service per customer" welcome offer: only these services can
+ * be claimed free (see create-quote-request.ts). Mirrored by the storefront's
+ * lib/data/free-service.ts and compared by scripts/check-synced-lists.js.
+ */
+export const FREE_CLAIM_SERVICE_SLUGS = [
+  "architectural-floor-plans",
+  "3d-elevations-visualization",
+  "structural-design-drawings",
+  "interior-design-space-planning",
+  "boq-quantity-estimation",
+  "cost-estimation",
+] as const satisfies readonly QuoteServiceSlug[]

@@ -3,6 +3,7 @@ import { defineRouteConfig } from "@medusajs/admin-sdk"
 import { DocumentText } from "@medusajs/icons"
 import {
   Badge,
+  Button,
   Container,
   Heading,
   Select,
@@ -18,6 +19,7 @@ type QuoteRequest = {
   email: string
   phone: string
   notes: string | null
+  is_free_claim: boolean
   status: "new" | "contacted" | "quoted" | "closed"
   created_at: string
 }
@@ -65,6 +67,35 @@ const QuoteRequestsPage = () => {
     }
   }
 
+  // Gives the customer their one free service back (e.g. it couldn't be
+  // delivered), so they can claim again.
+  const voidFreeClaim = async (quoteRequest: QuoteRequest) => {
+    if (
+      !window.confirm(
+        `Void the free claim for ${quoteRequest.name}? They will be able to claim a free service again.`
+      )
+    ) {
+      return
+    }
+    setUpdatingId(quoteRequest.id)
+    try {
+      const res = await fetch(
+        `/admin/quote-requests/${quoteRequest.id}/void-free-claim`,
+        { method: "POST", credentials: "include" }
+      )
+      if (!res.ok) {
+        throw new Error((await res.json().catch(() => ({})))?.message ?? "Request failed")
+      }
+      await load()
+    } catch (err) {
+      toast.error("Couldn't void the free claim", {
+        description: err instanceof Error ? err.message : String(err),
+      })
+    } finally {
+      setUpdatingId(null)
+    }
+  }
+
   return (
     <Container className="divide-y p-0">
       <div className="flex items-center justify-between px-6 py-4">
@@ -96,7 +127,22 @@ const QuoteRequestsPage = () => {
                 <br />
                 {quoteRequest.email}
               </Table.Cell>
-              <Table.Cell>{quoteRequest.service_name}</Table.Cell>
+              <Table.Cell>
+                {quoteRequest.service_name}
+                {quoteRequest.is_free_claim && (
+                  <div className="mt-1 flex items-center gap-x-2">
+                    <Badge color="green">FREE claim</Badge>
+                    <Button
+                      size="small"
+                      variant="secondary"
+                      disabled={updatingId === quoteRequest.id}
+                      onClick={() => voidFreeClaim(quoteRequest)}
+                    >
+                      Void
+                    </Button>
+                  </div>
+                )}
+              </Table.Cell>
               <Table.Cell className="max-w-xs whitespace-pre-wrap">
                 {quoteRequest.notes ?? "—"}
               </Table.Cell>

@@ -311,3 +311,9 @@ src/modules/skeletons/templates/skeleton-cart-page/index.tsx: error TS2786: 'Tab
 src/modules/skeletons/templates/skeleton-cart-page/index.tsx: error TS2786: 'Table.HeaderCell' cannot be used as a JSX component.
 src/modules/skeletons/templates/skeleton-cart-page/index.tsx: error TS2786: 'Table.Row' cannot be used as a JSX component.
 src/modules/store/templates/index.tsx: error TS2786: 'Suspense' cannot be used as a JSX component.
+src/modules/engineering/components/free-service-banner/index.tsx: error TS2786: 'Heading' cannot be used as a JSX component.
+src/modules/engineering/components/free-service-banner/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
+src/modules/engineering/components/free-claimed-card/index.tsx: error TS2786: 'Badge' cannot be used as a JSX component.
+src/modules/engineering/components/free-claimed-card/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
+src/modules/engineering/components/free-claimed-card/index.tsx: error TS2786: 'Heading' cannot be used as a JSX component.
+src/modules/engineering/components/free-claimed-card/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.

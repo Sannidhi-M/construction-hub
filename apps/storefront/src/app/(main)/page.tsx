@@ -4,6 +4,7 @@ import Hero from "@modules/home/components/hero"
 import MaterialsPreview from "@modules/home/components/materials-preview"
 import LabourPreview from "@modules/home/components/labour-preview"
 import EngineeringPreview from "@modules/home/components/engineering-preview"
+import FreeServiceBanner from "@modules/engineering/components/free-service-banner"
 import { listCategories } from "@lib/data/categories"
 import { getRegion } from "@lib/data/regions"
 import { retrieveCustomer } from "@lib/data/customer"
@@ -29,6 +30,7 @@ export default async function Home() {
       <Hero />
       <MaterialsPreview categories={categories ?? []} region={region} />
       <LabourPreview customer={customer} />
+      <FreeServiceBanner />
       <EngineeringPreview />
     </>
   )
