@@ -28,42 +28,52 @@ else
 fi
 
 echo
-echo "== 2/4: storefront type-check (against known-issues allowlist) =="
+echo "== 2/4: storefront type-check =="
 storefront_out=$(cd apps/storefront && npx tsc --noEmit 2>&1 || true)
+# Errors are compared by file + message, ignoring line numbers AND the
+# property list inside "Type '{ a?: ...; ... 300 more ...; className: string }'":
+# TypeScript abbreviates long object types and which properties it prints
+# first varies from run to run, so the same error came out as a "new" one
+# intermittently.
+normalize_errors() {
+  sed -E "s/\([0-9]+,[0-9]+\)//; s/Type '\{ [^']*\}'/Type '{ ... }'/" | sort -u
+}
 current_errors=$(echo "$storefront_out" \
   | grep -E "^\S+\([0-9]+,[0-9]+\): error TS[0-9]+:" \
-  | sed -E 's/\([0-9]+,[0-9]+\)//' | sort -u || true)
-known_errors=$(grep -v '^#' apps/storefront/.typecheck-known-issues.txt | grep -v '^\s*$' | sort -u)
+  | normalize_errors || true)
+# `|| true`: with an empty allowlist grep finds no lines and exits 1.
+known_errors=$(grep -v '^#' apps/storefront/.typecheck-known-issues.txt | grep -v '^\s*$' | normalize_errors || true)
 new_errors=$(comm -23 <(echo "$current_errors") <(echo "$known_errors"))
 
 if [ -n "$new_errors" ]; then
+  # The full output is tens of thousands of lines of the known noise; keep it
+  # in a file and print only what failed the check.
+  echo "$storefront_out" > /tmp/storefront-tsc.log
   echo "FAIL: new type errors not in the known-issues allowlist:"
   echo "$new_errors" | sed 's/^/  /'
-  echo
-  echo "Full tsc output:"
-  echo "$storefront_out"
+  echo "(full tsc output saved to /tmp/storefront-tsc.log)"
   fail=1
 else
-  echo "OK (only known pre-existing noise present, see apps/storefront/.typecheck-known-issues.txt)"
+  echo "OK"
 fi
 
 echo
 echo "== 3/4: storefront build (syntax/compile check) =="
-# `next build` also does static-export prerendering after compiling, which
-# currently fails on a pre-existing bug (React error #31 on /404 — confirmed
-# present before any of this session's changes, same dual-React-instance
-# root cause as the type-check noise above). That's a real, separate,
-# tracked issue (see docs/PROGRESS.md), not something this check should
-# block every future push on. So: fail only if compilation itself fails
-# (a real syntax/parse error) — warn, don't fail, on a prerender-stage error.
+# `next build` also prerenders pages after compiling. That step used to fail
+# with React error #31 on /404 and /500 (the storefront installed its own
+# React 19 next to the repo's React 18 that `next` itself loads) — fixed by
+# pinning the storefront to the root's React 18.3.1, see docs/PROGRESS.md. So
+# now a compile error AND a prerender error both fail this check.
 build_log=$(cd apps/storefront && npx next build 2>&1 || true)
 echo "$build_log" > /tmp/storefront-build.log
 if ! echo "$build_log" | grep -q "Compiled successfully"; then
   echo "FAIL: storefront failed to compile (real syntax/parse error)"
   echo "$build_log" | tail -50
   fail=1
-elif echo "$build_log" | grep -q "Export encountered an error\|Generating static pages.*⨯\|build worker exited"; then
-  echo "WARN: compiled successfully, but static export failed (known pre-existing issue, see docs/PROGRESS.md) — not blocking push"
+elif echo "$build_log" | grep -q "Export encountered an error\|Error occurred prerendering\|build worker exited"; then
+  echo "FAIL: compiled, but prerendering pages failed (a production build/deploy would fail)"
+  echo "$build_log" | tail -30
+  fail=1
 else
   echo "OK"
 fi

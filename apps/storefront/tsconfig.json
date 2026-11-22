@@ -19,7 +19,11 @@
       "@modules/*": ["./src/modules/*"],
       "@pages/*": ["./src/pages/*"],
       "types/*": ["./src/types/*"],
-      "styles/*": ["./src/styles/*"]
+      "styles/*": ["./src/styles/*"],
+      "react": ["./node_modules/@types/react"],
+      "react/*": ["./node_modules/@types/react/*"],
+      "react-dom": ["./node_modules/@types/react-dom"],
+      "react-dom/*": ["./node_modules/@types/react-dom/*"]
     },
     "plugins": [
       {
