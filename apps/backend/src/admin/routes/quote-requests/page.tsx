@@ -101,6 +101,10 @@ const QuoteRequestsPage = () => {
       <div className="flex items-center justify-between px-6 py-4">
         <Heading level="h1">Quote Requests</Heading>
       </div>
+      {/* The Admin's Container clips overflow and Table is a bare <table>, so
+          without this wrapper the right-hand columns are unreachable on a
+          phone. */}
+      <div className="overflow-x-auto">
       <Table>
         <Table.Header>
           <Table.Row>
@@ -174,6 +178,7 @@ const QuoteRequestsPage = () => {
           ))}
         </Table.Body>
       </Table>
+      </div>
       {quoteRequests?.length === 0 && (
         <div className="px-6 py-8 text-center">
           <Text className="text-ui-fg-subtle">No quote requests yet.</Text>

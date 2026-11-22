@@ -42,6 +42,22 @@ const STATUS_COLOR: Record<LabourBooking["status"], "orange" | "blue" | "green" 
   cancelled: "red",
 }
 
+// Which statuses each status may move to; keep in step with
+// LABOUR_BOOKING_TRANSITIONS in modules/labour-booking/status.ts (the server
+// enforces it, this only keeps the dropdown to valid choices).
+const NEXT_STATUSES: Record<LabourBooking["status"], LabourBooking["status"][]> = {
+  requested: ["confirmed", "cancelled"],
+  confirmed: ["completed", "cancelled"],
+  completed: ["confirmed"],
+  cancelled: ["requested"],
+}
+const STATUS_LABEL: Record<LabourBooking["status"], string> = {
+  requested: "Requested",
+  confirmed: "Confirmed",
+  completed: "Completed",
+  cancelled: "Cancelled",
+}
+
 const formatSchedule = (booking: LabourBooking) => {
   if (booking.rate_type === "day") {
     return booking.start_date === booking.end_date
@@ -115,6 +131,10 @@ const LabourBookingsPage = () => {
       <div className="flex items-center justify-between px-6 py-4">
         <Heading level="h1">Labour & Manpower Bookings</Heading>
       </div>
+      {/* The Admin's Container clips overflow and Table is a bare <table>, so
+          without this wrapper the right-hand columns are unreachable on a
+          phone. */}
+      <div className="overflow-x-auto">
       <Table>
         <Table.Header>
           <Table.Row>
@@ -191,10 +211,11 @@ const LabourBookingsPage = () => {
                     <Select.Value placeholder="Change status" />
                   </Select.Trigger>
                   <Select.Content>
-                    <Select.Item value="requested">Requested</Select.Item>
-                    <Select.Item value="confirmed">Confirmed</Select.Item>
-                    <Select.Item value="completed">Completed</Select.Item>
-                    <Select.Item value="cancelled">Cancelled</Select.Item>
+                    {[booking.status, ...NEXT_STATUSES[booking.status]].map((status) => (
+                      <Select.Item key={status} value={status}>
+                        {STATUS_LABEL[status]}
+                      </Select.Item>
+                    ))}
                   </Select.Content>
                 </Select>
               </Table.Cell>
@@ -202,6 +223,7 @@ const LabourBookingsPage = () => {
           ))}
         </Table.Body>
       </Table>
+      </div>
       {bookings?.length === 0 && (
         <div className="px-6 py-8 text-center">
           <Text className="text-ui-fg-subtle">No bookings yet.</Text>

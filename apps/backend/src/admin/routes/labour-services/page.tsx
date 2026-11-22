@@ -273,6 +273,10 @@ const LabourServicesPage = () => {
         </Button>
       </div>
 
+      {/* The Admin's Container clips overflow and Table is a bare <table>, so
+          without this wrapper the right-hand columns are unreachable on a
+          phone. */}
+      <div className="overflow-x-auto">
       <Table>
         <Table.Header>
           <Table.Row>
@@ -338,6 +342,7 @@ const LabourServicesPage = () => {
           ))}
         </Table.Body>
       </Table>
+      </div>
       {services && services.length === 0 && (
         <Text className="px-6 py-8 text-center text-ui-fg-subtle">
           No labour services yet. Add one to show it on the Labour page.

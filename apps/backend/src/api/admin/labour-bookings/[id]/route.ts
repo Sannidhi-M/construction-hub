@@ -2,6 +2,10 @@ import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { LABOUR_BOOKING_MODULE } from "../../../../modules/labour-booking"
 import LabourBookingModuleService from "../../../../modules/labour-booking/service"
 import updateLabourBookingStatusWorkflow from "../../../../workflows/update-labour-booking-status"
+import {
+  isLabourBookingStatus,
+  LABOUR_BOOKING_STATUSES,
+} from "../../../../modules/labour-booking/status"
 import confirmLabourBookingPaymentWorkflow from "../../../../workflows/confirm-labour-booking-payment"
 
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
@@ -38,8 +42,10 @@ export async function POST(
     return
   }
 
-  if (!status) {
-    res.status(400).json({ message: "'status' is required." })
+  if (!isLabourBookingStatus(status)) {
+    res.status(400).json({
+      message: `'status' must be one of: ${LABOUR_BOOKING_STATUSES.join(", ")}.`,
+    })
     return
   }
 

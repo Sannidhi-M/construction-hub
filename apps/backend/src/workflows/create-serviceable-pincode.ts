@@ -4,8 +4,10 @@ import {
   StepResponse,
   WorkflowResponse,
 } from "@medusajs/framework/workflows-sdk"
+import { MedusaError } from "@medusajs/framework/utils"
 import { DELIVERY_AREA_MODULE } from "../modules/delivery-area"
 import DeliveryAreaModuleService from "../modules/delivery-area/service"
+import { parseAreaLabel, parsePincode } from "../modules/delivery-area/validation"
 
 type CreateServiceablePincodeInput = {
   pincode: string
@@ -19,9 +21,22 @@ const createServiceablePincodeStep = createStep(
     const deliveryAreaModuleService: DeliveryAreaModuleService =
       container.resolve(DELIVERY_AREA_MODULE)
 
-    const pincode = await deliveryAreaModuleService.createServiceablePincodes(
-      input
-    )
+    const value = parsePincode(input.pincode)
+    const [existing] = await deliveryAreaModuleService.listServiceablePincodes({
+      pincode: value,
+    })
+    if (existing) {
+      throw new MedusaError(
+        MedusaError.Types.INVALID_DATA,
+        `Pincode ${value} is already in the list.`
+      )
+    }
+
+    const pincode = await deliveryAreaModuleService.createServiceablePincodes({
+      pincode: value,
+      area_label: parseAreaLabel(input.area_label),
+      is_active: input.is_active !== false,
+    })
 
     return new StepResponse(pincode, pincode.id)
   },

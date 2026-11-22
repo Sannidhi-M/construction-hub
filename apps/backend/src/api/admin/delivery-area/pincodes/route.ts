@@ -22,19 +22,11 @@ type CreatePincodeBody = {
 export async function POST(req: MedusaRequest<CreatePincodeBody>, res: MedusaResponse) {
   const { pincode, area_label, is_active } = req.body
 
-  if (!pincode?.trim()) {
-    res.status(400).json({ message: "'pincode' is required." })
-    return
-  }
-
+  // Validation (6 digits, label length, duplicates) lives in the workflow.
   const { result: created } = await createServiceablePincodeWorkflow(
     req.scope
   ).run({
-    input: {
-      pincode: pincode.trim(),
-      area_label,
-      is_active: is_active ?? true,
-    },
+    input: { pincode, area_label, is_active },
   })
 
   res.status(201).json({ pincode: created })

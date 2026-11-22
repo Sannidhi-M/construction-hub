@@ -6,6 +6,7 @@ import {
 } from "@medusajs/framework/workflows-sdk"
 import { LABOUR_BOOKING_MODULE } from "../modules/labour-booking"
 import LabourBookingModuleService from "../modules/labour-booking/service"
+import { assertStatusTransition } from "../modules/labour-booking/status"
 
 type UpdateLabourBookingStatusInput = {
   id: string
@@ -23,7 +24,13 @@ const updateLabourBookingStatusStep = createStep(
       input.id
     )
 
-    const updated = await labourBookingModuleService.updateLabourBookings(input)
+    assertStatusTransition(previous.status, input.status)
+
+    const updated = await labourBookingModuleService.updateLabourBookings({
+      id: input.id,
+      status: input.status,
+      admin_note: input.admin_note,
+    })
 
     return new StepResponse(updated, previous)
   },
