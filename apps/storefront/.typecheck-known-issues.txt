@@ -317,3 +317,8 @@ src/modules/engineering/components/free-claimed-card/index.tsx: error TS2786: 'B
 src/modules/engineering/components/free-claimed-card/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
 src/modules/engineering/components/free-claimed-card/index.tsx: error TS2786: 'Heading' cannot be used as a JSX component.
 src/modules/engineering/components/free-claimed-card/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
+src/modules/products/components/delivery-check/index.tsx: error TS2786: 'Button' cannot be used as a JSX component.
+src/modules/products/components/delivery-check/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
+src/modules/products/components/image-gallery/index.tsx: error TS2786: 'PlaceholderImage' cannot be used as a JSX component.
+src/modules/products/components/product-actions/index.tsx: error TS2786: 'Text' cannot be used as a JSX component.
+src/modules/products/components/product-actions/index.tsx: error TS2786: 'WhatsApp' cannot be used as a JSX component.

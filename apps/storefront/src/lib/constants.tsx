@@ -12,9 +12,12 @@ export const SITE_PHONE_INTL = "917899692136" // digits only, for wa.me/tel: lin
 // The floating WhatsApp button's chat link: opens a chat with the business
 // number with this message already typed in (the visitor still presses send).
 export const WHATSAPP_MESSAGE = `Hi ${SITE_NAME}, I'd like help with my construction.`
-export const WHATSAPP_URL = `https://wa.me/${SITE_PHONE_INTL}?text=${encodeURIComponent(
-  WHATSAPP_MESSAGE
-)}`
+// A wa.me chat link to the business with `message` pre-typed (shared by the
+// floating button and the product page's "Get a quote" button).
+export const whatsappUrl = (message: string) =>
+  `https://wa.me/${SITE_PHONE_INTL}?text=${encodeURIComponent(message)}`
+export const WHATSAPP_URL = whatsappUrl(WHATSAPP_MESSAGE)
+export const SITE_PHONE_TEL = `tel:+${SITE_PHONE_INTL}`
 export const SITE_LOCATION = "Davangere, Karnataka"
 export const SITE_EMAIL = "info@constructmitra.in"
 

@@ -10,6 +10,8 @@ import { getProductPrice } from "@lib/util/get-product-price"
 import OptionSelect from "./option-select"
 import { HttpTypes } from "@medusajs/types"
 import { isSimpleProduct } from "@lib/util/product"
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
+import WhatsApp from "@modules/common/icons/whatsapp"
 
 type MobileActionsProps = {
   product: HttpTypes.StoreProduct
@@ -21,6 +23,10 @@ type MobileActionsProps = {
   isAdding?: boolean
   show: boolean
   optionsDisabled: boolean
+  // What the bar's main button does: add to cart, go to the cart (already
+  // added), or ask for a quote on WhatsApp (no price).
+  cta: "cart" | "incart" | "quote"
+  quoteHref: string
 }
 
 const MobileActions: React.FC<MobileActionsProps> = ({
@@ -33,6 +39,8 @@ const MobileActions: React.FC<MobileActionsProps> = ({
   isAdding,
   show,
   optionsDisabled,
+  cta,
+  quoteHref,
 }) => {
   const { state, open, close } = useToggleState()
 
@@ -95,7 +103,7 @@ const MobileActions: React.FC<MobileActionsProps> = ({
                   </span>
                 </div>
               ) : (
-                <div></div>
+                <span>Price on request</span>
               )}
             </div>
             <div className={clx("grid grid-cols-2 w-full gap-x-4", {
@@ -116,19 +124,38 @@ const MobileActions: React.FC<MobileActionsProps> = ({
                   <ChevronDown />
                 </div>
               </Button>}
-              <Button
-                onClick={handleAddToCart}
-                disabled={!inStock || !variant}
-                className="w-full"
-                isLoading={isAdding}
-                data-testid="mobile-cart-button"
-              >
-                {!variant
-                  ? "Select variant"
-                  : !inStock
-                  ? "Out of stock"
-                  : "Add to cart"}
-              </Button>
+              {cta === "quote" ? (
+                <a
+                  href={quoteHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex h-10 w-full items-center justify-center gap-x-2 rounded-rounded bg-[#25D366] text-base font-semibold text-white"
+                  data-testid="mobile-quote-button"
+                >
+                  <WhatsApp size={18} />
+                  Get a quote
+                </a>
+              ) : cta === "incart" ? (
+                <LocalizedClientLink href="/cart" className="w-full">
+                  <Button className="w-full" data-testid="mobile-cart-button">
+                    View cart
+                  </Button>
+                </LocalizedClientLink>
+              ) : (
+                <Button
+                  onClick={handleAddToCart}
+                  disabled={!inStock || !variant}
+                  className="w-full"
+                  isLoading={isAdding}
+                  data-testid="mobile-cart-button"
+                >
+                  {!variant
+                    ? "Select options"
+                    : !inStock
+                    ? "Out of stock"
+                    : "Add to cart"}
+                </Button>
+              )}
             </div>
           </div>
         </Transition>

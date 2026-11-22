@@ -1,6 +1,7 @@
 "use server"
 
 import { sdk } from "@lib/config"
+import { notServiceableMessage } from "@lib/util/pincode"
 import medusaError from "@lib/util/medusa-error"
 import { HttpTypes } from "@medusajs/types"
 import { revalidateTag } from "next/cache"
@@ -374,9 +375,7 @@ export async function setAddresses(currentState: unknown, formData: FormData) {
     if (pincode) {
       const serviceable = await checkPincodeServiceable(pincode)
       if (!serviceable) {
-        throw new Error(
-          `Sorry, we don't currently deliver to pincode ${pincode}.`
-        )
+        throw new Error(notServiceableMessage(pincode))
       }
     }
 

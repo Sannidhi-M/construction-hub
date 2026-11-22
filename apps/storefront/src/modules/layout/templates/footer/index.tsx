@@ -67,7 +67,7 @@ export default async function Footer() {
   const shopLinks = (productCategories ?? [])
     .filter((c) => !c.parent_category)
     .slice(0, 6)
-    .map((c) => ({ label: c.name, href: `/categories/${c.handle}` }));
+    .map((c) => ({ label: c.name, href: `/store?category=${c.handle}` }));
 
   return (
     <footer className="bg-gray-900 text-gray-300 w-full">

@@ -11,6 +11,7 @@ import { useActionState } from "react"
 import BillingAddress from "../billing_address"
 import DeliveryDate from "../delivery-date"
 import ErrorMessage from "../error-message"
+import { isNotServiceableMessage } from "@lib/util/pincode"
 import ShippingAddress from "../shipping-address"
 import { SubmitButton } from "../submit-button"
 
@@ -69,6 +70,7 @@ const Addresses = ({
               checked={sameAsBilling}
               onChange={toggleSameAsBilling}
               cart={cart}
+              submitError={message}
             />
 
             {!sameAsBilling && (
@@ -93,7 +95,11 @@ const Addresses = ({
                 Continue to review
               </SubmitButton>
             </div>
-            <ErrorMessage error={message} data-testid="address-error-message" />
+            {/* A pincode refusal is already shown beside the postal code. */}
+            <ErrorMessage
+              error={isNotServiceableMessage(message) ? null : message}
+              data-testid="address-error-message"
+            />
           </div>
         </form>
       ) : (

@@ -3,6 +3,11 @@ import { clx } from "@modules/common/components/ui"
 import { getProductPrice } from "@lib/util/get-product-price"
 import { HttpTypes } from "@medusajs/types"
 
+/**
+ * The price block. A product (or the selected option) with no price set shows
+ * "Price on request" — the buy box beside it offers a quote instead — rather
+ * than an empty or loading-looking space.
+ */
 export default function ProductPrice({
   product,
   variant,
@@ -18,41 +23,45 @@ export default function ProductPrice({
   const selectedPrice = variant ? variantPrice : cheapestPrice
 
   if (!selectedPrice) {
-    return <div className="block w-32 h-9 bg-gray-100 animate-pulse" />
+    return (
+      <span
+        className="text-2xl font-bold text-gray-900"
+        data-testid="product-price"
+      >
+        Price on request
+      </span>
+    )
   }
 
   return (
     <div className="flex flex-col text-ui-fg-base">
-      <span
-        className={clx("text-xl-semi", {
-          "text-ui-fg-interactive": selectedPrice.price_type === "sale",
-        })}
-      >
-        {!variant && "From "}
+      <span className="flex items-baseline gap-x-2">
+        {!variant && <span className="text-ui-fg-subtle">From</span>}
         <span
+          className={clx("text-3xl font-bold", {
+            "text-brand-600": selectedPrice.price_type === "sale",
+          })}
           data-testid="product-price"
           data-value={selectedPrice.calculated_price_number}
         >
           {selectedPrice.calculated_price}
         </span>
-      </span>
-      {selectedPrice.price_type === "sale" && (
-        <>
-          <p>
-            <span className="text-ui-fg-subtle">Original: </span>
+        {selectedPrice.price_type === "sale" && (
+          <>
             <span
-              className="line-through"
+              className="text-ui-fg-subtle line-through"
               data-testid="original-product-price"
               data-value={selectedPrice.original_price_number}
             >
               {selectedPrice.original_price}
             </span>
-          </p>
-          <span className="text-ui-fg-interactive">
-            -{selectedPrice.percentage_diff}%
-          </span>
-        </>
-      )}
+            <span className="text-brand-600 font-semibold">
+              -{selectedPrice.percentage_diff}%
+            </span>
+          </>
+        )}
+      </span>
+      <span className="txt-small text-ui-fg-subtle">Price includes taxes</span>
     </div>
   )
 }

@@ -3,6 +3,7 @@ import { Text } from "@modules/common/components/ui"
 import Checkbox from "@modules/common/components/checkbox"
 import Input from "@modules/common/components/input"
 import { checkPincodeServiceable } from "@lib/data/delivery-area"
+import { isNotServiceableMessage, notServiceableMessage } from "@lib/util/pincode"
 import { mapKeys } from "lodash"
 import React, { useEffect, useMemo, useRef, useState } from "react"
 import SavedAddressPicker from "../saved-address-picker"
@@ -13,11 +14,15 @@ const ShippingAddress = ({
   cart,
   checked,
   onChange,
+  submitError,
 }: {
   customer: HttpTypes.StoreCustomer | null
   cart: HttpTypes.StoreCart | null
   checked: boolean
   onChange: () => void
+  // What the last submit came back with. A pincode refusal is shown beside
+  // the postal code (a saved address never triggers the on-blur hint).
+  submitError?: string | null
 }) => {
   // A signed-in customer's default saved address, if any — used below so a
   // returning customer sees their address pre-selected instead of a blank
@@ -65,6 +70,12 @@ const ShippingAddress = ({
   const [pincodeNotice, setPincodeNotice] = useState<string | null>(null)
   const [checkingPincode, setCheckingPincode] = useState(false)
 
+  useEffect(() => {
+    if (isNotServiceableMessage(submitError)) {
+      setPincodeNotice(submitError)
+    }
+  }, [submitError])
+
   const handlePincodeBlur = async () => {
     const pincode = formData["shipping_address.postal_code"]?.trim()
     if (!pincode) {
@@ -78,7 +89,7 @@ const ShippingAddress = ({
       setPincodeNotice(
         serviceable
           ? null
-          : `We don't currently deliver to pincode ${pincode}.`
+          : notServiceableMessage(pincode)
       )
     } catch {
       // Network/server error checking the pincode — don't block typing or

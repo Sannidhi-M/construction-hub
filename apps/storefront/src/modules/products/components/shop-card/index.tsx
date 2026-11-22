@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Minus, Plus, ShoppingCart } from "@medusajs/icons"
+import { ShoppingCart } from "@medusajs/icons"
 import { HttpTypes } from "@medusajs/types"
 import Image from "next/image"
 import { addToCart, deleteLineItem, updateLineItem } from "@lib/data/cart"
@@ -9,6 +9,7 @@ import { getProductPrice } from "@lib/util/get-product-price"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import PlaceholderImage from "@modules/common/icons/placeholder-image"
 import { Button, Heading, Text } from "@modules/common/components/ui"
+import QuantityStepper from "../quantity-stepper"
 
 /**
  * Generic, reusable product card — takes any single product + region and
@@ -46,10 +47,6 @@ const ShopCard = ({
     cartItem?.lineItemId ?? null
   )
   const [quantity, setQuantity] = useState(cartItem?.quantity ?? 1)
-  // The input's own text, decoupled from `quantity` while the customer is
-  // actively typing (e.g. clearing the field to type "30") — only synced
-  // back to `quantity` on blur/Enter, or immediately by the +/- buttons.
-  const [draftValue, setDraftValue] = useState(String(cartItem?.quantity ?? 1))
   const [isAdding, setIsAdding] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -80,7 +77,6 @@ const ShopCard = ({
       if (item) {
         setLineItemId(item.id)
         setQuantity(item.quantity)
-        setDraftValue(String(item.quantity))
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't add to cart")
@@ -101,7 +97,6 @@ const ShopCard = ({
       await deleteLineItem(lineItemId)
       setLineItemId(null)
       setQuantity(1)
-      setDraftValue("1")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't update cart")
     } finally {
@@ -111,7 +106,6 @@ const ShopCard = ({
 
   const commitQuantity = async (nextQuantity: number) => {
     if (!lineItemId || isUpdating || nextQuantity === quantity) {
-      setDraftValue(String(quantity))
       return
     }
 
@@ -124,28 +118,15 @@ const ShopCard = ({
     setIsUpdating(true)
     setError(null)
     setQuantity(nextQuantity)
-    setDraftValue(String(nextQuantity))
 
     try {
       await updateLineItem({ lineId: lineItemId, quantity: nextQuantity })
     } catch (err) {
       setQuantity(previousQuantity)
-      setDraftValue(String(previousQuantity))
       setError(err instanceof Error ? err.message : "Couldn't update quantity")
     } finally {
       setIsUpdating(false)
     }
-  }
-
-  const handleDraftBlur = () => {
-    const parsed = parseInt(draftValue, 10)
-
-    if (Number.isNaN(parsed)) {
-      setDraftValue(String(quantity))
-      return
-    }
-
-    commitQuantity(parsed)
   }
 
   return (
@@ -181,44 +162,11 @@ const ShopCard = ({
         {canPurchase ? (
           <div className="mt-auto">
             {lineItemId ? (
-              <div className="flex items-center justify-between border border-ui-border-base rounded-md">
-                <button
-                  type="button"
-                  onClick={() => commitQuantity(quantity - 1)}
-                  disabled={isUpdating}
-                  className="p-2 hover:bg-gray-50 disabled:opacity-50"
-                  aria-label="Decrease quantity"
-                >
-                  <Minus />
-                </button>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  value={draftValue}
-                  disabled={isUpdating}
-                  onChange={(e) =>
-                    setDraftValue(e.target.value.replace(/[^0-9]/g, ""))
-                  }
-                  onBlur={handleDraftBlur}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.currentTarget.blur()
-                    }
-                  }}
-                  aria-label="Quantity"
-                  className="w-12 text-center text-sm font-medium border border-gray-300 rounded-md mx-1 py-1 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 disabled:opacity-50"
-                />
-                <button
-                  type="button"
-                  onClick={() => commitQuantity(quantity + 1)}
-                  disabled={isUpdating}
-                  className="p-2 hover:bg-gray-50 disabled:opacity-50"
-                  aria-label="Increase quantity"
-                >
-                  <Plus />
-                </button>
-              </div>
+              <QuantityStepper
+                quantity={quantity}
+                onChange={commitQuantity}
+                disabled={isUpdating}
+              />
             ) : (
               <Button
                 variant="primary"

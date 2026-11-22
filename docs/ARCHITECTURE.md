@@ -372,6 +372,16 @@ Implementation: custom workflow `apps/backend/src/workflows/verify-order-payment
 - **Corner conflicts**: the free-shipping popup shared that corner, so it was moved up (`bottom-28`) to clear the button. The button is `z-40`, *below* the mobile product bar and modals/menus (`z-50`), which simply cover it.
 - **Attention hops**: two seconds after a page loads it gives four hops (28, 20, 12, 6 px — each lower than the last, 2.4 s in total), once per page load (the layout persists across in-site navigation; checkout is a separate layout, so it hops again there). Defined as the `whatsapp-hop` keyframes in `tailwind.config.js`; disabled under `prefers-reduced-motion`, which also disables the hover grow. **The hops live on a wrapper `div`, not on the link**: the link needs `duration-200 ease-out` for the hover grow, and in this Tailwind setup those utilities also set `animation-duration` / `animation-timing-function`, which squashed the four hops into 0.2 s so they read as one blink.
 
+### 4.8 Product page (redesigned later)
+
+Two columns: a large photo with thumbnails (`ImageGallery`, sticky on wide screens) and, beside it, category, title, price, stock, option chips, the buy box, a pincode check, two delivery/payment lines and a bulk-price link; description and specifications below, then "You may also like". Modelled on the Zetlod, HomeRun and Flipkart pages the owner shared, keeping only what this business can stand behind (no ratings, discounts, bank offers, wishlist or delivery-time promises beyond "same-day delivery available").
+
+- **Buy box states** (`ProductActions`). Priced and chosen: "Add to cart" (adds one), which turns into the shared `QuantityStepper` once that variant is in the cart, like the `/store` cards (`ProductActionsWrapper` passes the cart's lines so a product already in the cart opens with the stepper; below 1 removes the line). **No price** (the product has none, or the chosen option has none: Sand, Crushed Stone, SK Steel, JSW Steel are sold by negotiated load): "Price on request" with **Get a quote on WhatsApp** (message names the product and option) and a **Call** button, in place of a dead "Select variant" button. A single-variant product starts with its variant selected.
+- **Pincode check** (`DeliveryCheck`) calls the same delivery-area check as checkout; advisory, checkout still enforces it.
+- **Description and specifications** (`ProductTabs`) appear only when the product has values; a product with none shows nothing instead of a table of dashes. Breadcrumb uses the product's first category (`*categories` added to the default product fields).
+- On phones the fixed bottom bar (`MobileActions`) shows the price and, per state, Add to cart, View cart, or Get a quote.
+- Shared: `QuantityStepper` (also used by `ShopCard`), `whatsappUrl` and `SITE_PHONE_TEL` in `lib/constants.tsx`.
+
 ### 4.7 Small account / home behaviours
 
 - **Logout asks first**: "Log out" in the account nav opens a confirmation dialog (existing `Modal`, small) with Cancel / Log out; the confirm button shows a spinner while signing out and the dialog can't be dismissed mid-logout.
