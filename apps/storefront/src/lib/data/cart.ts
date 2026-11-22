@@ -3,6 +3,7 @@
 import { sdk } from "@lib/config"
 import { notServiceableMessage } from "@lib/util/pincode"
 import medusaError from "@lib/util/medusa-error"
+import { isOutOfStockError, OUT_OF_STOCK_MESSAGE } from "@lib/util/cart-errors"
 import { HttpTypes } from "@medusajs/types"
 import { revalidateTag } from "next/cache"
 import { redirect } from "next/navigation"
@@ -165,6 +166,8 @@ export async function addToCart({
     ...(await getAuthHeaders()),
   }
 
+  // Returns `{ cart }`, or `{ error }` for an over-order (see cart-errors.ts);
+  // anything else unexpected still throws.
   return await sdk.store.cart
     .createLineItem(
       cart.id,
@@ -182,9 +185,17 @@ export async function addToCart({
       const fulfillmentCacheTag = await getCacheTag("fulfillment")
       revalidateTag(fulfillmentCacheTag)
 
-      return cart
+      return { cart } as { cart?: HttpTypes.StoreCart; error?: string }
     })
-    .catch(medusaError)
+    .catch((error) => {
+      if (isOutOfStockError(error)) {
+        return { error: OUT_OF_STOCK_MESSAGE } as {
+          cart?: HttpTypes.StoreCart
+          error?: string
+        }
+      }
+      return medusaError(error)
+    })
 }
 
 export async function updateLineItem({
@@ -208,7 +219,8 @@ export async function updateLineItem({
     ...(await getAuthHeaders()),
   }
 
-  await sdk.store.cart
+  // Returns `{ error }` for an over-order (see cart-errors.ts), `{}` on success.
+  return await sdk.store.cart
     .updateLineItem(cartId, lineId, { quantity }, {}, headers)
     .then(async () => {
       const cartCacheTag = await getCacheTag("carts")
@@ -216,8 +228,15 @@ export async function updateLineItem({
 
       const fulfillmentCacheTag = await getCacheTag("fulfillment")
       revalidateTag(fulfillmentCacheTag)
+
+      return {} as { error?: string }
     })
-    .catch(medusaError)
+    .catch((error) => {
+      if (isOutOfStockError(error)) {
+        return { error: OUT_OF_STOCK_MESSAGE } as { error?: string }
+      }
+      return medusaError(error)
+    })
 }
 
 export async function deleteLineItem(lineId: string) {
@@ -436,14 +455,19 @@ export async function placeOrder(cartId?: string) {
     ...(await getAuthHeaders()),
   }
 
-  const cartRes = await sdk.store.cart
-    .complete(id, {}, headers)
-    .then(async (cartRes) => {
-      const cartCacheTag = await getCacheTag("carts")
-      revalidateTag(cartCacheTag)
-      return cartRes
-    })
-    .catch(medusaError)
+  // An order that no longer fits the stock (someone else bought it first) is
+  // returned as a message, like the add-to-cart actions (see cart-errors.ts).
+  let cartRes
+  try {
+    cartRes = await sdk.store.cart.complete(id, {}, headers)
+    const cartCacheTag = await getCacheTag("carts")
+    revalidateTag(cartCacheTag)
+  } catch (error) {
+    if (isOutOfStockError(error)) {
+      return { error: OUT_OF_STOCK_MESSAGE }
+    }
+    return medusaError(error)
+  }
 
   if (cartRes?.type === "order") {
     const orderCacheTag = await getCacheTag("orders")

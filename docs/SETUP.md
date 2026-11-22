@@ -1,6 +1,6 @@
 # Setup
 
-How to run ConstructHub on a new machine, from a clean clone to a working shop with Admin. Read `AGENTS.md` next for conventions and the full command list, and `docs/ARCHITECTURE.md` for why things are built this way.
+How to run Construct Mitra on a new machine, from a clean clone to a working shop with Admin. Read `AGENTS.md` next for conventions and the full command list, and `docs/ARCHITECTURE.md` for why things are built this way.
 
 ## You need
 

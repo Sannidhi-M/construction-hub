@@ -1,11 +1,11 @@
 # Launch checklist
 
-What is still needed before ConstructHub runs as a real business. The code for these pages and features exists; most items are business details, compliance and settings. Tick items off here as they are done.
+What is still needed before Construct Mitra runs as a real business. The code for these pages and features exists; most items are business details, compliance and settings. Tick items off here as they are done.
 
 ## Business details and compliance
 
 - [ ] **Footer business details.** Registered legal name, GSTIN, full address and business type: set `NEXT_PUBLIC_SITE_LEGAL_NAME`, `NEXT_PUBLIC_SITE_GSTIN` and `NEXT_PUBLIC_SITE_ADDRESS` in the storefront env (the footer and grievance page show them only when set). Payment-gateway KYC and the E-Commerce Rules need them.
-- [ ] **Grievance Officer.** Currently "Grievance Officer, ConstructHub". The Rules expect a named person.
+- [ ] **Grievance Officer.** Currently "Grievance Officer, Construct Mitra". The Rules expect a named person.
 - [ ] **Lawyer review** of all legal pages, especially Labour Terms and Engineering Terms (liability), and the free-service paragraph in the Engineering Terms.
 - [ ] **GST invoice.** The Terms promise a tax invoice on every order. It has not been verified that the site can produce or download one.
 - [ ] **User-side licences.** GST registration, contract labour licence (Contract Labour Act), Shop and Establishment licence, payment-gateway KYC if a gateway is added.
@@ -24,10 +24,9 @@ Login currently uses Firebase Phone Auth. Only test phone numbers work freely: a
 
 - [ ] **Production URL.** Set `NEXT_PUBLIC_BASE_URL` to the real https domain, or the sitemap and robots point at localhost.
 - [ ] **Secrets.** Real `JWT_SECRET` and `COOKIE_SECRET` in the backend env.
-- [ ] **Admin sessions.** Configure `redisUrl` so a backend restart does not sign everyone out.
-- [ ] **File storage.** Uploaded photos (labour services, product images) need S3, R2 or similar; the local `static/` folder is lost on redeploy.
+- [ ] **Redis for sessions and events (do during deployment).** Needs a production Redis server. Without it the backend keeps Admin sessions in memory, so every restart (deploy, crash, host maintenance) signs the Admin out; no data is lost, only unsaved edits. Set `redisUrl` in `medusa-config.ts` for sessions, and switch on the Redis event bus and workflow engine (`@medusajs/medusa/event-bus-redis`, `@medusajs/medusa/workflow-engine-redis`, packages already installed) in place of the local ones the backend warns about. Keep it conditional on a Redis address being set so local development still works without Redis.
+- [ ] **File storage (do during deployment).** Uploaded photos go to the backend's local `static/` folder and are saved with `http://localhost:9000/...` addresses, so they vanish on redeploy and break for customers. Use S3-compatible storage (Cloudflare R2 recommended, or AWS S3): create a bucket with public read access and a write key; then configure the Medusa S3 file module (`@medusajs/medusa/file-s3`, already installed) in `medusa-config.ts`, conditional on the env vars being set; allow the bucket's host in the storefront's `next.config.js` image settings; and run a one-time script that uploads the existing 13 photos (4 product images, 9 labour service photos) and rewrites their saved addresses. Upload real photos only after this is done. Deleting a product still leaves its files in the bucket.
 - [ ] **CORS.** `STORE_CORS`, `ADMIN_CORS` and `AUTH_CORS` set to the production origins.
-- [ ] **Event bus.** The backend logs "Local Event Bus installed. This is not recommended for production"; use the Redis event bus.
 
 ## Checks
 

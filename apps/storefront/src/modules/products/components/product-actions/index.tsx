@@ -177,11 +177,17 @@ export default function ProductActions({
     setError(null)
 
     try {
-      const cart = await addToCart({
+      const result = await addToCart({
         variantId: selectedVariant.id,
         quantity: 1,
       })
-      const item = cart?.items?.find((i) => i.variant_id === selectedVariant.id)
+      if (result.error) {
+        setError(result.error)
+        return
+      }
+      const item = result.cart?.items?.find(
+        (i) => i.variant_id === selectedVariant.id
+      )
       if (item) {
         setLines((prev) => ({
           ...prev,
@@ -214,7 +220,14 @@ export default function ProductActions({
           ...prev,
           [variantId]: { ...previous, quantity: next },
         }))
-        await updateLineItem({ lineId: previous.lineItemId, quantity: next })
+        const result = await updateLineItem({
+          lineId: previous.lineItemId,
+          quantity: next,
+        })
+        if (result.error) {
+          setLines((prev) => ({ ...prev, [variantId]: previous }))
+          setError(result.error)
+        }
       }
     } catch (err) {
       setLines((prev) => ({ ...prev, [variantId]: previous }))

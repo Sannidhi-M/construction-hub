@@ -69,7 +69,6 @@ const OrderDetails = ({
               testId="order-delivery-date"
             />
           )}
-          <Field label="Confirmation sent to" value={order.email ?? ""} />
         </div>
         {showStatus && (
           <Badge color={STATUS_BADGE_COLOR[status]} data-testid="order-status">

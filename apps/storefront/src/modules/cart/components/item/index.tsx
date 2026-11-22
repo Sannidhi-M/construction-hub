@@ -50,12 +50,17 @@ const Item = ({ item, type = "full", currencyCode }: ItemProps) => {
     setUpdating(true)
     setDraftValue(String(nextQuantity))
 
-    await updateLineItem({ lineId: item.id, quantity: nextQuantity }).catch(
-      (err) => {
+    await updateLineItem({ lineId: item.id, quantity: nextQuantity })
+      .then((result) => {
+        if (result.error) {
+          setDraftValue(String(item.quantity))
+          setError(result.error)
+        }
+      })
+      .catch((err) => {
         setDraftValue(String(item.quantity))
         setError(err.message)
-      }
-    )
+      })
 
     setUpdating(false)
   }

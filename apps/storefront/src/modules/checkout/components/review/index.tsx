@@ -110,7 +110,11 @@ const Review = ({
         await initiatePaymentSession(cart, { provider_id: providerId })
       }
 
-      await placeOrder()
+      const result = await placeOrder()
+      if (result && "error" in result && result.error) {
+        setError(result.error)
+        setSubmitting(false)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
       setSubmitting(false)

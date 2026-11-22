@@ -71,8 +71,12 @@ const ShopCard = ({
     setError(null)
 
     try {
-      const cart = await addToCart({ variantId: variant.id, quantity: 1 })
-      const item = cart?.items?.find((i) => i.variant_id === variant.id)
+      const result = await addToCart({ variantId: variant.id, quantity: 1 })
+      if (result.error) {
+        setError(result.error)
+        return
+      }
+      const item = result.cart?.items?.find((i) => i.variant_id === variant.id)
 
       if (item) {
         setLineItemId(item.id)
@@ -120,7 +124,14 @@ const ShopCard = ({
     setQuantity(nextQuantity)
 
     try {
-      await updateLineItem({ lineId: lineItemId, quantity: nextQuantity })
+      const result = await updateLineItem({
+        lineId: lineItemId,
+        quantity: nextQuantity,
+      })
+      if (result.error) {
+        setQuantity(previousQuantity)
+        setError(result.error)
+      }
     } catch (err) {
       setQuantity(previousQuantity)
       setError(err instanceof Error ? err.message : "Couldn't update quantity")
