@@ -3,10 +3,10 @@ import React from "react"
 
 /*
  * Brand/contact identity — single source of truth so a future rebrand or
- * contact-detail change is a one-file edit. Name/logo not finalized yet
- * (placeholder, per the user); phone/location are real.
+ * contact-detail change is a one-file edit. Name finalized as Construct Mitra
+ * (domain: constructmitra.in); phone/location are real.
  */
-export const SITE_NAME = "ConstructHub"
+export const SITE_NAME = "Construct Mitra"
 export const SITE_PHONE = "+91 7899692136"
 export const SITE_PHONE_INTL = "917899692136" // digits only, for wa.me/tel: links
 // The floating WhatsApp button's chat link: opens a chat with the business
@@ -16,7 +16,7 @@ export const WHATSAPP_URL = `https://wa.me/${SITE_PHONE_INTL}?text=${encodeURICo
   WHATSAPP_MESSAGE
 )}`
 export const SITE_LOCATION = "Davangere, Karnataka"
-export const SITE_EMAIL = "info@constructhub.in"
+export const SITE_EMAIL = "info@constructmitra.in"
 
 /*
  * Grievance Officer — required on the site by the Consumer Protection

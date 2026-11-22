@@ -43,7 +43,7 @@ export default async function initial_data_seed({
 
   // A core Medusa loader auto-provisions a default store/sales channel/
   // publishable key on first boot, before this script runs — clean those up
-  // so we don't end up with both "Medusa Store" and "Construction Hub".
+  // so we don't end up with both "Medusa Store" and "Construct Mitra".
   const storeModuleService = container.resolve(Modules.STORE);
   const salesChannelModuleService = container.resolve(Modules.SALES_CHANNEL);
   const apiKeyModuleService = container.resolve(Modules.API_KEY);
@@ -78,7 +78,7 @@ export default async function initial_data_seed({
     input: {
       salesChannelsData: [
         {
-          name: "Construction Hub",
+          name: "Construct Mitra",
           description: "Default sales channel",
         },
       ],
@@ -110,7 +110,7 @@ export default async function initial_data_seed({
     input: {
       stores: [
         {
-          name: "Construction Hub",
+          name: "Construct Mitra",
           supported_currencies: [
             {
               currency_code: "inr",
@@ -149,7 +149,7 @@ export default async function initial_data_seed({
     input: {
       locations: [
         {
-          name: "Construction Hub Yard",
+          name: "Construct Mitra Yard",
           address: {
             city: "Davangere",
             country_code: "IN",
@@ -179,7 +179,7 @@ export default async function initial_data_seed({
   const shippingProfile = shippingProfileResult[0];
 
   const fulfillmentSet = await fulfillmentModuleService.createFulfillmentSets({
-    name: "Construction Hub delivery",
+    name: "Construct Mitra delivery",
     type: "shipping",
     service_zones: [
       {
@@ -213,7 +213,7 @@ export default async function initial_data_seed({
         shipping_profile_id: shippingProfile.id,
         type: {
           label: "Business Delivery",
-          description: "Delivered by Construction Hub's own vehicle.",
+          description: "Delivered by Construct Mitra's own vehicle.",
           code: "business-delivery",
         },
         prices: [

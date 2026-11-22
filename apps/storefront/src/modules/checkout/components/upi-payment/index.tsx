@@ -6,7 +6,7 @@ import LocalizedClientLink from "@modules/common/components/localized-client-lin
 import { convertToLocale } from "@lib/util/money"
 
 const UPI_VPA = process.env.NEXT_PUBLIC_UPI_VPA
-const UPI_PAYEE_NAME = process.env.NEXT_PUBLIC_UPI_PAYEE_NAME ?? "Construction Hub"
+const UPI_PAYEE_NAME = process.env.NEXT_PUBLIC_UPI_PAYEE_NAME ?? "Construct Mitra"
 
 type UpiPaymentProps = {
   amount: number
