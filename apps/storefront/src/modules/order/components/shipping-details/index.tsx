@@ -13,9 +13,10 @@ const ShippingDetails = ({ order }: ShippingDetailsProps) => {
       <Heading level="h2" className="flex flex-row text-3xl-regular my-6">
         Delivery
       </Heading>
-      <div className="flex items-start gap-x-8">
+      {/* Stacked on a phone, side by side from the `small` width up. */}
+      <div className="flex flex-col gap-y-5 small:flex-row small:items-start small:gap-x-8">
         <div
-          className="flex flex-col w-1/2"
+          className="flex flex-col w-full small:w-1/2 min-w-0"
           data-testid="shipping-address-summary"
         >
           <Text className="txt-medium-plus text-ui-fg-base mb-1">
@@ -39,14 +40,16 @@ const ShippingDetails = ({ order }: ShippingDetailsProps) => {
         </div>
 
         <div
-          className="flex flex-col w-1/2"
+          className="flex flex-col w-full small:w-1/2 min-w-0"
           data-testid="shipping-contact-summary"
         >
           <Text className="txt-medium-plus text-ui-fg-base mb-1">Contact</Text>
           <Text className="txt-medium text-ui-fg-subtle">
             {order.shipping_address?.phone}
           </Text>
-          <Text className="txt-medium text-ui-fg-subtle">{order.email}</Text>
+          <Text className="txt-medium text-ui-fg-subtle break-words">
+            {order.email}
+          </Text>
         </div>
       </div>
       <Divider className="mt-8" />

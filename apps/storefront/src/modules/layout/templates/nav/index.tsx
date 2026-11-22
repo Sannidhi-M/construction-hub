@@ -4,7 +4,6 @@ import { User } from "@medusajs/icons"
 import { retrieveCustomer } from "@lib/data/customer"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import CartButton from "@modules/layout/components/cart-button"
-import SideMenu from "@modules/layout/components/side-menu"
 import LogoMark from "@modules/common/icons/logo-mark"
 import NavLinks from "@modules/layout/components/nav-links"
 import { SITE_NAME, SITE_LOCATION, SITE_PHONE } from "@lib/constants"
@@ -35,17 +34,14 @@ export default async function Nav() {
 
       <header className="relative h-16 mx-auto bg-white border-b border-ui-border-base shadow-sm">
         <nav className="content-container flex items-center justify-between w-full h-full">
-          <div className="flex items-center h-full gap-x-4">
-            <div className="h-full small:hidden">
-              <SideMenu />
-            </div>
+          <div className="flex items-center h-full gap-x-4 min-w-0">
             <LocalizedClientLink
               href="/"
-              className="flex items-center gap-x-2"
+              className="flex shrink-0 items-center gap-x-2"
               data-testid="nav-store-link"
             >
               <LogoMark size="30" color="#F97415" />
-              <span className="text-xl font-extrabold text-gray-900 tracking-tight">
+              <span className="whitespace-nowrap text-lg small:text-xl font-extrabold text-gray-900 tracking-tight">
                 {SITE_NAME}
               </span>
             </LocalizedClientLink>
@@ -55,7 +51,7 @@ export default async function Nav() {
             <NavLinks links={primaryNavLinks} />
           </div>
 
-          <div className="flex items-center gap-x-6 h-full">
+          <div className="flex shrink-0 items-center gap-x-3 small:gap-x-6 h-full">
             <div className="hidden small:flex items-center gap-x-6 h-full">
               <LocalizedClientLink
                 className="flex items-center gap-x-1.5 text-sm font-semibold text-gray-900 hover:text-brand-500 transition-colors"
@@ -66,6 +62,16 @@ export default async function Nav() {
                 {customer ? customer.first_name || "Account" : "Sign In"}
               </LocalizedClientLink>
             </div>
+            {/* A phone has the bottom tab bar for the sections (so no Menu
+                button), but still needs a way to Sign In / open the account. */}
+            <LocalizedClientLink
+              className="small:hidden flex h-9 w-9 items-center justify-center rounded-full text-gray-900 hover:bg-gray-100 transition-colors"
+              href="/account"
+              aria-label={customer ? "My account" : "Sign in"}
+              data-testid="nav-account-link-mobile"
+            >
+              <User />
+            </LocalizedClientLink>
             <Suspense
               fallback={
                 <LocalizedClientLink
@@ -73,7 +79,7 @@ export default async function Nav() {
                   href="/cart"
                   data-testid="nav-cart-link"
                 >
-                  Cart (0)
+                  <span className="max-small:sr-only">Cart</span> (0)
                 </LocalizedClientLink>
               }
             >

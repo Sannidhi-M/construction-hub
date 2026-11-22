@@ -47,12 +47,14 @@ const CartDropdown = ({
       <Popover className="relative h-full">
         <PopoverButton className="h-full">
           <LocalizedClientLink
-            className="inline-flex items-center gap-x-2 rounded-md bg-brand-500 text-white px-3 h-9 text-sm font-semibold hover:bg-brand-600 transition-colors"
+            className="inline-flex items-center gap-x-2 max-small:gap-x-1.5 rounded-md bg-brand-500 text-white px-3 h-9 text-sm font-semibold hover:bg-brand-600 transition-colors"
             href="/cart"
             data-testid="nav-cart-link"
           >
             <ShoppingCart />
-            Cart
+            {/* The word is dropped on a phone (icon and count are enough and
+                the logo needs the room); it stays for screen readers. */}
+            <span className="max-small:sr-only">Cart</span>
             <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white text-brand-600 text-xs font-bold">
               {totalItems}
             </span>

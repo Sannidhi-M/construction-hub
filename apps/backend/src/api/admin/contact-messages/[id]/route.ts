@@ -2,6 +2,7 @@ import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { CONTACT_MESSAGE_MODULE } from "../../../../modules/contact-message"
 import ContactMessageModuleService from "../../../../modules/contact-message/service"
 import updateContactMessageStatusWorkflow from "../../../../workflows/update-contact-message-status"
+import deleteContactMessageWorkflow from "../../../../workflows/delete-contact-message"
 
 const STATUSES = ["new", "replied", "closed"] as const
 
@@ -41,4 +42,12 @@ export async function POST(
   })
 
   res.json({ contact_message: contactMessage })
+}
+
+export async function DELETE(req: MedusaRequest, res: MedusaResponse) {
+  await deleteContactMessageWorkflow(req.scope).run({
+    input: req.params.id,
+  })
+
+  res.json({ id: req.params.id, deleted: true })
 }

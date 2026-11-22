@@ -8,6 +8,7 @@ import Items from "@modules/order/components/items"
 import OrderDetails from "@modules/order/components/order-details"
 import OrderTracker from "@modules/order/components/order-tracker"
 import OrderSummary from "@modules/order/components/order-summary"
+import ReportProblem from "@modules/order/components/report-problem"
 import ShippingDetails from "@modules/order/components/shipping-details"
 import UpiPayment from "@modules/checkout/components/upi-payment"
 import { confirmPaymentSubmitted } from "@lib/data/orders"
@@ -34,13 +35,15 @@ const OrderDetailsTemplate: React.FC<OrderDetailsTemplateProps> = ({
   return (
     <div className="flex flex-col justify-center gap-y-4">
       <div className="flex gap-2 justify-between items-center">
-        <h1 className="text-2xl-semi">Order details</h1>
+        <h1 className="text-2xl-semi whitespace-nowrap">Order details</h1>
         <LocalizedClientLink
           href="/account/orders"
-          className="flex gap-2 items-center text-ui-fg-subtle hover:text-ui-fg-base"
+          className="flex shrink-0 gap-2 items-center whitespace-nowrap text-ui-fg-subtle hover:text-ui-fg-base"
           data-testid="back-to-overview-button"
         >
-          <XMark /> Back to overview
+          <XMark />
+          <span className="small:hidden">Back</span>
+          <span className="hidden small:inline">Back to overview</span>
         </LocalizedClientLink>
       </div>
       <div
@@ -93,6 +96,9 @@ const OrderDetailsTemplate: React.FC<OrderDetailsTemplateProps> = ({
         <Items order={order} />
         <ShippingDetails order={order} />
         <OrderSummary order={order} />
+        {customerStatus === "Delivered" && order.display_id != null && (
+          <ReportProblem displayId={order.display_id} />
+        )}
         <Help />
       </div>
     </div>

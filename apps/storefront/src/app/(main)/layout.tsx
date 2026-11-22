@@ -5,6 +5,7 @@ import { retrieveCustomer } from "@lib/data/customer"
 import { getBaseURL } from "@lib/util/env"
 import { StoreCartShippingOption } from "@medusajs/types"
 import CartMismatchBanner from "@modules/layout/components/cart-mismatch-banner"
+import BottomNav from "@modules/layout/components/bottom-nav"
 import Footer from "@modules/layout/templates/footer"
 import WhatsAppButton from "@modules/layout/components/whatsapp-button"
 import Nav from "@modules/layout/templates/nav"
@@ -40,7 +41,12 @@ export default async function PageLayout(props: { children: React.ReactNode }) {
         />
       )}
       {props.children}
-      <Footer />
+      {/* The padding keeps the footer's last lines clear of the phone's bottom
+          tab bar (0 from the `small` width up). */}
+      <div className="bg-gray-900 pb-[var(--bottom-nav-offset)]">
+        <Footer />
+      </div>
+      <BottomNav />
       <WhatsAppButton />
     </>
   )

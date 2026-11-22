@@ -461,3 +461,57 @@ From the QA pass: asking for more than is in stock showed the raw Medusa text ("
 ## Business name made consistent: Construct Mitra (done)
 
 The site's name is "Construct Mitra" (`SITE_NAME` in `lib/constants.tsx`; domain constructmitra.in), but the project had been started as "ConstructHub" / "Construction Hub". All code and the seed script already used Construct Mitra; what remained was in the database and the docs. Database: the sales channel, the stock location ("Construct Mitra Yard"), the fulfillment set ("Construct Mitra delivery") and the delivery option's description ("Delivered by Construct Mitra's own vehicle") were renamed, and a search of the whole database shows no remaining mention outside Medusa's internal workflow log of past test orders. Docs: the setup guide, launch checklist and architecture document now use the new name. **Left as they are on purpose**: earlier entries in this progress log (they record what was true when written, under the old name), the repository folder and GitHub repository name (`construction-hub`), the npm package scope, and the Firebase project id `contructhub-ee101` (it cannot be renamed; only its display name can). **Still to do by the owner**: in the Firebase console, Project settings, General, set the public-facing name to "Construct Mitra"; Firebase uses it in the text of the SMS it sends ("... is your verification code for <name>").
+
+## Small fixes: contact limit, note length, contact delete, photo cleanup (done)
+
+Design in ARCHITECTURE.md §3 (last paragraph). From the QA "smaller fixes" list, at the owner's direction: **contact form limit** now counts accepted messages only (tested: 8 invalid submissions all 400, then 5 valid 201, the 6th 429); **admin note limit** of 2000 characters (tested 2000 accepted, 2001 refused, in the contact and quote workflows); **contact message delete** (workflow, route and a Delete button with a confirm on the Admin page; workflow tested, the Admin button and HTTP route need an Admin login and were only type-checked); **stored photo cleanup** (nine checks pass: delete, replace and clear a labour service photo, a file shared by two services kept until the last goes, relative built-in paths ignored, a deleted product's photo removed, a product photo still used by a labour service kept). My first version looked images up with a query name that does not exist; the tests caught it (the failure is logged, not thrown, so it would have silently done nothing), and it now uses the product's own images.
+
+**Not done**: the React `<div>` inside `<p>` console warning on one Admin page. The Admin pages were read and no `<Text>` (a `<p>`) wraps a block element, so the source is likely one of Medusa's own components; it needs the browser console (which page, and the component stack) to find. It only shows in the console. **Existing orphans**: photos left behind by products deleted before this change (for example from QA testing) are not removed; delete them by hand from `apps/backend/static/` locally, or ignore.
+
+## QA order-lifecycle findings: decisions
+
+- **Shipped orders cannot be cancelled in Admin**: working as intended, no change. A refused or failed delivery is handled as delivered, then returned.
+- **Completed orders stay `status: pending`**: harmless. The only place the code reads an order's own `status` is to test for `canceled` (the customer status mapping in `lib/util/order-status.ts` and the payment-verification workflow); everything else uses the payment and fulfillment statuses, so nothing depends on `completed`. 43 orders are `pending` and 4 `canceled` in the development database.
+- **Returns done out of sequence** (receiving with no items requested) were accepted by the API and cancelled the order's payment collection. Returns should be done in order through the Admin's return screens: create the return, choose the items, request it, then receive it. Not changed.
+
+## "Report a problem" on delivered orders (done, not seen in a browser)
+
+The storefront has no returns feature (returns are manual by phone/WhatsApp per the Refund & Cancellation Policy; the order page only had "Need help? Contact us"). At the owner's request, a **Report a problem** button now appears on the order detail page for **Delivered** orders only, opening WhatsApp with the order number pre-filled (ARCHITECTURE.md section 4.7). Type-checked only: order pages need a signed-in customer who owns a delivered order, so it has not been rendered; the WhatsApp message text and the Delivered-only condition (`customerStatus === "Delivered"`) should be checked on one delivered and one undelivered order. No time limit is applied: the policy's 48-hour window (unconfirmed, see the launch checklist) is mentioned in the policy page, not enforced here.
+
+## Cart rows fit a phone (done, not seen in a browser)
+
+The owner showed the cart page at 400 px wide with the price column cut off: it is a six-column table with 24 px of padding in each cell and could not fit. On a phone each full cart row is now a compact card (photo on the left; name, option and quantity stepper in the middle; total and delete on the right) and the table header is hidden; desktop is unchanged, and the checkout summary rows (`type="preview"`) are untouched. Needed a new Tailwind screen, `max-small` (below 1024 px, `tailwind.config.js`). Checked: the type-check is clean, and Tailwind generates the new classes. **Not checked on a phone or narrow window**: how it looks, and whether long product names or large quantities still fit in the middle column. Other pages were not re-checked at this width.
+
+## Phone layout: address summaries stack (done, not seen in a browser)
+
+At 400 px the checkout's address summary (Shipping Address, Contact, Billing Address as three one-third columns) overlapped: the phone number and email ran into the Billing column. On a phone the three blocks now stack one under the other and become three columns again from the `small` width (1024 px); the email can wrap. The same two-column Shipping Address / Contact pair on the order page's Delivery section got the same treatment, and the checkout's one-item "Method" box is full width on a phone. Type-checked only; not looked at on a phone.
+
+## Orders page on a phone (done, not seen in a browser)
+
+The owner's 400 px screenshot of "Orders & Requests" showed the page wider than the screen. Two causes: the order card's photo was meant to be 64 px, but the shared `Thumbnail` always carries its own `w-full`, which beat `w-16` (the larger-valued utility wins, there is no class merging), so the photo grew to the whole card; and the price/status block could not shrink, so the long "Payment Verification Pending" badge pushed the page wider. Fixes: the photo width is forced (`!w-16 small:!w-20`); on a phone the price and status of the order, labour booking and engineering request cards drop to their own row (price left, status right, status text may wrap) and return to a column from `small`; the account content card has less padding on a phone and `min-w-0` so it cannot be stretched by its contents. Type-checked only; not looked at on a phone. The other account pages (profile, addresses, order detail) were not re-checked at this width.
+
+## Detail page headings on a phone (done, not seen in a browser)
+
+"Order details" wrapped onto two lines at 400 px because the "Back to overview" link took half the row. The headings of the order, labour booking and engineering request detail pages now stay on one line, and the link reads just "Back" on a phone (full "Back to overview" from the `small` width up). Type-checked only.
+
+## Order status: line joining the steps on a phone (done, not seen in a browser)
+
+On a phone the order status tracker is a vertical list of circled steps with nothing between them. A thin vertical line now joins each circle to the next (grey, orange once the next step is reached), so it reads as a sequence; the circles are aligned to the top of each step's text instead of centred, which the line needs. On wide screens the existing horizontal line is unchanged. `StatusTracker` is shared, so the labour booking and engineering request pages get it too. Type-checked only.
+
+## Phone bottom tab bar (done, not seen in a browser)
+
+Requested from a marketplace app reference: a bottom navigation bar on phones (Home, Materials, Labour, Engineering, Contact), since the top links collapse into Menu there. Built as ARCHITECTURE.md section 4.7 describes. Choices made without asking: five items matching the top links; Cart stays in the top bar; no bar on checkout; the active item is highlighted in orange with a light pill behind the icon. Things moved to sit above it: the floating WhatsApp button, the free-shipping popup, the product page's fixed Add to cart bar. Checked: type-check clean; the server-rendered HTML of the home, store, labour and contact pages contains the bar; Tailwind generates the offset classes. **Not checked**: how it looks on a phone, the active highlighting while navigating, the WhatsApp hop animation position, and the product page bar stacking above it (all need a phone-sized browser).
+
+The bottom tab bar order was changed at the owner's request to Materials, Labour, Home, Engineering, Contact (Home in the middle).
+
+## "View All" on phones (done, not seen in a browser)
+
+The section headings' "View All" button (home page Materials and Labour sections) was hidden below 512 px by a rule from the original homepage redesign, so it never showed on a phone. It now shows on every width: the heading and the button share a row (heading one size smaller and the button compact on a phone), with the description below them; from the `small` width the layout is as before (description under the heading, button at the bottom right). Type-checked only; a long heading on a 360 px phone may wrap onto two lines.
+
+## Phone Menu button removed (done, not seen in a browser)
+
+With the bottom tab bar covering Materials, Labour, Engineering and Contact, the owner did not want the Menu button and its full-screen panel. The panel's other entries were Account and Cart: Cart is already in the top bar, and Account would have been unreachable on a phone (its top-bar link is hidden below 1024 px), so a round account icon (Sign in / My account) now sits beside the Cart button in the phone's top bar. The unused `side-menu` component was deleted. Type-checked, and the home page no longer contains the Menu button; not looked at on a phone.
+
+## Phone top bar: name on one line (done, not seen in a browser)
+
+At 393 px "Construct Mitra" wrapped onto two lines because the Cart button (icon, the word "Cart" and the count) and the account icon took the room. On a phone the word "Cart" is now hidden (kept for screen readers; the icon and item count stay), the gaps between the right-hand buttons are smaller, the name cannot wrap and is a size smaller; wide screens are unchanged. Type-checked and the classes are generated; not looked at on a phone (a very narrow 320-360 px phone is the case to check).

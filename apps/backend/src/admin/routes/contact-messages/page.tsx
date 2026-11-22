@@ -3,6 +3,7 @@ import { defineRouteConfig } from "@medusajs/admin-sdk"
 import { ChatBubbleLeftRight } from "@medusajs/icons"
 import {
   Badge,
+  Button,
   Container,
   Heading,
   Select,
@@ -64,6 +65,35 @@ const ContactMessagesPage = () => {
     }
   }
 
+  // Removes a message from the inbox (spam, tests). It is kept in the database
+  // with a deleted timestamp, so it can be recovered by a developer.
+  const deleteMessage = async (contactMessage: ContactMessage) => {
+    if (
+      !window.confirm(
+        `Delete the message from ${contactMessage.name}? It will be removed from this list.`
+      )
+    ) {
+      return
+    }
+    setUpdatingId(contactMessage.id)
+    try {
+      const res = await fetch(`/admin/contact-messages/${contactMessage.id}`, {
+        method: "DELETE",
+        credentials: "include",
+      })
+      if (!res.ok) {
+        throw new Error((await res.json().catch(() => ({})))?.message ?? "Request failed")
+      }
+      await load()
+    } catch (err) {
+      toast.error("Couldn't delete the message", {
+        description: err instanceof Error ? err.message : String(err),
+      })
+    } finally {
+      setUpdatingId(null)
+    }
+  }
+
   return (
     <Container className="divide-y p-0">
       <div className="flex items-center justify-between px-6 py-4">
@@ -81,6 +111,7 @@ const ContactMessagesPage = () => {
             <Table.HeaderCell>Subject</Table.HeaderCell>
             <Table.HeaderCell>Message</Table.HeaderCell>
             <Table.HeaderCell>Status</Table.HeaderCell>
+            <Table.HeaderCell />
             <Table.HeaderCell />
           </Table.Row>
         </Table.Header>
@@ -126,6 +157,16 @@ const ContactMessagesPage = () => {
                     <Select.Item value="closed">Closed</Select.Item>
                   </Select.Content>
                 </Select>
+              </Table.Cell>
+              <Table.Cell>
+                <Button
+                  size="small"
+                  variant="danger"
+                  disabled={updatingId === contactMessage.id}
+                  onClick={() => deleteMessage(contactMessage)}
+                >
+                  Delete
+                </Button>
               </Table.Cell>
             </Table.Row>
           ))}

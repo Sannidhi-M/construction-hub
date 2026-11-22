@@ -6,6 +6,7 @@ import {
 } from "@medusajs/framework/workflows-sdk"
 import { LABOUR_BOOKING_MODULE } from "../modules/labour-booking"
 import LabourBookingModuleService from "../modules/labour-booking/service"
+import { parseAdminNote } from "../lib/admin-note"
 import { assertStatusTransition } from "../modules/labour-booking/status"
 
 type UpdateLabourBookingStatusInput = {
@@ -26,10 +27,11 @@ const updateLabourBookingStatusStep = createStep(
 
     assertStatusTransition(previous.status, input.status)
 
+    const adminNote = parseAdminNote(input.admin_note)
     const updated = await labourBookingModuleService.updateLabourBookings({
       id: input.id,
       status: input.status,
-      admin_note: input.admin_note,
+      ...(adminNote !== undefined && { admin_note: adminNote }),
     })
 
     return new StepResponse(updated, previous)

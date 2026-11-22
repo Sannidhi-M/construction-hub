@@ -4,6 +4,7 @@ import {
   StepResponse,
   WorkflowResponse,
 } from "@medusajs/framework/workflows-sdk"
+import { parseAdminNote } from "../lib/admin-note"
 import { CONTACT_MESSAGE_MODULE } from "../modules/contact-message"
 import ContactMessageModuleService from "../modules/contact-message/service"
 
@@ -23,8 +24,12 @@ const updateContactMessageStatusStep = createStep(
       input.id
     )
 
-    const updated =
-      await contactMessageModuleService.updateContactMessages(input)
+    const adminNote = parseAdminNote(input.admin_note)
+    const updated = await contactMessageModuleService.updateContactMessages({
+      id: input.id,
+      status: input.status,
+      ...(adminNote !== undefined && { admin_note: adminNote }),
+    })
 
     return new StepResponse(updated, previous)
   },

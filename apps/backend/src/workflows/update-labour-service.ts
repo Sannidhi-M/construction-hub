@@ -2,10 +2,12 @@ import {
   createStep,
   createWorkflow,
   StepResponse,
+  transform,
   WorkflowResponse,
 } from "@medusajs/framework/workflows-sdk"
 import { LABOUR_BOOKING_MODULE } from "../modules/labour-booking"
 import LabourBookingModuleService from "../modules/labour-booking/service"
+import { deleteUploadedFileIfUnused } from "../lib/uploaded-files"
 import {
   LabourServiceFields,
   validateLabourServiceFields,
@@ -45,7 +47,10 @@ const updateLabourServiceStep = createStep(
       ...(changes.sort_order !== undefined && { sort_order: changes.sort_order }),
     })
 
-    return new StepResponse(updated, previous)
+    return new StepResponse(
+      { updated, replacedPhoto: previous.image_url !== updated.image_url ? previous.image_url : null },
+      previous
+    )
   },
   async (
     previous:
@@ -73,10 +78,26 @@ const updateLabourServiceStep = createStep(
   }
 )
 
+// Last step, no compensation: a photo that was replaced or cleared is removed
+// from storage once the update has really gone through.
+const removeReplacedPhotoStep = createStep(
+  "remove-replaced-labour-service-photo",
+  async (url: string | null | undefined, { container }) => {
+    await deleteUploadedFileIfUnused(container, url)
+    return new StepResponse(undefined)
+  }
+)
+
 const updateLabourServiceWorkflow = createWorkflow(
   "update-labour-service",
   (input: UpdateLabourServiceInput) => {
-    return new WorkflowResponse(updateLabourServiceStep(input))
+    const result = updateLabourServiceStep(input)
+    removeReplacedPhotoStep(
+      transform({ result }, ({ result }) => result.replacedPhoto)
+    )
+    return new WorkflowResponse(
+      transform({ result }, ({ result }) => result.updated)
+    )
   }
 )
 

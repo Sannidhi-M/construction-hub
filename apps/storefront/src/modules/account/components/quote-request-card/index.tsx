@@ -17,7 +17,7 @@ const QuoteRequestCard = ({ quoteRequest }: { quoteRequest: QuoteRequest }) => {
   return (
     <LocalizedClientLink
       href={`/account/orders/engineering/${quoteRequest.id}`}
-      className="group flex items-center gap-x-4 small:gap-x-6 bg-white border border-gray-200 rounded-lg p-3 small:p-4 hover:border-gray-300 hover:shadow-md transition-shadow"
+      className="group flex flex-wrap items-center gap-x-4 gap-y-3 small:flex-nowrap small:gap-x-6 bg-white border border-gray-200 rounded-lg p-3 small:p-4 hover:border-gray-300 hover:shadow-md transition-shadow"
       data-testid="quote-request-card"
     >
       <div className="flex w-16 small:w-20 aspect-square shrink-0 items-center justify-center rounded-large bg-brand-50 text-brand-600">
@@ -44,13 +44,16 @@ const QuoteRequestCard = ({ quoteRequest }: { quoteRequest: QuoteRequest }) => {
         </span>
       </div>
 
-      <Badge
-        color={QUOTE_STATUS_COLOR[quoteRequest.status]}
-        className="shrink-0"
-        data-testid="quote-status"
-      >
-        {QUOTE_STATUS_LABEL[quoteRequest.status]}
-      </Badge>
+      {/* Own row on a phone (no room beside the details). */}
+      <div className="flex w-full justify-start small:w-auto small:shrink-0">
+        <Badge
+          color={QUOTE_STATUS_COLOR[quoteRequest.status]}
+          className="whitespace-normal"
+          data-testid="quote-status"
+        >
+          {QUOTE_STATUS_LABEL[quoteRequest.status]}
+        </Badge>
+      </div>
 
       <ChevronRight
         className="hidden small:block shrink-0 text-gray-400 group-hover:text-gray-600"

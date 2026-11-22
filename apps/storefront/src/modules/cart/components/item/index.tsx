@@ -77,8 +77,22 @@ const Item = ({ item, type = "full", currencyCode }: ItemProps) => {
   }
 
   return (
-    <Table.Row className="w-full" data-testid="product-row">
-      <Table.Cell className="!pl-0 p-4 w-24">
+    <Table.Row
+      // On a phone a full cart row is a compact card (photo | name + quantity
+      // | price + delete); six table columns with 24px of padding each cannot
+      // fit in 400px and ran off the screen.
+      className={clx("w-full", {
+        "max-small:grid max-small:grid-cols-[3rem_minmax(0,1fr)_auto] max-small:gap-x-3 max-small:gap-y-2 max-small:py-4":
+          type === "full",
+      })}
+      data-testid="product-row"
+    >
+      <Table.Cell
+        className={clx("!pl-0 p-4 w-24", {
+          "max-small:row-span-2 max-small:col-start-1 max-small:!p-0 max-small:w-auto":
+            type === "full",
+        })}
+      >
         <LocalizedClientLink
           href={`/products/${item.product_handle}`}
           className={clx("flex", {
@@ -94,7 +108,12 @@ const Item = ({ item, type = "full", currencyCode }: ItemProps) => {
         </LocalizedClientLink>
       </Table.Cell>
 
-      <Table.Cell className="text-left">
+      <Table.Cell
+        className={clx("text-left", {
+          "max-small:col-start-2 max-small:row-start-1 max-small:!p-0 max-small:h-auto max-small:min-w-0":
+            type === "full",
+        })}
+      >
         <Text
           className="txt-medium-plus text-ui-fg-base"
           data-testid="product-title"
@@ -105,7 +124,7 @@ const Item = ({ item, type = "full", currencyCode }: ItemProps) => {
       </Table.Cell>
 
       {type === "full" && (
-        <Table.Cell>
+        <Table.Cell className="max-small:col-start-2 max-small:row-start-2 max-small:!p-0 max-small:h-auto">
           <div className="flex items-center gap-2">
             <div className="flex items-center border border-gray-300 rounded-md">
               <button
@@ -164,7 +183,13 @@ const Item = ({ item, type = "full", currencyCode }: ItemProps) => {
         </Table.Cell>
       )}
 
-      <Table.Cell className={type === "full" ? undefined : "!pr-0"}>
+      <Table.Cell
+        className={
+          type === "full"
+            ? "max-small:col-start-3 max-small:row-start-1 max-small:!p-0 max-small:h-auto max-small:text-right max-small:whitespace-nowrap"
+            : "!pr-0"
+        }
+      >
         <span
           className={clx({
             "flex flex-col items-end h-full justify-center": type === "preview",
@@ -189,7 +214,10 @@ const Item = ({ item, type = "full", currencyCode }: ItemProps) => {
       </Table.Cell>
 
       {type === "full" && (
-        <Table.Cell className="!pr-0 text-right" data-testid="product-delete-button">
+        <Table.Cell
+          className="!pr-0 text-right max-small:col-start-3 max-small:row-start-2 max-small:h-auto max-small:!p-0"
+          data-testid="product-delete-button"
+        >
           <DeleteButton id={item.id} className="justify-end" />
         </Table.Cell>
       )}

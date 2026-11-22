@@ -20,7 +20,7 @@ const WhatsAppButton = () => (
   // and `ease-*` utilities (needed on the link for the hover grow) also set
   // `animation-duration` / `animation-timing-function`, which squashed the
   // four hops into 0.2s so they read as one blink.
-  <div className="fixed bottom-5 right-5 z-40 animate-whatsapp-hop motion-reduce:animate-none">
+  <div className="fixed bottom-[calc(var(--bottom-nav-offset)+1.25rem)] right-5 z-40 animate-whatsapp-hop motion-reduce:animate-none">
     <a
       href={WHATSAPP_URL}
       target="_blank"

@@ -49,6 +49,18 @@
   }
 }
 
+/* Height of the phone's bottom tab bar (4rem + the phone's bottom safe area),
+   0 where that bar is hidden (from the `small` width, 1024px). Fixed things at
+   the bottom of the screen sit above it by using this. */
+:root {
+  --bottom-nav-offset: 0px;
+}
+@media (max-width: 1023px) {
+  :root {
+    --bottom-nav-offset: calc(4rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
 @layer components {
   .content-container {
     @apply max-w-[1440px] w-full mx-auto px-6;

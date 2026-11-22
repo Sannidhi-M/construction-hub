@@ -70,6 +70,9 @@ module.exports = {
         large: "1440px",
         xlarge: "1680px",
         "2xlarge": "1920px",
+        // Below the `small` width (phones and small tablets), for layouts that
+        // change shape there (the cart rows). Must stay last so it wins.
+        "max-small": { max: "1023px" },
       },
       fontSize: {
         "3xl": "2rem",

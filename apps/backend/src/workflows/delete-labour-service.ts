@@ -2,10 +2,12 @@ import {
   createStep,
   createWorkflow,
   StepResponse,
+  transform,
   WorkflowResponse,
 } from "@medusajs/framework/workflows-sdk"
 import { LABOUR_BOOKING_MODULE } from "../modules/labour-booking"
 import LabourBookingModuleService from "../modules/labour-booking/service"
+import { deleteUploadedFileIfUnused } from "../lib/uploaded-files"
 
 const deleteLabourServiceStep = createStep(
   "delete-labour-service",
@@ -18,7 +20,7 @@ const deleteLabourServiceStep = createStep(
     const previous = await service.retrieveLabourService(id)
     await service.deleteLabourServices(id)
 
-    return new StepResponse(undefined, previous)
+    return new StepResponse(previous, previous)
   },
   async (
     previous:
@@ -46,10 +48,24 @@ const deleteLabourServiceStep = createStep(
   }
 )
 
+// Last step, no compensation: once the service is really gone, its uploaded
+// photo goes too (unless something else still uses the same file).
+const removeLabourServicePhotoStep = createStep(
+  "remove-labour-service-photo",
+  async (url: string | null | undefined, { container }) => {
+    await deleteUploadedFileIfUnused(container, url)
+    return new StepResponse(undefined)
+  }
+)
+
 const deleteLabourServiceWorkflow = createWorkflow(
   "delete-labour-service",
   (id: string) => {
-    return new WorkflowResponse(deleteLabourServiceStep(id))
+    const removed = deleteLabourServiceStep(id)
+    removeLabourServicePhotoStep(
+      transform({ removed }, ({ removed }) => removed?.image_url)
+    )
+    return new WorkflowResponse(removed)
   }
 )
 

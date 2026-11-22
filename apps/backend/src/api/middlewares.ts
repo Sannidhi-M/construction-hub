@@ -6,15 +6,24 @@ import { getRedisClient } from "../lib/redis"
  * Per-IP request limit backed by Redis — a fixed one-hour window per IP.
  * One factory so each limited endpoint gets its own counter (`keyPrefix`)
  * and its own ceiling.
+ *
+ * By default every request counts. With `countOnlyAccepted` a request counts
+ * only once it has succeeded (status below 400): a visitor whose submissions
+ * keep failing validation (typos) is never locked out by them, while a bot
+ * that is "accepted" every time still hits the ceiling. The check happens
+ * before the request and the count after it, so a burst of simultaneous
+ * requests can slip a few past the ceiling — acceptable for abuse control.
  */
 function createIpRateLimit({
   keyPrefix,
   maxPerHour,
   message,
+  countOnlyAccepted = false,
 }: {
   keyPrefix: string
   maxPerHour: number
   message: string
+  countOnlyAccepted?: boolean
 }) {
   return async function ipRateLimit(
     req: MedusaRequest,
@@ -24,6 +33,26 @@ function createIpRateLimit({
     const ip = req.ip ?? "unknown"
     const redis = getRedisClient()
     const key = `${keyPrefix}:${ip}`
+
+    if (countOnlyAccepted) {
+      const current = parseInt((await redis.get(key)) ?? "0", 10)
+      if (current >= maxPerHour) {
+        res.status(429).json({ message })
+        return
+      }
+
+      res.on("finish", () => {
+        if (res.statusCode >= 400) {
+          return
+        }
+        redis
+          .incr(key)
+          .then((count) => (count === 1 ? redis.expire(key, 3600) : undefined))
+          .catch(() => undefined)
+      })
+      next()
+      return
+    }
 
     const count = await redis.incr(key)
     if (count === 1) {
@@ -51,9 +80,11 @@ const phoneAuthIpRateLimit = createIpRateLimit({
 
 // The contact form is open to anyone, so this is its main abuse brake (with
 // the honeypot and the workflow's validation). Low on purpose: a real person
-// sends one or two messages, not five in an hour.
+// sends one or two messages, not five in an hour. Only accepted messages
+// count, so typos (rejected by validation) can't lock a real visitor out.
 const contactMessageIpRateLimit = createIpRateLimit({
   keyPrefix: "contact-message:ip-ratelimit",
+  countOnlyAccepted: true,
   maxPerHour: 5,
   message: "Too many messages sent from this network. Please try again later.",
 })

@@ -30,13 +30,15 @@ const LabourBookingDetailsTemplate = ({ booking }: { booking: LabourBooking }) =
   return (
     <div className="flex flex-col justify-center gap-y-4">
       <div className="flex gap-2 justify-between items-center">
-        <h1 className="text-2xl-semi">Booking details</h1>
+        <h1 className="text-2xl-semi whitespace-nowrap">Booking details</h1>
         <LocalizedClientLink
           href="/account/orders?tab=labour"
-          className="flex gap-2 items-center text-ui-fg-subtle hover:text-ui-fg-base"
+          className="flex shrink-0 gap-2 items-center whitespace-nowrap text-ui-fg-subtle hover:text-ui-fg-base"
           data-testid="back-to-overview-button"
         >
-          <XMark /> Back to overview
+          <XMark />
+          <span className="small:hidden">Back</span>
+          <span className="hidden small:inline">Back to overview</span>
         </LocalizedClientLink>
       </div>
 

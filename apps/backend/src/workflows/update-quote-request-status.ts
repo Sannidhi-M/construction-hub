@@ -4,6 +4,7 @@ import {
   StepResponse,
   WorkflowResponse,
 } from "@medusajs/framework/workflows-sdk"
+import { parseAdminNote } from "../lib/admin-note"
 import { QUOTE_REQUEST_MODULE } from "../modules/quote-request"
 import QuoteRequestModuleService from "../modules/quote-request/service"
 
@@ -23,7 +24,12 @@ const updateQuoteRequestStatusStep = createStep(
       input.id
     )
 
-    const updated = await quoteRequestModuleService.updateQuoteRequests(input)
+    const adminNote = parseAdminNote(input.admin_note)
+    const updated = await quoteRequestModuleService.updateQuoteRequests({
+      id: input.id,
+      status: input.status,
+      ...(adminNote !== undefined && { admin_note: adminNote }),
+    })
 
     return new StepResponse(updated, previous)
   },

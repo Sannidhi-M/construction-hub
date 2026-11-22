@@ -4,6 +4,7 @@ import {
   StepResponse,
   WorkflowResponse,
 } from "@medusajs/framework/workflows-sdk"
+import { parseAdminNote } from "../lib/admin-note"
 import { LABOUR_BOOKING_MODULE } from "../modules/labour-booking"
 import LabourBookingModuleService from "../modules/labour-booking/service"
 
@@ -31,7 +32,7 @@ const confirmLabourBookingPaymentStep = createStep(
     const updated = await labourBookingModuleService.updateLabourBookings({
       id: input.id,
       payment_received: true,
-      admin_note: input.admin_note ?? previous.admin_note,
+      admin_note: parseAdminNote(input.admin_note) ?? previous.admin_note,
     })
 
     return new StepResponse(updated, previous)
