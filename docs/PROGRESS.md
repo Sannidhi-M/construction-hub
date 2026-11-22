@@ -515,3 +515,7 @@ With the bottom tab bar covering Materials, Labour, Engineering and Contact, the
 ## Phone top bar: name on one line (done, not seen in a browser)
 
 At 393 px "Construct Mitra" wrapped onto two lines because the Cart button (icon, the word "Cart" and the count) and the account icon took the room. On a phone the word "Cart" is now hidden (kept for screen readers; the icon and item count stay), the gaps between the right-hand buttons are smaller, the name cannot wrap and is a size smaller; wide screens are unchanged. Type-checked and the classes are generated; not looked at on a phone (a very narrow 320-360 px phone is the case to check).
+
+## Account navigation on a phone (done, not seen in a browser)
+
+On a phone the account navigation (Hello, Profile Information, Manage Addresses, My Orders & Requests, Log out) was a tall card stacked above the page content. Below the `small` width it is now a compact strip with no card: "Hello <name>" and Log out on one line, and the three sections as rounded tabs under it (Profile, Addresses, Orders; the strip scrolls sideways if a phone is too narrow); from `small` up it is the same side navigation as before. A section also stays highlighted on its sub-pages (an order's details page counts as Orders), which the old exact-match highlight did not do. The log-out confirmation is unchanged. Type-checked only.

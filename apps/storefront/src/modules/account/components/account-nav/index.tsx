@@ -14,11 +14,17 @@ import Package from "@modules/common/icons/package"
 import User from "@modules/common/icons/user"
 import { IconProps } from "types/icon"
 
+// `shortLabel` is the phone tab's label; the side navigation uses `label`.
 const navItems = [
-  { href: "/account/profile", label: "Profile Information", icon: User, testId: "profile-link" },
-  { href: "/account/addresses", label: "Manage Addresses", icon: MapPin, testId: "addresses-link" },
-  { href: "/account/orders", label: "My Orders & Requests", icon: Package, testId: "orders-link" },
+  { href: "/account/profile", label: "Profile Information", shortLabel: "Profile", icon: User, testId: "profile-link" },
+  { href: "/account/addresses", label: "Manage Addresses", shortLabel: "Addresses", icon: MapPin, testId: "addresses-link" },
+  { href: "/account/orders", label: "My Orders & Requests", shortLabel: "Orders", icon: Package, testId: "orders-link" },
 ]
+
+// A section stays highlighted on its sub-pages too (an order's details page is
+// still "Orders").
+const isActive = (route: string, href: string) =>
+  route === href || route.startsWith(`${href}/`)
 
 const AccountNav = ({
   customer,
@@ -42,7 +48,51 @@ const AccountNav = ({
   }
 
   return (
-    <div className="p-2" data-testid="account-nav">
+    <div data-testid="account-nav">
+      {/* Phone: a compact strip (name and Log out on one line, the sections as
+          tabs under it) instead of a stacked card that pushes the page down.
+          From the `small` width it becomes the side navigation below. */}
+      <div className="small:hidden" data-testid="account-nav-mobile">
+        <div className="flex items-center justify-between px-1 pb-3">
+          <span className="text-small-regular text-gray-500">
+            Hello {customer?.first_name}
+          </span>
+          <button
+            type="button"
+            onClick={() => setConfirmingLogout(true)}
+            className="inline-flex items-center gap-x-1.5 text-small-regular font-medium text-gray-600 hover:text-rose-600"
+            data-testid="logout-button-mobile"
+          >
+            <ArrowRightOnRectangle />
+            Log out
+          </button>
+        </div>
+        <ul className="flex gap-x-2 overflow-x-auto pb-1 -mx-1 px-1">
+          {navItems.map(({ href, shortLabel, icon: Icon, testId }) => {
+            const active = isActive(route!, href)
+            return (
+              <li key={href} className="shrink-0">
+                <LocalizedClientLink
+                  href={href}
+                  aria-current={active ? "page" : undefined}
+                  className={clx(
+                    "inline-flex items-center gap-x-2 rounded-full border px-4 py-2 text-small-regular font-medium whitespace-nowrap transition-colors",
+                    active
+                      ? "border-brand-500 bg-brand-50 text-brand-600"
+                      : "border-gray-200 bg-white text-gray-600"
+                  )}
+                  data-testid={`${testId}-mobile`}
+                >
+                  <Icon size={18} />
+                  {shortLabel}
+                </LocalizedClientLink>
+              </li>
+            )
+          })}
+        </ul>
+      </div>
+
+      <div className="hidden small:block p-2">
       <div className="px-2 pt-2 pb-3 text-small-regular text-gray-500">
         Hello {customer?.first_name}
       </div>
@@ -66,6 +116,7 @@ const AccountNav = ({
           </button>
         </li>
       </ul>
+      </div>
 
       <Modal
         isOpen={confirmingLogout}
@@ -115,7 +166,7 @@ const AccountNavLink = ({
   icon: Icon,
   "data-testid": dataTestId,
 }: AccountNavLinkProps) => {
-  const active = route === href
+  const active = isActive(route, href)
   return (
     <LocalizedClientLink
       href={href}

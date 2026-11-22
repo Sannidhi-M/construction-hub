@@ -34,7 +34,7 @@ const AccountLayout: React.FC<AccountLayoutProps> = ({
     <div className="flex-1 bg-gray-50 py-8 small:py-12" data-testid="account-page">
       <div className="flex-1 content-container h-full flex flex-col gap-y-6">
         <div className="grid grid-cols-1 small:grid-cols-[260px_1fr] gap-6">
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm h-fit">
+          <div className="small:bg-white small:rounded-lg small:border small:border-gray-200 small:shadow-sm h-fit">
             <AccountNav customer={customer} />
           </div>
           <div className="min-w-0 flex-1 bg-white rounded-lg border border-gray-200 shadow-sm p-4 small:p-8">
