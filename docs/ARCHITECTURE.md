@@ -30,35 +30,49 @@ All product/business decisions below were confirmed directly with the user; this
 
 ## 1. High-level Architecture
 
-```
-Customer Browser
-      │ HTTPS
-      ▼
-Next.js Storefront (Medusa Cloud storefront hosting)
-apps/storefront — App Router, no [countryCode] routing, server actions → Medusa SDK
-      │ Medusa Store API (HTTPS, JWT/cookie auth)
-      ▼
-Medusa v2 Backend (Medusa Cloud)
-apps/backend
-  ├─ Core modules (as shipped): Product, Pricing, Inventory, Customer, Cart,
-  │  Order, Fulfillment, Region
-  ├─ Custom modules:
-  │    - phone-otp-auth       (Auth Module provider: authenticate + validateCallback)
-  │    - msg91-notification   (Notification Module provider, channel: sms)
-  │    - delivery-area        (pincode allowlist)
-  ├─ Built-in System payment provider (pp_system) — no custom payment module
-  ├─ Built-in manual fulfillment provider — no custom delivery module
-  ├─ Subscriber: send-otp.ts (phone-auth.otp.generated → Notification Module)
-  └─ Admin UI + custom widgets (order verification, pincode management)
-      │                    │
-      ▼                    ▼
-  PostgreSQL           Redis
-  (Medusa Cloud)        (event bus, OTP cache, workflow locks)
+*Current as of 2026-11. The original v1 diagram showed only three custom modules; the labour, quote and contact features, the Admin pages and Firebase login were added later (sections 2.10 to 2.12, 3.1, 3.5 to 3.7).*
 
-External: MSG91, called only from the msg91-notification provider. No payment gateway anywhere in this diagram —
-the UPI QR is a static image/string rendered by the storefront; no network call to
-a payment processor is ever made.
 ```
+Customer Browser ───────────────► Firebase Auth (Google)
+      │ HTTPS                       sends/confirms the SMS code
+      ▼                             (only when PHONE_OTP_PROVIDER=firebase)
+Next.js 15 Storefront  (apps/storefront, port 8000)
+  ├─ pages: Materials, Cart, Checkout, Labour, Engineering, Contact, Account, legal
+  ├─ lib/data/*  server actions — the only code that calls the backend
+  └─ lib/otp     phone-login driver: firebase | server
+      │ Medusa Store API (HTTPS, publishable key + customer JWT)
+      ▼
+Medusa v2 Backend  (apps/backend, port 9000)
+  ├─ api/store/*, api/admin/*, auth/*  + api/middlewares.ts (auth, rate limits)
+  ├─ workflows/*  (validate, write, undo on failure) — business logic lives here
+  ├─ Core modules: Product, Pricing, Inventory, Customer, Cart, Order,
+  │  Fulfillment, Region; built-in System payment provider (pp_system) and
+  │  manual fulfillment provider — no custom payment or delivery module
+  ├─ Custom modules (own tables):
+  │    - labour-booking       labour_booking + labour_service
+  │    - quote-request        quote_request (incl. free-service claims)
+  │    - contact-message      contact_message
+  │    - delivery-area        serviceable_pincode (pincode allowlist)
+  │    - phone-otp-auth       Auth provider; mode firebase | server
+  │    - msg91-notification   Notification provider, channel sms (not live: needs DLT)
+  ├─ Subscriber: send-otp.ts (phone-auth.otp.generated → Notification Module)
+  └─ Admin UI: pages Labour Services, Labour Bookings, Quote Requests, Contact
+     Messages; order widgets (verify UPI payment, delivery schedule)
+      │                    │                      │
+      ▼                    ▼                      ▼
+  PostgreSQL           Redis                  MSG91 (server mode only)
+  (all data)           (OTP attempts,
+                        IP rate limits)
+
+Business owner ──► Medusa Admin (/app on the backend)
+
+Firebase is also reached by the backend, but only to download Google's public
+signing keys and check the ID token locally (no secret, no admin SDK).
+```
+
+A rendered version of this diagram, with the phone-login sequence and a reading list for new developers, is kept as a published page; the written setup steps are in `docs/SETUP.md` and the launch to-do list in `docs/LAUNCH-CHECKLIST.md`.
+
+No payment gateway anywhere: the UPI QR is a static image/string rendered by the storefront; no network call to a payment processor is ever made.
 
 Key boundary: admin never receives a webhook. Verification is a human action in Medusa Admin after checking their own bank app manually.
 

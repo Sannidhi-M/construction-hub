@@ -411,3 +411,7 @@ Design in ARCHITECTURE.md §2.11. The user saw a free-claim request in Admin wit
 ## Free offer: banner stays, claimed customers see their claim (done)
 
 The user asked that the banner not disappear after someone claims. It is now always shown; clicking the button as a customer who has already claimed opens `/engineering/quote?free=1` with a "You've already claimed your free service" card (service, status, date, reference, "View request details" -> My Orders detail, "Get a regular quote"). The homepage and `/engineering` no longer look up the customer for the banner. **Not verified in the browser**: the claimed card (needs a signed-in customer with a claim); type-checked only.
+
+## Handover docs (done)
+
+For a developer taking the repo over: added `docs/SETUP.md` (clean clone to running shop, including the traps), `docs/LAUNCH-CHECKLIST.md` (the pre-launch list, previously only in Claude's local memory notes), and `apps/storefront/.env.template` (every storefront variable, including the Firebase and business-detail ones that had only been in the gitignored `.env.local`). Refreshed ARCHITECTURE.md section 1, which had only three custom modules. Found while writing SETUP: `npm run backend:seed` (in AGENTS.md) does nothing because the backend defines no `seed` script; seeding is a migration script that runs inside `db:migrate`. **Not verified**: the setup steps were written from the repo and the running project, not by performing a clean install on a fresh machine.

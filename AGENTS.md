@@ -94,7 +94,9 @@ cd apps/backend
 <pm> exec medusa db:generate <module-name>   # generate migrations for a custom module
 <pm> exec medusa db:migrate                  # run migrations
 <pm> exec medusa user -e admin@test.com -p supersecret
-<pm> run backend:seed                        # from root; seeds initial data
+# Seeding: initial data is a migration script (src/migration-scripts/initial-data-seed.ts) that
+# `medusa db:migrate` runs once; the backend has no `seed` script, so `backend:seed` does nothing.
+# Full first-run walkthrough: docs/SETUP.md
 ```
 
 ## Medusa Skills & MCP Server
