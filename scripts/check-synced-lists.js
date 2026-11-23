@@ -97,4 +97,21 @@ const slugArray = (relativePath, constName) => {
   }
 }
 
+// The per-booking worker limit: one number in each app.
+{
+  const read = (relativePath) =>
+    fs
+      .readFileSync(path.join(root, relativePath), "utf8")
+      .match(/MAX_WORKERS_PER_BOOKING\s*=\s*(\d+)/)?.[1]
+  const storefront = read("apps/storefront/src/lib/util/labour-booking.ts")
+  const backend = read("apps/backend/src/workflows/create-labour-booking.ts")
+  if (storefront && storefront === backend) {
+    console.log(`  OK    labour worker limit (${storefront} in both apps)`)
+  } else {
+    problems += 1
+    console.log("  FAIL  labour worker limit: differs (or not found)")
+    console.log(`      storefront: ${storefront}\n      backend:    ${backend}`)
+  }
+}
+
 process.exit(problems === 0 ? 0 : 1)

@@ -12,6 +12,7 @@ import { LabourService } from "@lib/data/labour-services"
 import { createLabourBooking } from "@lib/data/labour-bookings"
 import { completePhoneSignup, emailBlocksSignup } from "@lib/data/customer"
 import { checkPincodeServiceable } from "@lib/data/delivery-area"
+import { MAX_WORKERS_PER_BOOKING } from "@lib/util/labour-booking"
 import { splitFullName } from "@lib/util/split-full-name"
 import { EMAIL_TAKEN_MESSAGE, isValidEmail } from "@lib/util/email"
 import { convertToLocale } from "@lib/util/money"
@@ -265,6 +266,9 @@ const BookingModal = ({
     if (!numWorkersInput.trim() || numWorkers < 1) {
       return "Please enter the number of people (at least 1)."
     }
+    if (numWorkers > MAX_WORKERS_PER_BOOKING) {
+      return `For more than ${MAX_WORKERS_PER_BOOKING} people, please call us.`
+    }
     if (rateType === "hour") {
       return validateHourTime()
     }
@@ -319,6 +323,7 @@ const BookingModal = ({
     setStep("verify")
   }
 
+  const numWorkersTooMany = numWorkers > MAX_WORKERS_PER_BOOKING
   const numWorkersInvalid =
     attemptedContinue && (!numWorkersInput.trim() || numWorkers < 1)
   const hourTimeInvalid =
@@ -548,19 +553,28 @@ const BookingModal = ({
                 value={numWorkersInput}
                 onChange={(e) => setNumWorkersInput(e.target.value.replace(/\D/g, "").slice(0, 2))}
                 className={`border rounded-md px-3 py-2 text-sm w-full ${
-                  numWorkersInvalid
+                  numWorkersInvalid || numWorkersTooMany
                     ? "border-rose-500 bg-rose-50"
                     : "border-gray-300"
                 }`}
                 data-testid="num-workers-input"
               />
-              {numWorkersInvalid && (
+              {numWorkersTooMany ? (
                 <Text
                   className="text-rose-500 txt-small mt-1"
                   data-testid="num-workers-error"
                 >
-                  Please enter the number of people (at least 1).
+                  For more than {MAX_WORKERS_PER_BOOKING} people, please call us.
                 </Text>
+              ) : (
+                numWorkersInvalid && (
+                  <Text
+                    className="text-rose-500 txt-small mt-1"
+                    data-testid="num-workers-error"
+                  >
+                    Please enter the number of people (at least 1).
+                  </Text>
+                )
               )}
             </div>
 

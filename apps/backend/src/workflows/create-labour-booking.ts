@@ -54,11 +54,21 @@ const minutesSinceMidnight = (time: string) => {
 const toDateOnly = (d: Date) =>
   new Date(d.getFullYear(), d.getMonth(), d.getDate())
 
+// Larger jobs are arranged by phone. Keep in step with the storefront's
+// MAX_WORKERS_PER_BOOKING (scripts/check-synced-lists.js checks it).
+export const MAX_WORKERS_PER_BOOKING = 20
+
 const validateLabourBookingInput = (input: CreateLabourBookingInput) => {
   if (input.num_workers < 1) {
     throw new MedusaError(
       MedusaError.Types.INVALID_DATA,
       "At least one worker is required."
+    )
+  }
+  if (input.num_workers > MAX_WORKERS_PER_BOOKING) {
+    throw new MedusaError(
+      MedusaError.Types.INVALID_DATA,
+      `A booking can have at most ${MAX_WORKERS_PER_BOOKING} workers. For more, please call us.`
     )
   }
 

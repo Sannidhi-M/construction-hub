@@ -10,6 +10,10 @@ import type { LabourBooking } from "@lib/data/labour-bookings"
 
 export type BookingStatus = LabourBooking["status"]
 
+// Larger jobs are arranged by phone. Keep in step with the backend's
+// MAX_WORKERS_PER_BOOKING (scripts/check-synced-lists.js checks it).
+export const MAX_WORKERS_PER_BOOKING = 20
+
 export const BOOKING_STATUS_COLOR: Record<
   BookingStatus,
   "orange" | "blue" | "green" | "red"

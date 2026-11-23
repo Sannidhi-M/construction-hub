@@ -1,5 +1,6 @@
 import { authenticate, defineMiddlewares } from "@medusajs/framework/http"
 import type { MedusaNextFunction, MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
+import { parsePhoneNumberFromString } from "libphonenumber-js"
 import { getRedisClient } from "../lib/redis"
 
 /**
@@ -99,8 +100,102 @@ const emailConflictIpRateLimit = createIpRateLimit({
   message: "Too many requests from this network. Please try again later.",
 })
 
+/**
+ * Every product here is a physical material, so stock is always tracked. The
+ * Admin's create-product wizard leaves "Managed inventory" unticked, which
+ * makes a variant look unlimited and lets it be oversold without any
+ * warning — so variants created through the Admin are forced to track stock.
+ *
+ * Runs on the create routes only, so editing a variant later is still the
+ * owner's choice. It must act before the workflow runs, because the stock
+ * record (inventory item) is created at that moment only for variants that
+ * manage inventory; flipping the flag afterwards would leave none. The body
+ * is patched in both places Medusa may read it from, so it holds whether
+ * this runs before or after the built-in validation.
+ */
+function forceManagedInventory(
+  req: MedusaRequest,
+  _res: MedusaResponse,
+  next: MedusaNextFunction
+) {
+  const patch = (body: unknown) => {
+    const payload = body as {
+      variants?: { manage_inventory?: boolean }[]
+      manage_inventory?: boolean
+    } | undefined
+    if (!payload) {
+      return
+    }
+    // POST /admin/products carries `variants`; POST /admin/products/:id/variants
+    // carries the one variant's fields directly.
+    payload.variants?.forEach((variant) => {
+      variant.manage_inventory = true
+    })
+    if (!("variants" in payload)) {
+      payload.manage_inventory = true
+    }
+  }
+
+  patch(req.body)
+  patch((req as { validatedBody?: unknown }).validatedBody)
+  next()
+}
+
+/**
+ * A customer's phone number is their login identity (phone OTP), so the Admin
+ * must not store anything that isn't a real number — Medusa itself accepts any
+ * text, and "abc" would create an account nobody can sign in to. A real number
+ * is saved in E.164 (+91…), the form the login and the storefront's own
+ * sign-up write. Left empty is fine: guest customers, such as those made by
+ * Draft Orders, have no phone.
+ */
+function validateCustomerPhone(
+  req: MedusaRequest,
+  res: MedusaResponse,
+  next: MedusaNextFunction
+) {
+  const bodies = [req.body, (req as { validatedBody?: unknown }).validatedBody]
+    .filter(Boolean) as { phone?: string | null }[]
+
+  for (const body of bodies) {
+    if (typeof body.phone !== "string" || !body.phone.trim()) {
+      continue
+    }
+    const parsed = parsePhoneNumberFromString(body.phone.trim(), "IN")
+    if (!parsed?.isValid()) {
+      res.status(400).json({
+        type: "invalid_data",
+        message: "Please enter a valid phone number (10 digits for India).",
+      })
+      return
+    }
+    body.phone = parsed.number
+  }
+  next()
+}
+
 export default defineMiddlewares({
   routes: [
+    {
+      matcher: "/admin/products",
+      method: ["POST"],
+      middlewares: [forceManagedInventory],
+    },
+    {
+      matcher: "/admin/products/:id/variants",
+      method: ["POST"],
+      middlewares: [forceManagedInventory],
+    },
+    {
+      matcher: "/admin/customers",
+      method: ["POST"],
+      middlewares: [validateCustomerPhone],
+    },
+    {
+      matcher: "/admin/customers/:id",
+      method: ["POST"],
+      middlewares: [validateCustomerPhone],
+    },
     {
       matcher: "/auth/customer/phone-auth*",
       middlewares: [phoneAuthIpRateLimit],
