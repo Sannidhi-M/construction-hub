@@ -1,0 +1,17 @@
+# Keep the Docker build context small and free of secrets: dependencies are
+# installed fresh inside the image, and real settings come from deploy/.env
+# at build/run time, never from files copied out of a developer's checkout.
+.git
+**/node_modules
+**/.next
+**/.medusa
+**/.turbo
+**/.env
+**/.env.*
+!**/.env.template
+apps/backend/static
+apps/backend/private
+deploy
+docs
+*.dump
+*.zip

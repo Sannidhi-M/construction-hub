@@ -1,0 +1,25 @@
+# Front door: HTTPS (certificates obtained and renewed automatically) and
+# routing. Domains come from deploy/.env.
+
+{$SITE_DOMAIN} {
+	encode zstd gzip
+	reverse_proxy storefront:8000
+}
+
+www.{$SITE_DOMAIN} {
+	redir https://{$SITE_DOMAIN}{uri} permanent
+}
+
+{$API_DOMAIN} {
+	encode zstd gzip
+
+	# Defence in depth for private files (Admin CSV exports/imports). They're
+	# already stored outside the public static/ folder, so the backend can't
+	# serve them; this refuses any such path before it reaches the backend.
+	# Narrow on purpose: a photo whose name merely contains "private" (uploads
+	# are stored as <timestamp>-<name>) must still load.
+	@private path_regexp private (?i)^/+(static/+private-|private)
+	respond @private 404
+
+	reverse_proxy backend:9000
+}

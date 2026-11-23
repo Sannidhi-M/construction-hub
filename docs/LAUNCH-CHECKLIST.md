@@ -24,9 +24,10 @@ Login currently uses Firebase Phone Auth. Only test phone numbers work freely: a
 
 - [ ] **Production URL.** Set `NEXT_PUBLIC_BASE_URL` to the real https domain, or the sitemap and robots point at localhost.
 - [ ] **Secrets.** Real `JWT_SECRET` and `COOKIE_SECRET` in the backend env.
-- [ ] **Redis for sessions and events (do during deployment).** Needs a production Redis server. Without it the backend keeps Admin sessions in memory, so every restart (deploy, crash, host maintenance) signs the Admin out; no data is lost, only unsaved edits. Set `redisUrl` in `medusa-config.ts` for sessions, and switch on the Redis event bus and workflow engine (`@medusajs/medusa/event-bus-redis`, `@medusajs/medusa/workflow-engine-redis`, packages already installed) in place of the local ones the backend warns about. Keep it conditional on a Redis address being set so local development still works without Redis.
-- [ ] **File storage (do during deployment).** Uploaded photos go to the backend's local `static/` folder and are saved with `http://localhost:9000/...` addresses, so they vanish on redeploy and break for customers. Use S3-compatible storage (Cloudflare R2 recommended, or AWS S3): create a bucket with public read access and a write key; then configure the Medusa S3 file module (`@medusajs/medusa/file-s3`, already installed) in `medusa-config.ts`, conditional on the env vars being set; allow the bucket's host in the storefront's `next.config.js` image settings; and run a one-time script that uploads the existing 13 photos (4 product images, 9 labour service photos) and rewrites their saved addresses. Upload real photos only after this is done. Deleting a product still leaves its files in the bucket.
-- [ ] **CORS.** `STORE_CORS`, `ADMIN_CORS` and `AUTH_CORS` set to the production origins.
+- [x] **Redis for sessions and events.** Done in code (2026-11-24): `medusa-config.ts` registers Redis sessions, event bus, workflow engine and locking whenever `REDIS_URL` is set; production runs Redis in Docker (`deploy/docker-compose.yml`).
+- [x] **File storage.** Decided (2026-11-24, `docs/DEPLOYMENT-PLAN.md`): photos stay on the server's disk in a persistent Docker volume, backed up nightly; private files (CSV exports) are kept outside the public folder. Existing photo addresses are rewritten once with `deploy/rewrite-file-urls.sh`. Move to S3-compatible storage later only if the store outgrows one server.
+- [ ] **Deploy.** Follow `docs/DEPLOYMENT.md`: rehearsal on the Mac, then the server.
+- [ ] **CORS.** Set automatically from the domains in `deploy/.env` (`deploy/docker-compose.yml`).
 
 ## Checks
 

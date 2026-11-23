@@ -22,6 +22,7 @@ Medusa DTC Starter — a Turborepo workspace monorepo containing a Medusa backen
 │   │       ├── subscribers/      # Event subscribers
 │   │       └── workflows/        # Workflows and workflow steps
 │   └── storefront/               # OPTIONAL storefront
+├── deploy/                       # Production: Dockerfiles, docker-compose, Caddy, deploy/backup/rollback scripts (docs/DEPLOYMENT.md)
 ├── eslint.config.ts              # Root ESLint: @medusajs/eslint-plugin recommended
 ├── turbo.json                    # Task graph: build, dev, start, lint, test, seed
 ```
@@ -151,6 +152,6 @@ claude mcp add --transport http medusa https://docs.medusajs.com/mcp # or agent 
 
 - `apps/backend/.medusa/`, `.next/`, `dist/`, `out/`, `.turbo/` — build output, excluded from the workspace and regenerated.
 - The lockfile (`pnpm-lock.yaml`, `yarn.lock`, `package-lock.json` — whichever this install produced) — never hand-edit or delete; change it only as a side effect of a package manager command.
-- `.env` / `.env.local` — never commit, print, or copy secret values out of them. Edit `.env.template` instead when documenting a new variable.
+- `deploy/.env` (production secrets on the server) and `.env` / `.env.local` — never commit, print, or copy secret values out of them. Edit `.env.template` instead when documenting a new variable.
 - Existing migrations in `src/modules/*/migrations/` — add a new migration rather than rewriting one that may already have run.
 - Don't run destructive DB commands (drops, `db:migrate --help`-style flags that reset state) against the user's database without explicit confirmation.

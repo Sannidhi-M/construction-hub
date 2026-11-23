@@ -1,0 +1,149 @@
+# Construct Mitra production stack — one server, see docs/DEPLOYMENT-PLAN.md.
+# Run from this folder; settings come from deploy/.env (copy
+# .env.production.template). Normally driven by deploy.sh, not by hand.
+# Images are tagged with the git commit they were built from; deploy.sh also
+# tags the running one "current", which is what a bare `docker compose up`
+# (or a server reboot) uses.
+name: constructmitra
+
+# Every container's log is capped (3 x 10 MB), so logs can never fill the disk.
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    logging: *logging
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    logging: *logging
+    # Append-only file: sessions and in-flight workflow state survive restarts.
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    image: constructmitra-backend:${APP_TAG:-current}
+    build:
+      context: ..
+      dockerfile: deploy/backend.Dockerfile
+    restart: unless-stopped
+    logging: *logging
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      COOKIE_SECRET: ${COOKIE_SECRET}
+      STORE_CORS: https://${SITE_DOMAIN},https://www.${SITE_DOMAIN}
+      ADMIN_CORS: https://${API_DOMAIN}
+      AUTH_CORS: https://${SITE_DOMAIN},https://www.${SITE_DOMAIN},https://${API_DOMAIN}
+      FILE_BACKEND_URL: https://${API_DOMAIN}/static
+      MIN_ORDER_VALUE_INR: ${MIN_ORDER_VALUE_INR:-0}
+      PHONE_OTP_PROVIDER: ${PHONE_OTP_PROVIDER}
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID}
+      MSG91_AUTH_KEY: ${MSG91_AUTH_KEY:-}
+      MSG91_FLOW_ID: ${MSG91_FLOW_ID:-}
+      MSG91_SENDER_ID: ${MSG91_SENDER_ID:-}
+    volumes:
+      # Persistent: photos and private files live outside the image, so
+      # rebuilding or replacing the container never loses them.
+      - static:/repo/apps/backend/.medusa/server/static
+      - private:/repo/apps/backend/.medusa/server/private
+    # No `ports:` on purpose — only Caddy can reach the backend.
+    healthcheck:
+      # The slim image has no curl; Node's own fetch does the job.
+      test: ["CMD", "node", "-e", "fetch('http://localhost:9000/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 90s
+
+  storefront:
+    image: constructmitra-storefront:${APP_TAG:-current}
+    build:
+      context: ..
+      dockerfile: deploy/storefront.Dockerfile
+      args:
+        NEXT_PUBLIC_MEDUSA_BACKEND_URL: https://${API_DOMAIN}
+        NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: ${NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY}
+        NEXT_PUBLIC_BASE_URL: https://${SITE_DOMAIN}
+        NEXT_PUBLIC_MIN_ORDER_VALUE_INR: ${MIN_ORDER_VALUE_INR:-0}
+        NEXT_PUBLIC_UPI_VPA: ${NEXT_PUBLIC_UPI_VPA}
+        NEXT_PUBLIC_UPI_PAYEE_NAME: ${NEXT_PUBLIC_UPI_PAYEE_NAME}
+        NEXT_PUBLIC_SITE_LEGAL_NAME: ${NEXT_PUBLIC_SITE_LEGAL_NAME:-}
+        NEXT_PUBLIC_SITE_GSTIN: ${NEXT_PUBLIC_SITE_GSTIN:-}
+        NEXT_PUBLIC_SITE_ADDRESS: ${NEXT_PUBLIC_SITE_ADDRESS:-}
+        NEXT_PUBLIC_SITE_HOURS: ${NEXT_PUBLIC_SITE_HOURS:-}
+        NEXT_PUBLIC_PHONE_OTP_PROVIDER: ${PHONE_OTP_PROVIDER}
+        NEXT_PUBLIC_FIREBASE_API_KEY: ${NEXT_PUBLIC_FIREBASE_API_KEY}
+        NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN}
+        NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID}
+        NEXT_PUBLIC_FIREBASE_APP_ID: ${NEXT_PUBLIC_FIREBASE_APP_ID}
+    restart: unless-stopped
+    logging: *logging
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      # The home page calls the backend, so this also proves they're connected.
+      test: ["CMD", "node", "-e", "fetch('http://localhost:8000/').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+      interval: 10s
+      timeout: 10s
+      retries: 6
+      start_period: 60s
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    logging: *logging
+    depends_on:
+      - backend
+      - storefront
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN}
+      API_DOMAIN: ${API_DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # HTTPS certificates; kept so restarts don't re-request them.
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  pgdata:
+  redisdata:
+  static:
+  private:
+  caddy_data:
+  caddy_config:
