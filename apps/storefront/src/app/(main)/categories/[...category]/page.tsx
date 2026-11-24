@@ -1,8 +1,7 @@
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
 
-import { getCategoryByHandle, listCategories } from "@lib/data/categories"
-import { HttpTypes } from "@medusajs/types"
+import { getCategoryByHandle } from "@lib/data/categories"
 import CategoryTemplate from "@modules/categories/templates"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
 import { parseOptionValueIds } from "@lib/util/product-option-filters"
@@ -19,19 +18,13 @@ type Props = {
   >
 }
 
-export async function generateStaticParams() {
-  const product_categories = await listCategories()
-
-  if (!product_categories) {
-    return []
-  }
-
-  return product_categories.map(
-    (category: HttpTypes.StoreProductCategory) => ({
-      category: [category.handle],
-    })
-  )
-}
+// Always rendered per request: these pages read the visitor's cookies (cart,
+// region), so they can't be pre-built. Saying so explicitly matters — with
+// generateStaticParams, a build that couldn't reach the backend (the
+// production image is built without it) left the route marked static, and
+// every visit then failed with DYNAMIC_SERVER_USAGE (found in the deployment
+// rehearsal). Prices and stock are therefore always current.
+export const dynamic = "force-dynamic"
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params

@@ -26,8 +26,8 @@ import DeliveryAreaModuleService from "../modules/delivery-area/service";
  * pincodes) supplied by the business — see docs/PROGRESS.md (Phase 1) for
  * the placeholders introduced where source data was incomplete (unnamed
  * brands, missing prices, unnamed block sizes) and why. This script is a
- * one-shot dev/initial-setup seed, not idempotent — re-running it against
- * a non-empty database will create duplicates.
+ * one-shot dev/initial-setup seed: on a database that already has a store
+ * set up (any region), it does nothing — see the guard below.
  */
 export default async function initial_data_seed({
   container,
@@ -40,6 +40,22 @@ export default async function initial_data_seed({
   const fulfillmentModuleService = container.resolve(
     Modules.FULFILLMENT
   );
+
+  // Medusa runs each migration script once, remembered BY FILE NAME — and the
+  // name differs between environments (initial-data-seed.ts in development,
+  // .js in a production build). So a database seeded in development and
+  // restored on the server (docs/DEPLOYMENT.md) looks un-seeded to the
+  // server, which would run this again and create a second store and sales
+  // channel (caught in the deployment rehearsal). Medusa's own first-boot
+  // setup creates a default store but never a region, so "a region exists"
+  // reliably means "already seeded".
+  const existingRegions = await container
+    .resolve(Modules.REGION)
+    .listRegions({}, { take: 1 });
+  if (existingRegions.length) {
+    logger.info("Store data already present — skipping the initial seed.");
+    return;
+  }
 
   // A core Medusa loader auto-provisions a default store/sales channel/
   // publishable key on first boot, before this script runs — clean those up

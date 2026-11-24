@@ -1,6 +1,6 @@
 # Deployment & hosting plan — Construct Mitra
 
-Decided 2026-11-23, revised the same day after review. Status: code and scripts ready (`deploy/`); Mac rehearsal next. Step-by-step runbook: `docs/DEPLOYMENT.md`.
+Decided 2026-11-23, revised the same day after review. Status: Mac rehearsal run 2026-11-24 (findings below); deploy/rollback script run pending a commit. Step-by-step runbook: `docs/DEPLOYMENT.md`.
 
 ## Context
 The store runs only on the owner's Mac today: local Postgres, local Redis, photos in
@@ -186,6 +186,20 @@ modules are registered explicitly in `medusa-config.ts`, only when `REDIS_URL` i
 **Honest limits:** a single server means hardware or host trouble takes the site down until it's
 restored. That's minutes to hours, and it's acceptable for a new local store. The owner (with me)
 owns maintenance: a monthly check of updates, backups and disk via a short runbook.
+
+## Rehearsal findings (2026-11-24, Docker on the Mac)
+Each was fixed and re-tested; none would have been caught without running the real stack.
+
+| Found | Effect if missed | Fix |
+|---|---|---|
+| The one-time seed ran again on restored data: Medusa remembers scripts by file name, `.ts` in development but `.js` in the production build | A second store and sales channel in the live database | Seed skips when a region exists; `restore.sh` records the `.js` names as done |
+| Medusa uses SSL for any non-`localhost` database | Backend couldn't connect (timeout) | `?sslmode=disable` on the private Docker network |
+| App files owned by root, app runs as `node` | Migrations and Next.js cache failed with EACCES | Files copied with `--chown=node:node` |
+| Product/category/collection pages marked static when built without the backend | Every product page: error 500 | Pages declared `force-dynamic` (they read cart cookies) |
+| Storefront's server-side calls all came from one IP | Per-IP limits (OTP 20/h, contact form 5/h) shared by all customers | Storefront forwards the visitor's IP; Caddy's header can't be spoofed; storefront talks to the backend on the private network |
+| `next.config.js` checks settings again at start | Storefront wouldn't start | Same public settings passed at build and run time |
+
+Verified working: all pages through HTTPS, photos, Admin login, Admin session survives a backend restart, private exports unreachable by any URL variant, per-visitor rate limits with spoof protection, backup -> deliberate data loss -> restore.
 
 ## Estimated monthly cost (incl. 18% GST, approximate; confirm prices at purchase)
 | Item | Cost |

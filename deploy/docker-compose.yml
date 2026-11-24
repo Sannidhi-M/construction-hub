@@ -13,6 +13,25 @@ x-logging: &logging
     max-size: "10m"
     max-file: "3"
 
+# The storefront's public settings. Compiled into the site at build time AND
+# checked again by next.config.js when it starts, so both get the same list.
+x-storefront-public: &storefront-public
+  NEXT_PUBLIC_MEDUSA_BACKEND_URL: https://${API_DOMAIN}
+  NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: ${NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY}
+  NEXT_PUBLIC_BASE_URL: https://${SITE_DOMAIN}
+  NEXT_PUBLIC_MIN_ORDER_VALUE_INR: ${MIN_ORDER_VALUE_INR:-0}
+  NEXT_PUBLIC_UPI_VPA: ${NEXT_PUBLIC_UPI_VPA}
+  NEXT_PUBLIC_UPI_PAYEE_NAME: ${NEXT_PUBLIC_UPI_PAYEE_NAME}
+  NEXT_PUBLIC_SITE_LEGAL_NAME: ${NEXT_PUBLIC_SITE_LEGAL_NAME:-}
+  NEXT_PUBLIC_SITE_GSTIN: ${NEXT_PUBLIC_SITE_GSTIN:-}
+  NEXT_PUBLIC_SITE_ADDRESS: ${NEXT_PUBLIC_SITE_ADDRESS:-}
+  NEXT_PUBLIC_SITE_HOURS: ${NEXT_PUBLIC_SITE_HOURS:-}
+  NEXT_PUBLIC_PHONE_OTP_PROVIDER: ${PHONE_OTP_PROVIDER}
+  NEXT_PUBLIC_FIREBASE_API_KEY: ${NEXT_PUBLIC_FIREBASE_API_KEY}
+  NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN}
+  NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID}
+  NEXT_PUBLIC_FIREBASE_APP_ID: ${NEXT_PUBLIC_FIREBASE_APP_ID}
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -58,7 +77,11 @@ services:
         condition: service_healthy
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      # sslmode=disable: Medusa switches SSL on for any database that isn't
+      # "localhost", and this Postgres (reachable only inside the server's
+      # private Docker network) doesn't offer it — without this, connecting
+      # just times out.
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
       REDIS_URL: redis://redis:6379
       JWT_SECRET: ${JWT_SECRET}
       COOKIE_SECRET: ${COOKIE_SECRET}
@@ -91,22 +114,12 @@ services:
     build:
       context: ..
       dockerfile: deploy/storefront.Dockerfile
-      args:
-        NEXT_PUBLIC_MEDUSA_BACKEND_URL: https://${API_DOMAIN}
-        NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: ${NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY}
-        NEXT_PUBLIC_BASE_URL: https://${SITE_DOMAIN}
-        NEXT_PUBLIC_MIN_ORDER_VALUE_INR: ${MIN_ORDER_VALUE_INR:-0}
-        NEXT_PUBLIC_UPI_VPA: ${NEXT_PUBLIC_UPI_VPA}
-        NEXT_PUBLIC_UPI_PAYEE_NAME: ${NEXT_PUBLIC_UPI_PAYEE_NAME}
-        NEXT_PUBLIC_SITE_LEGAL_NAME: ${NEXT_PUBLIC_SITE_LEGAL_NAME:-}
-        NEXT_PUBLIC_SITE_GSTIN: ${NEXT_PUBLIC_SITE_GSTIN:-}
-        NEXT_PUBLIC_SITE_ADDRESS: ${NEXT_PUBLIC_SITE_ADDRESS:-}
-        NEXT_PUBLIC_SITE_HOURS: ${NEXT_PUBLIC_SITE_HOURS:-}
-        NEXT_PUBLIC_PHONE_OTP_PROVIDER: ${PHONE_OTP_PROVIDER}
-        NEXT_PUBLIC_FIREBASE_API_KEY: ${NEXT_PUBLIC_FIREBASE_API_KEY}
-        NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN}
-        NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID}
-        NEXT_PUBLIC_FIREBASE_APP_ID: ${NEXT_PUBLIC_FIREBASE_APP_ID}
+      args: *storefront-public
+    environment:
+      <<: *storefront-public
+      # Server-side calls go straight to the backend over the private Docker
+      # network instead of out through the internet (apps/storefront/src/lib/config.ts).
+      MEDUSA_BACKEND_URL: http://backend:9000
     restart: unless-stopped
     logging: *logging
     depends_on:

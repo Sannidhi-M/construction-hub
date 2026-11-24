@@ -35,6 +35,19 @@ docker compose exec -T postgres createdb -U "$POSTGRES_USER" "$POSTGRES_DB"
 docker compose exec -T postgres pg_restore -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
   --no-owner --no-acl --exit-on-error < "$DUMP"
 
+# Medusa remembers which one-time migration scripts ran by file name, and a
+# development database records them as .ts while the server's build runs .js.
+# Record the .js twin of every script that already ran, so the server doesn't
+# run them a second time on restored data. (The seed also guards itself.)
+docker compose exec -T postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 -q -c "
+  INSERT INTO script_migrations (script_name, created_at, finished_at)
+  SELECT regexp_replace(script_name, '\.ts\$', '.js'), created_at, finished_at
+  FROM script_migrations ts
+  WHERE script_name LIKE '%.ts' AND finished_at IS NOT NULL
+    AND NOT EXISTS (
+      SELECT 1 FROM script_migrations js
+      WHERE js.script_name = regexp_replace(ts.script_name, '\.ts\$', '.js'))"
+
 if [ -n "$FILES" ]; then
   log "Replacing uploaded files"
   in_dir="$(cd "$(dirname "$FILES")" && pwd)"

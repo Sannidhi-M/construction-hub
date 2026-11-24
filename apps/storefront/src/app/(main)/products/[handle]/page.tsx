@@ -11,24 +11,13 @@ type Props = {
   searchParams: Promise<{ v_id?: string }>
 }
 
-export async function generateStaticParams() {
-  try {
-    const { response } = await listProducts({
-      queryParams: { limit: 100, fields: "handle" },
-    })
-
-    return response.products
-      .map((product) => ({ handle: product.handle }))
-      .filter((param) => param.handle)
-  } catch (error) {
-    console.error(
-      `Failed to generate static paths for product pages: ${
-        error instanceof Error ? error.message : "Unknown error"
-      }.`
-    )
-    return []
-  }
-}
+// Always rendered per request: these pages read the visitor's cookies (cart,
+// region), so they can't be pre-built. Saying so explicitly matters — with
+// generateStaticParams, a build that couldn't reach the backend (the
+// production image is built without it) left the route marked static, and
+// every visit then failed with DYNAMIC_SERVER_USAGE (found in the deployment
+// rehearsal). Prices and stock are therefore always current.
+export const dynamic = "force-dynamic"
 
 function getImagesForVariant(
   product: HttpTypes.StoreProduct,

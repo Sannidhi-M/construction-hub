@@ -17,9 +17,12 @@ RUN mkdir -p apps/backend/node_modules
 FROM node:22-bookworm-slim
 ENV NODE_ENV=production
 WORKDIR /repo
-COPY --from=build /repo/node_modules ./node_modules
-COPY --from=build /repo/apps/backend/node_modules ./apps/backend/node_modules
-COPY --from=build /repo/apps/backend/.medusa/server ./apps/backend/.medusa/server
+# Owned by `node`: `medusa db:migrate` creates an (empty) migrations folder
+# inside module packages that have none — in node_modules and in our own
+# built modules alike — and fails with EACCES if it can't.
+COPY --from=build --chown=node:node /repo/node_modules ./node_modules
+COPY --from=build --chown=node:node /repo/apps/backend/node_modules ./apps/backend/node_modules
+COPY --from=build --chown=node:node /repo/apps/backend/.medusa/server ./apps/backend/.medusa/server
 # The built server resolves its packages by walking up to /repo/node_modules.
 WORKDIR /repo/apps/backend/.medusa/server
 # Mount points for the persistent volumes (photos; private exports/imports).

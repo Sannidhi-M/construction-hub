@@ -42,16 +42,16 @@ ENV NEXT_PUBLIC_MEDUSA_BACKEND_URL=$NEXT_PUBLIC_MEDUSA_BACKEND_URL \
     NEXT_PUBLIC_FIREBASE_PROJECT_ID=$NEXT_PUBLIC_FIREBASE_PROJECT_ID \
     NEXT_PUBLIC_FIREBASE_APP_ID=$NEXT_PUBLIC_FIREBASE_APP_ID
 
-# The build doesn't need the backend: the backend isn't reachable from inside
-# `docker build`, so product pages' generateStaticParams falls back to [] and
-# every page renders on request, always with current prices and stock.
+# The build doesn't need the backend (it isn't reachable from inside
+# `docker build`): pages that show store data render on request.
 RUN cd apps/storefront && npx next build
 
 FROM node:22-bookworm-slim
 ENV NODE_ENV=production
 WORKDIR /repo
 COPY --from=build /repo/node_modules ./node_modules
-COPY --from=build /repo/apps/storefront ./apps/storefront
+# Owned by `node`: Next.js writes its page cache under .next/cache at runtime.
+COPY --from=build --chown=node:node /repo/apps/storefront ./apps/storefront
 WORKDIR /repo/apps/storefront
 USER node
 EXPOSE 8000
